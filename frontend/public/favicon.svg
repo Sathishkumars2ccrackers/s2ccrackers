@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="100%" height="100%">
+  <defs>
+    <linearGradient id="favGold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8db" />
+      <stop offset="50%" stop-color="#fbe8bb" />
+      <stop offset="100%" stop-color="#f59e0b" />
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="#180b27" />
+  
+  <g transform="translate(64, 64) scale(0.55)">
+    <!-- Top 3 Stars -->
+    <polygon points="0,-95 3,-86 12,-86 5,-80 8,-71 0,-76 -8,-71 -5,-80 -12,-86 -3,-86" fill="url(#favGold)" />
+    <polygon points="-16,-83 -14,-77 -8,-77 -13,-73 -11,-67 -16,-70 -21,-67 -19,-73 -24,-77 -18,-77" fill="url(#favGold)" opacity="0.9" />
+    <polygon points="16,-83 18,-77 24,-77 19,-73 21,-67 16,-70 11,-67 13,-73 8,-77 14,-77" fill="url(#favGold)" opacity="0.9" />
+
+    <!-- Hexagon Frame & Interlocking S 2 Emblem -->
+    <path d="M 0 -62 L 48 -34 L 48 34 L 0 62 L -48 34 L -48 -34 Z" fill="none" stroke="url(#favGold)" stroke-width="8" stroke-linejoin="round" />
+    <line x1="0" y1="-58" x2="0" y2="58" stroke="url(#favGold)" stroke-width="6" stroke-linecap="round" />
+
+    <!-- Stylized Left 'S' Path -->
+    <path d="M -7 -42 L -30 -28 L -30 -10 L -7 4 L -7 24 L -30 10 L -30 28 L -7 42" fill="none" stroke="url(#favGold)" stroke-width="7" stroke-linecap="square" />
+    <line x1="-30" y1="-10" x2="-12" y2="-19" stroke="url(#favGold)" stroke-width="6" stroke-linecap="square" />
+
+    <!-- Stylized Right '2' Path -->
+    <path d="M 7 -42 L 30 -28 L 30 -10 L 7 4 L 30 18 L 30 28 L 7 42" fill="none" stroke="url(#favGold)" stroke-width="7" stroke-linecap="square" />
+    <line x1="12" y1="-19" x2="30" y2="-10" stroke="url(#favGold)" stroke-width="6" stroke-linecap="square" />
+
+    <!-- Bottom 3 Stars -->
+    <polygon points="0,71 3,80 12,80 5,86 8,95 0,90 -8,95 -5,86 -12,80 -3,80" fill="url(#favGold)" />
+    <polygon points="-16,67 -14,73 -8,73 -13,77 -11,83 -16,80 -21,83 -19,77 -24,73 -18,73" fill="url(#favGold)" opacity="0.9" />
+    <polygon points="16,67 18,73 24,73 19,77 21,83 16,80 11,83 13,77 8,73 14,73" fill="url(#favGold)" opacity="0.9" />
+  </g>
+</svg>
