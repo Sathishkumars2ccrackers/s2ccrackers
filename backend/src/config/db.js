@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 
 let isConnected = false;
-let mongodInstance = null;
 
 const connectDB = async () => {
-  let mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/s2ccrackers';
+  const mongoURI = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/s2ccrackers';
 
   const options = {
-    serverSelectionTimeoutMS: 3000,
+    serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
     autoIndex: true,
   };
@@ -18,44 +17,9 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected Successfully: ${conn.connection.host} / Database: ${conn.connection.name}`);
     return conn;
   } catch (error) {
-    console.warn(`⚠️ Direct connection to ${mongoURI} failed (${error.message}).`);
-    
-    // In development mode, fallback to embedded/in-memory MongoDB if available
-    try {
-      console.log('🔄 Initializing embedded MongoDB server for development...');
-      const { MongoMemoryServer } = require('mongodb-memory-server');
-      mongodInstance = await MongoMemoryServer.create({
-        binary: {
-          version: '6.0.14',
-        },
-        instance: {
-          dbName: 's2ccrackers',
-        },
-      });
-      const memoryURI = mongodInstance.getUri();
-      console.log(`🚀 Embedded MongoDB instance started at: ${memoryURI}`);
-      
-      const conn = await mongoose.connect(memoryURI, {
-        serverSelectionTimeoutMS: 10000,
-        autoIndex: true,
-      });
-      isConnected = true;
-      console.log('✅ Connected to embedded MongoDB successfully.');
-
-      // Automatically seed catalog into embedded database
-      try {
-        const seedDatabase = require('../utils/seedData');
-        await seedDatabase();
-      } catch (seedErr) {
-        console.error('Seed error on embedded DB:', seedErr.message);
-      }
-
-      return conn;
-    } catch (fallbackErr) {
-      isConnected = false;
-      console.error('❌ Embedded MongoDB fallback error:', fallbackErr.message);
-      console.error('💡 Please start MongoDB or provide a valid MONGODB_URI in .env.');
-    }
+    isConnected = false;
+    console.error(`❌ MongoDB Connection Error (${mongoURI}):`, error.message);
+    console.error('💡 Please verify your MONGODB_URI in .env or Render environment variables.');
   }
 
   // Connection Event Listeners
@@ -76,9 +40,6 @@ const connectDB = async () => {
 
   // Graceful shutdown
   process.on('SIGINT', async () => {
-    if (mongodInstance) {
-      await mongodInstance.stop();
-    }
     await mongoose.connection.close();
     console.log('🛑 Mongoose connection closed on app termination');
     process.exit(0);
@@ -94,3 +55,4 @@ const getDBStatus = () => ({
 });
 
 module.exports = { connectDB, getDBStatus };
+

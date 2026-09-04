@@ -2,6 +2,7 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 const { generateSlug, parseBulkProductFile } = require('../utils/excelEngine');
 const { logActivity } = require('../utils/activityLogger');
+const { deleteCloudinaryImage, extractPublicId } = require('../config/cloudinary');
 
 // @desc    Get public products with filters, search, brand, and sorting
 // @route   GET /api/products
@@ -347,12 +348,35 @@ const createProduct = async (req, res, next) => {
       });
     }
 
-    // Collect images
+    // Collect images and public IDs from Cloudinary upload or body
     let images = [];
-    if (req.optimizedImages && req.optimizedImages.length > 0) {
-      images = req.optimizedImages;
-    } else if (bodyImages) {
-      images = Array.isArray(bodyImages) ? bodyImages : [bodyImages];
+    let imagePublicIds = [];
+
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
+        const url = file.path || file.secure_url;
+        if (url) {
+          images.push(url);
+          imagePublicIds.push(file.filename || file.public_id || extractPublicId(url) || '');
+        }
+      });
+    } else if (req.file) {
+      const url = req.file.path || req.file.secure_url;
+      if (url) {
+        images.push(url);
+        imagePublicIds.push(req.file.filename || req.file.public_id || extractPublicId(url) || '');
+      }
+    }
+
+    if (bodyImages) {
+      const manualImages = Array.isArray(bodyImages) ? bodyImages : [bodyImages];
+      manualImages.forEach((imgUrl) => {
+        if (imgUrl && typeof imgUrl === 'string' && imgUrl.trim()) {
+          images.push(imgUrl.trim());
+          const pid = extractPublicId(imgUrl.trim()) || '';
+          imagePublicIds.push(pid);
+        }
+      });
     }
 
     const parsedPrice = parseFloat(price);
@@ -376,6 +400,7 @@ const createProduct = async (req, res, next) => {
       piecesPerBox: pcs,
       description: description ? description.trim() : 'Authentic Sivakasi festival cracker item.',
       images,
+      imagePublicIds,
       price: parsedPrice,
       originalPrice: parsedOriginalPrice,
       discountPercentage: calcDiscount,
@@ -485,18 +510,48 @@ const updateProduct = async (req, res, next) => {
 
     if (safetyTips) product.safetyTips = Array.isArray(safetyTips) ? safetyTips : [safetyTips];
 
-    // Update images if provided
-    if (req.optimizedImages && req.optimizedImages.length > 0) {
-      // Append or replace
-      if (bodyImages) {
-        const existingImgArray = Array.isArray(bodyImages) ? bodyImages : [bodyImages];
-        product.images = [...existingImgArray, ...req.optimizedImages];
-      } else {
-        product.images = req.optimizedImages;
-      }
-    } else if (bodyImages !== undefined) {
-      product.images = Array.isArray(bodyImages) ? bodyImages : [bodyImages];
+    // Handle image updates and automatic Cloudinary deletion of removed images
+    const oldImages = Array.isArray(product.images) ? [...product.images] : [];
+    let keptImages = [];
+    let keptPublicIds = [];
+
+    if (bodyImages !== undefined) {
+      keptImages = Array.isArray(bodyImages) ? bodyImages.filter(Boolean) : [bodyImages].filter(Boolean);
+    } else if (!req.files || req.files.length === 0) {
+      keptImages = oldImages;
     }
+
+    // Delete any removed images from Cloudinary automatically
+    const removedImages = oldImages.filter((oldImg) => !keptImages.includes(oldImg));
+    for (const removedUrl of removedImages) {
+      await deleteCloudinaryImage(removedUrl);
+    }
+
+    // Retain matching public IDs for kept images
+    keptImages.forEach((imgUrl) => {
+      const pid = extractPublicId(imgUrl) || '';
+      keptPublicIds.push(pid);
+    });
+
+    // Append newly uploaded Cloudinary images
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((file) => {
+        const url = file.path || file.secure_url;
+        if (url) {
+          keptImages.push(url);
+          keptPublicIds.push(file.filename || file.public_id || extractPublicId(url) || '');
+        }
+      });
+    } else if (req.file) {
+      const url = req.file.path || req.file.secure_url;
+      if (url) {
+        keptImages.push(url);
+        keptPublicIds.push(req.file.filename || req.file.public_id || extractPublicId(url) || '');
+      }
+    }
+
+    product.images = keptImages;
+    product.imagePublicIds = keptPublicIds;
 
     await product.save();
 
@@ -540,6 +595,20 @@ const deleteProduct = async (req, res, next) => {
     const product = await Product.findById(req.params.id);
     if (!product) {
       return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    // Delete all associated Cloudinary images automatically
+    if (product.images && product.images.length > 0) {
+      for (const imgUrl of product.images) {
+        await deleteCloudinaryImage(imgUrl);
+      }
+    }
+    if (product.imagePublicIds && product.imagePublicIds.length > 0) {
+      for (const pid of product.imagePublicIds) {
+        if (pid) {
+          await deleteCloudinaryImage(pid);
+        }
+      }
     }
 
     await Product.findByIdAndDelete(req.params.id);

@@ -8,12 +8,12 @@ const {
   deleteBanner,
 } = require('../controllers/bannerController');
 const { protectAdmin } = require('../middleware/auth');
-const { upload, optimizeBannerImage } = require('../middleware/imageOptimizer');
+const { uploadBanner } = require('../middleware/cloudinaryUpload');
 
 router.get('/', getActiveBanners);
 router.get('/admin/all', protectAdmin, getAllBannersAdmin);
-router.post('/admin', protectAdmin, upload.single('image'), optimizeBannerImage, createBanner);
-router.put('/admin/:id', protectAdmin, upload.single('image'), optimizeBannerImage, updateBanner);
+router.post('/admin', protectAdmin, uploadBanner.single('image'), createBanner);
+router.put('/admin/:id', protectAdmin, uploadBanner.single('image'), updateBanner);
 router.delete('/admin/:id', protectAdmin, deleteBanner);
 
 module.exports = router;

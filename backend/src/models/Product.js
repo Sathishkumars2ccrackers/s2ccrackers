@@ -53,8 +53,12 @@ const productSchema = new mongoose.Schema(
         validator: function (v) {
           return Array.isArray(v);
         },
-        message: 'Images must be an array of URLs/paths',
+        message: 'Images must be an array of URLs',
       },
+    },
+    imagePublicIds: {
+      type: [String],
+      default: [],
     },
     price: {
       type: Number,

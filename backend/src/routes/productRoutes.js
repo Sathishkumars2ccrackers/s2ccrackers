@@ -18,7 +18,7 @@ const {
   importProducts,
 } = require('../controllers/productController');
 const { protectAdmin } = require('../middleware/auth');
-const { upload, optimizeProductImages } = require('../middleware/imageOptimizer');
+const { uploadProduct } = require('../middleware/cloudinaryUpload');
 
 // Memory storage for bulk import file (.xlsx / .csv)
 const importUpload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -29,12 +29,11 @@ router.get('/meta/brands', getBrands);
 router.get('/featured/showcase', getFeaturedShowcase);
 router.get('/:identifier', getProductByIdentifier);
 
-
 // Admin Routes
 router.get('/admin/all', protectAdmin, getAllProductsAdmin);
 router.post('/admin/check-duplicate', protectAdmin, checkDuplicateProductName);
-router.post('/admin', protectAdmin, upload.array('images', 6), optimizeProductImages, createProduct);
-router.put('/admin/:id', protectAdmin, upload.array('images', 6), optimizeProductImages, updateProduct);
+router.post('/admin', protectAdmin, uploadProduct.array('images', 6), createProduct);
+router.put('/admin/:id', protectAdmin, uploadProduct.array('images', 6), updateProduct);
 router.delete('/admin/:id', protectAdmin, deleteProduct);
 router.patch('/admin/:id/toggle-status', protectAdmin, toggleProductStatus);
 router.patch('/admin/:id/toggle-featured', protectAdmin, toggleFeaturedStatus);

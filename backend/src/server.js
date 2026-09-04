@@ -1,5 +1,4 @@
 const express = require('express');
-const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -32,7 +31,7 @@ connectDB();
 // Security & Utility Middleware
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allows images in /uploads to be loaded across origins
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
 
@@ -49,9 +48,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
-
-// Serve uploaded product & banner images statically
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -73,6 +69,7 @@ app.get('/api/health', (req, res) => {
     status: 'online',
     service: 'S2C Crackers REST API',
     businessDomain: process.env.BUSINESS_DOMAIN || 'www.s2ccrackers.com',
+    imageStorage: 'Cloudinary CDN',
     timestamp: new Date().toISOString(),
     database: dbStatus,
     uptimeSeconds: Math.floor(process.uptime()),

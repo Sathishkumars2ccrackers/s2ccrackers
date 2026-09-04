@@ -26,6 +26,10 @@ const bannerSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Banner image is required'],
     },
+    imagePublicId: {
+      type: String,
+      default: '',
+    },
     linkUrl: {
       type: String,
       default: '/products',

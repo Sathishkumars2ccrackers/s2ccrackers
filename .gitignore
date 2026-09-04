@@ -17,3 +17,7 @@ build/
 
 # Logs
 *.log
+
+# Uploads (Cloudinary used now)
+uploads/
+backend/uploads/

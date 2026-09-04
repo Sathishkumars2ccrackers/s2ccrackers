@@ -1,5 +1,6 @@
 const Banner = require('../models/Banner');
 const { logActivity } = require('../utils/activityLogger');
+const { deleteCloudinaryImage, extractPublicId } = require('../config/cloudinary');
 
 // @desc    Get active banners for customer homepage
 // @route   GET /api/banners
@@ -32,7 +33,16 @@ const createBanner = async (req, res, next) => {
   try {
     const { title, subtitle, badge, discountTag, imageUrl: bodyImageUrl, linkUrl, buttonText, displayOrder, isActive } = req.body;
 
-    const imageUrl = req.optimizedBanner || bodyImageUrl;
+    let imageUrl = bodyImageUrl;
+    let imagePublicId = '';
+
+    if (req.file) {
+      imageUrl = req.file.path || req.file.secure_url;
+      imagePublicId = req.file.filename || req.file.public_id || extractPublicId(imageUrl) || '';
+    } else if (bodyImageUrl) {
+      imagePublicId = extractPublicId(bodyImageUrl) || '';
+    }
+
     if (!title || !imageUrl) {
       return res.status(400).json({ success: false, message: 'Banner title and image are required.' });
     }
@@ -43,6 +53,7 @@ const createBanner = async (req, res, next) => {
       badge: badge ? badge.trim() : 'MEGA FESTIVAL SALE',
       discountTag: discountTag ? discountTag.trim() : 'Up to 80% Off Sivakasi Crackers',
       imageUrl,
+      imagePublicId,
       linkUrl: linkUrl ? linkUrl.trim() : '/products',
       buttonText: buttonText ? buttonText.trim() : 'Shop Crackers Now',
       displayOrder: displayOrder ? parseInt(displayOrder, 10) : 0,
@@ -80,8 +91,24 @@ const updateBanner = async (req, res, next) => {
     if (subtitle !== undefined) banner.subtitle = subtitle.trim();
     if (badge !== undefined) banner.badge = badge.trim();
     if (discountTag !== undefined) banner.discountTag = discountTag.trim();
-    if (req.optimizedBanner) banner.imageUrl = req.optimizedBanner;
-    else if (bodyImageUrl) banner.imageUrl = bodyImageUrl;
+
+    // If new image file was uploaded to Cloudinary
+    if (req.file) {
+      // Automatically delete old Cloudinary image
+      if (banner.imagePublicId || banner.imageUrl) {
+        await deleteCloudinaryImage(banner.imagePublicId || banner.imageUrl);
+      }
+      banner.imageUrl = req.file.path || req.file.secure_url;
+      banner.imagePublicId = req.file.filename || req.file.public_id || extractPublicId(banner.imageUrl) || '';
+    } else if (bodyImageUrl && bodyImageUrl !== banner.imageUrl) {
+      // If manual image URL was changed
+      if (banner.imagePublicId || banner.imageUrl) {
+        await deleteCloudinaryImage(banner.imagePublicId || banner.imageUrl);
+      }
+      banner.imageUrl = bodyImageUrl;
+      banner.imagePublicId = extractPublicId(bodyImageUrl) || '';
+    }
+
     if (linkUrl !== undefined) banner.linkUrl = linkUrl.trim();
     if (buttonText !== undefined) banner.buttonText = buttonText.trim();
     if (displayOrder !== undefined) banner.displayOrder = parseInt(displayOrder, 10);
@@ -112,6 +139,11 @@ const deleteBanner = async (req, res, next) => {
     const banner = await Banner.findById(req.params.id);
     if (!banner) {
       return res.status(404).json({ success: false, message: 'Banner not found' });
+    }
+
+    // Automatically delete Cloudinary image
+    if (banner.imagePublicId || banner.imageUrl) {
+      await deleteCloudinaryImage(banner.imagePublicId || banner.imageUrl);
     }
 
     await Banner.findByIdAndDelete(req.params.id);
