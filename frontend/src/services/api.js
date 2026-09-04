@@ -1,7 +1,7 @@
 import axios from 'axios';
-
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  baseURL: API_BASE,
 });
 
 // Request interceptor: Attach Admin JWT token from localStorage if available
@@ -135,7 +135,8 @@ export const activityLogService = {
 // 10. Analytics & Export Services
 export const analyticsService = {
   getDashboardSummary: () => api.get('/analytics/dashboard-summary'),
-  getExportUrl: (type = 'orders', format = 'xlsx') => `/api/analytics/export?type=${type}&format=${format}`,
+  getExportUrl: (type = 'orders', format = 'xlsx') =>
+    `${API_BASE}/analytics/export?type=${type}&format=${format}`,
 };
 
 // 11. Setting Services
@@ -144,8 +145,7 @@ export const settingService = {
   getPublicSettings: () => api.get('/settings/public'),
   getAdminSettings: () => api.get('/settings/admin'),
   updateSettings: (data) => api.put('/settings/admin', data),
-  getBackupUrl: () => '/api/settings/admin/backup',
-
+  getBackupUrl: () => `${API_BASE}/settings/admin/backup`,
   // Aliases used in SettingsManager.jsx
   getPublic: () => api.get('/settings/public'),
   updateAdmin: (data) => api.put('/settings/admin', data),
