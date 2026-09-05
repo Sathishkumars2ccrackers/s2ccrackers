@@ -39,8 +39,8 @@ export const CartProvider = ({ children }) => {
     }
   }, [pincodeInfo]);
 
-  // Add product to cart
-  const addToCart = (product, quantity = 1, showDrawer = true) => {
+  // Add product to cart without automatically opening drawer
+  const addToCart = (product, quantity = 1, showDrawer = false) => {
     if (!product || product.stockQuantity <= 0) {
       toastWarning(`"${product?.name || 'Product'}" is currently out of stock.`);
       return false;
@@ -66,7 +66,7 @@ export const CartProvider = ({ children }) => {
           maxStock: product.stockQuantity,
           price: product.price,
         };
-        toastSuccess(`Updated quantity for "${product.name}" (${newQty} in cart)`);
+        toastSuccess(`Added "${product.name}" to cart (${newQty} in cart)`, 2000);
         return updated;
       } else {
         if (quantity > product.stockQuantity) {
@@ -74,7 +74,7 @@ export const CartProvider = ({ children }) => {
           return prevItems;
         }
 
-        toastSuccess(`Added "${product.name}" to festival cart!`);
+        toastSuccess(`Added "${product.name}" to cart`, 2000);
         return [
           ...prevItems,
           {
@@ -124,7 +124,7 @@ export const CartProvider = ({ children }) => {
     setCartItems((prevItems) => {
       const removed = prevItems.find((i) => i.productId === productId);
       if (removed) {
-        toastInfo(`Removed "${removed.name}" from cart`);
+        toastInfo(`Removed "${removed.name}" from cart`, 2000);
       }
       return prevItems.filter((i) => i.productId !== productId);
     });
@@ -142,7 +142,7 @@ export const CartProvider = ({ children }) => {
     (sum, item) => sum + (item.originalPrice || item.price) * item.quantity,
     0
   );
-  const totalSavings = totalOriginalPrice - cartSubtotal;
+  const totalSavings = Math.max(0, totalOriginalPrice - cartSubtotal);
   const totalItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -177,3 +177,5 @@ export const useCart = () => {
   }
   return context;
 };
+
+export default CartContext;

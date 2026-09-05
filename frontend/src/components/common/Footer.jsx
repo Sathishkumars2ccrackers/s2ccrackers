@@ -71,14 +71,14 @@ const Footer = () => {
             </div>
             <div className="flex items-center gap-2.5">
               <Phone className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <a href="tel:+919442187654" className="hover:text-amber-400 transition-colors">
-                +91 94421 87654
+              <a href="tel:+919944476516" className="hover:text-amber-400 transition-colors">
+                +91 99444 76516
               </a>
             </div>
             <div className="flex items-center gap-2.5">
               <Mail className="w-4 h-4 text-amber-400 flex-shrink-0" />
-              <a href="mailto:orders@s2ccrackers.com" className="hover:text-amber-400 transition-colors">
-                orders@s2ccrackers.com
+              <a href="mailto:s2ccrackers@gmail.com" className="hover:text-amber-400 transition-colors">
+                s2ccrackers@gmail.com
               </a>
             </div>
           </div>
@@ -129,6 +129,11 @@ const Footer = () => {
             Customer Care
           </h4>
           <ul className="space-y-2 text-xs">
+            <li>
+              <Link to="/account" className="hover:text-amber-400 transition-colors">
+                My Customer Account
+              </Link>
+            </li>
             <li>
               <Link to="/track-order" className="hover:text-amber-400 transition-colors">
                 Track Order Status

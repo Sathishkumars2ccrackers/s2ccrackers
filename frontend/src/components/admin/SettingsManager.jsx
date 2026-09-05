@@ -10,9 +10,9 @@ const SettingsManager = () => {
   const [settings, setSettings] = useState({
     storeName: 'S2C Crackers',
     tagline: 'Direct from Sivakasi Factory - Safe & Genuine Fireworks',
-    contactPhone: '+91 94421 87654',
-    whatsappNumber: '919442187654',
-    supportEmail: 'orders@s2ccrackers.com',
+    contactPhone: '+91 99444 76516',
+    whatsappNumber: '919944476516',
+    supportEmail: 's2ccrackers@gmail.com',
     factoryAddress: '124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123',
     minOrderAmount: 500,
     freeDeliveryThreshold: 3000,
@@ -142,7 +142,7 @@ const SettingsManager = () => {
               name="whatsappNumber"
               value={settings.whatsappNumber}
               onChange={handleChange}
-              placeholder="e.g. 919442187654"
+              placeholder="e.g. 919944476516"
               className="w-full bg-festival-dark border border-festival-border rounded-xl px-3.5 py-2.5 text-white font-mono"
             />
           </div>

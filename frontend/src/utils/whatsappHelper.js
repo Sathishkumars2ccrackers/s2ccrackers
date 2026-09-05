@@ -1,7 +1,7 @@
 /**
  * Formats a clean pre-filled WhatsApp message URL for S2C Crackers
  */
-export const createWhatsAppOrderUrl = (order, businessPhone = '919442187654') => {
+export const createWhatsAppOrderUrl = (order, businessPhone = '919944476516') => {
   if (!order || !order.customerDetails) return '#';
 
   const itemsList = order.items
@@ -26,14 +26,28 @@ Delivery Address: ${order.customerDetails.address}, ${order.customerDetails.city
 
 Please confirm my order.`;
 
-  const cleanPhone = (businessPhone || '919442187654').replace(/[^0-9]/g, '');
+  const cleanPhone = (businessPhone || '919944476516').replace(/[^0-9]/g, '');
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 };
 
 /**
- * Direct WhatsApp chat link for customer inquiries / custom orders
+ * Direct WhatsApp chat link for customer inquiries / quick orders
  */
-export const createWhatsAppGeneralChatUrl = (businessPhone = '919442187654', defaultMessage = 'Hello S2C Crackers, I would like to inquire about Sivakasi crackers and festival offers.') => {
-  const cleanPhone = (businessPhone || '919442187654').replace(/[^0-9]/g, '');
+export const createWhatsAppGeneralChatUrl = (
+  businessPhone = '919944476516',
+  defaultMessage = 'Hello S2C Crackers, I would like to place an order.'
+) => {
+  const cleanPhone = (businessPhone || '919944476516').replace(/[^0-9]/g, '');
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(defaultMessage)}`;
+};
+
+/**
+ * Quick order WhatsApp URL
+ */
+export const createQuickOrderWhatsAppUrl = (
+  businessPhone = '919944476516',
+  message = 'Hello S2C Crackers, I would like to place an order.'
+) => {
+  const cleanPhone = (businessPhone || '919944476516').replace(/[^0-9]/g, '');
+  return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 };

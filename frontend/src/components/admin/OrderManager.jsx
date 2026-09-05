@@ -424,7 +424,7 @@ const OrderManager = () => {
                       <p className="font-semibold text-slate-700">Direct Factory Sivakasi Fireworks</p>
                       <p className="text-[11px] text-slate-500 mt-0.5 max-w-xs">
                         124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123<br />
-                        Phone: +91 94421 87654 | Web: www.s2ccrackers.com
+                        Phone: +91 99444 76516 | Web: www.s2ccrackers.com
                       </p>
                     </div>
                   </div>

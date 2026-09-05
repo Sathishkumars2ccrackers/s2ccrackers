@@ -20,7 +20,7 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isOutOfStock) {
-      addToCart(product, 1, true);
+      addToCart(product, 1, false);
     }
   };
 

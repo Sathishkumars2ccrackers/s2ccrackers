@@ -11,11 +11,11 @@ const ContactPage = () => {
     setSubmitted(true);
     // Prepare WhatsApp message for instant inquiry
     const whatsappMsg = `Hello S2C Crackers,\n\nName: ${formData.name}\nPhone: ${formData.phone}\nEmail: ${formData.email}\nInquiry: ${formData.message}`;
-    const url = `https://wa.me/919442187654?text=${encodeURIComponent(whatsappMsg)}`;
+    const url = `https://wa.me/919944476516?text=${encodeURIComponent(whatsappMsg)}`;
     window.open(url, '_blank');
   };
 
-  const whatsappChatUrl = createWhatsAppGeneralChatUrl('919442187654');
+  const whatsappChatUrl = createWhatsAppGeneralChatUrl('919944476516');
 
   return (
     <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8">
@@ -57,7 +57,7 @@ const ContactPage = () => {
                 rel="noopener noreferrer"
                 className="inline-block text-xs font-bold text-emerald-400 hover:text-emerald-300"
               >
-                +91 94421 87654 (Click to Chat) →
+                +91 99444 76516 (Click to Chat) →
               </a>
             </div>
 
@@ -67,8 +67,19 @@ const ContactPage = () => {
               </div>
               <h3 className="text-base font-bold text-white">Customer Helpline</h3>
               <p className="text-xs text-slate-300">Monday to Sunday (8:00 AM to 10:00 PM during festival season)</p>
-              <a href="tel:+919442187654" className="inline-block text-xs font-bold text-amber-400 hover:text-amber-300">
-                +91 94421 87654
+              <a href="tel:+919944476516" className="inline-block text-xs font-bold text-amber-400 hover:text-amber-300">
+                +91 99444 76516
+              </a>
+            </div>
+
+            <div className="p-6 rounded-3xl bg-festival-card border border-festival-border space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center">
+                <Mail className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-white">Email Support</h3>
+              <p className="text-xs text-slate-300">For invoice copies, corporate inquiries, and support.</p>
+              <a href="mailto:s2ccrackers@gmail.com" className="inline-block text-xs font-bold text-amber-400 hover:text-amber-300">
+                s2ccrackers@gmail.com
               </a>
             </div>
           </div>

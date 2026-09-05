@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck,
   Truck,
@@ -15,9 +15,17 @@ import {
   ArrowRight,
   Loader2,
   Lock,
+  Sparkles,
+  Home,
+  Briefcase,
+  Navigation,
+  Plus,
+  Flame,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { orderService, pincodeService } from '../services/api';
+import { getUserAddresses, saveOrderToFirestore } from '../services/firestoreService';
 import { formatCurrency } from '../utils/formatters';
 
 const MIN_ORDER_AMOUNT = 500;
@@ -26,12 +34,13 @@ const FREE_DELIVERY_THRESHOLD = 3000;
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { cartItems, cartSubtotal, totalSavings, totalItemsCount, clearCart, pincodeInfo, setPincodeInfo } = useCart();
+  const { user, profile, openLoginModal } = useAuth();
 
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
+    name: profile?.name || user?.displayName || '',
+    phone: profile?.phone || '',
     altPhone: '',
-    email: '',
+    email: profile?.email || user?.email || '',
     address: '',
     city: pincodeInfo?.city || '',
     pincode: pincodeInfo?.pincode || '',
@@ -39,6 +48,9 @@ const CheckoutPage = () => {
     state: pincodeInfo?.state || 'Tamil Nadu',
     notes: '',
   });
+
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('custom');
 
   const [pinStatus, setPinStatus] = useState({
     checked: !!pincodeInfo?.serviceable,
@@ -52,11 +64,61 @@ const CheckoutPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // Redirect if cart is empty
   useEffect(() => {
     if (cartItems.length === 0) {
       navigate('/cart');
     }
   }, [cartItems, navigate]);
+
+  // Load and populate user details and saved addresses
+  useEffect(() => {
+    if (user?.uid) {
+      // Auto-fill contact info if not filled
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || profile?.name || user.displayName || '',
+        phone: prev.phone || profile?.phone || '',
+        email: prev.email || profile?.email || user.email || '',
+      }));
+
+      // Fetch saved addresses
+      const fetchAddresses = async () => {
+        try {
+          const list = await getUserAddresses(user.uid);
+          setSavedAddresses(list);
+
+          // If user has a default address, select it
+          const defaultAddr = list.find((a) => a.isDefault) || list[0];
+          if (defaultAddr) {
+            selectSavedAddress(defaultAddr);
+          }
+        } catch (err) {
+          console.error('Failed to load saved addresses for checkout:', err);
+        }
+      };
+
+      fetchAddresses();
+    }
+  }, [user, profile]);
+
+  const selectSavedAddress = (addr) => {
+    setSelectedAddressId(addr.id);
+    const fullStreet = [addr.addressLine1, addr.addressLine2].filter(Boolean).join(', ');
+    setFormData((prev) => ({
+      ...prev,
+      name: addr.name || prev.name,
+      phone: addr.phone || prev.phone,
+      address: fullStreet,
+      city: addr.city,
+      state: addr.state || 'Tamil Nadu',
+      pincode: addr.pincode,
+    }));
+
+    if (addr.pincode) {
+      verifyPincode(addr.pincode);
+    }
+  };
 
   // Live verify pincode when 6 digits are entered
   const verifyPincode = async (pin) => {
@@ -103,6 +165,7 @@ const CheckoutPage = () => {
 
   const handlePincodeChange = (e) => {
     const val = e.target.value.replace(/[^0-9]/g, '');
+    setSelectedAddressId('custom');
     setFormData((prev) => ({ ...prev, pincode: val }));
     if (val.length === 6) {
       verifyPincode(val);
@@ -113,6 +176,9 @@ const CheckoutPage = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'address' || name === 'city') {
+      setSelectedAddressId('custom');
+    }
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -127,6 +193,23 @@ const CheckoutPage = () => {
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     setError('');
+
+    // If user is not authenticated, prompt login before placing order
+    if (!user) {
+      openLoginModal({
+        title: 'Sign In to Place Order',
+        subtitle: 'Sign in with your Google account to complete your festival booking and track delivery.',
+        redirectUrl: '/checkout',
+        onSuccess: (loggedUser) => {
+          setFormData((prev) => ({
+            ...prev,
+            name: prev.name || loggedUser.displayName || '',
+            email: prev.email || loggedUser.email || '',
+          }));
+        },
+      });
+      return;
+    }
 
     // Validations
     if (!formData.name.trim()) {
@@ -168,7 +251,9 @@ const CheckoutPage = () => {
 
     try {
       const orderPayload = {
+        uid: user.uid,
         customerDetails: {
+          uid: user.uid,
           name: formData.name.trim(),
           phone: formData.phone.trim(),
           altPhone: formData.altPhone.trim(),
@@ -190,15 +275,29 @@ const CheckoutPage = () => {
         notes: formData.notes.trim(),
       };
 
+      // 1. Submit to MongoDB backend (handles stock deduction, ID generator, email triggers)
       const res = await orderService.placeOrder(orderPayload);
+
       if (res.data?.success && res.data.orderId) {
+        // 2. Save into Firestore orders collection under user.uid
+        await saveOrderToFirestore(
+          {
+            ...res.data.order,
+            orderId: res.data.orderId,
+            uid: user.uid,
+          },
+          user.uid
+        );
+
         clearCart();
-        navigate(`/order-success/${res.data.orderId}`, { state: { order: res.data.order, whatsapp: res.data.whatsapp } });
+        navigate(`/order-success/${res.data.orderId}`, {
+          state: { order: res.data.order, whatsapp: res.data.whatsapp },
+        });
       } else {
         setError(res.data?.message || 'Failed to submit order. Please try again.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to place festival order. Please try again or order via WhatsApp.');
+      setError(err.response?.data?.message || err.message || 'Failed to place festival order. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -208,16 +307,42 @@ const CheckoutPage = () => {
     <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Page Title */}
-        <div className="pb-6 border-b border-festival-border">
-          <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
-            <Lock className="w-7 h-7 text-amber-400" />
-            <span>Cash On Delivery (COD) Checkout</span>
-          </h1>
-          <p className="text-xs text-slate-400 mt-1">
-            Zero prepayment risk! Complete your shipping details to receive direct factory dispatch from Sivakasi.
-          </p>
+        <div className="pb-6 border-b border-festival-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+              <Lock className="w-7 h-7 text-amber-400" />
+              <span>Cash On Delivery (COD) Checkout</span>
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Zero prepayment risk! Complete your shipping details to receive direct factory dispatch from Sivakasi.
+            </p>
+          </div>
+
+          {/* User Status Badge */}
+          {user ? (
+            <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-festival-card border border-emerald-500/30 text-emerald-300 text-xs font-bold self-start sm:self-auto">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>Logged in as {formData.name || 'Customer'}</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() =>
+                openLoginModal({
+                  title: 'Sign In for Faster Checkout',
+                  subtitle: 'Sign in to use your saved addresses and 1-click checkout.',
+                  redirectUrl: '/checkout',
+                })
+              }
+              className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold transition-colors self-start sm:self-auto"
+            >
+              <Sparkles className="w-4 h-4 text-amber-400" />
+              <span>Have an account? Sign In</span>
+            </button>
+          )}
         </div>
 
+        {/* Error Alert */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -232,6 +357,60 @@ const CheckoutPage = () => {
         <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left 2 Cols: Shipping Details Form */}
           <div className="lg:col-span-2 space-y-6">
+            {/* 1-Click Saved Addresses Selector (if logged in and has addresses) */}
+            {user && savedAddresses.length > 0 && (
+              <div className="bg-festival-card border border-festival-border p-6 rounded-3xl space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-festival-border">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-amber-400" />
+                    <span>Select from Saved Addresses</span>
+                  </h3>
+                  <Link to="/account?tab=addresses" className="text-xs font-bold text-amber-400 hover:underline">
+                    Manage Addresses
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {savedAddresses.map((addr) => {
+                    const isSelected = selectedAddressId === addr.id;
+                    return (
+                      <button
+                        key={addr.id}
+                        type="button"
+                        onClick={() => selectSavedAddress(addr)}
+                        className={`p-4 rounded-2xl text-left border transition-all space-y-1.5 ${
+                          isSelected
+                            ? 'bg-festival-dark border-amber-400 ring-2 ring-amber-500/30 shadow-lg'
+                            : 'bg-festival-dark/70 border-festival-border hover:border-amber-500/40'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-xs font-bold uppercase text-amber-300">
+                            {addr.type === 'office' ? (
+                              <Briefcase className="w-3.5 h-3.5 text-cyan-400" />
+                            ) : addr.type === 'other' ? (
+                              <Navigation className="w-3.5 h-3.5 text-orange-400" />
+                            ) : (
+                              <Home className="w-3.5 h-3.5 text-amber-400" />
+                            )}
+                            <span>{addr.type || 'Home'}</span>
+                          </div>
+                          {addr.isDefault && (
+                            <span className="text-[10px] font-extrabold text-emerald-400 uppercase">Default</span>
+                          )}
+                        </div>
+                        <p className="text-xs font-bold text-white truncate">{addr.name}</p>
+                        <p className="text-[11px] text-slate-400 line-clamp-2">
+                          {addr.addressLine1}, {addr.city} - {addr.pincode}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Delivery Form Fields */}
             <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl space-y-6">
               <div className="flex items-center gap-2.5 pb-4 border-b border-festival-border text-amber-400 font-bold text-base">
                 <MapPin className="w-5 h-5" />
@@ -269,7 +448,9 @@ const CheckoutPage = () => {
                       required
                       maxLength={10}
                       value={formData.phone}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value.replace(/[^0-9]/g, '') }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, phone: e.target.value.replace(/[^0-9]/g, '') }))
+                      }
                       placeholder="e.g. 9876543210"
                       className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
                     />
@@ -290,7 +471,9 @@ const CheckoutPage = () => {
                       name="altPhone"
                       maxLength={10}
                       value={formData.altPhone}
-                      onChange={(e) => setFormData((prev) => ({ ...prev, altPhone: e.target.value.replace(/[^0-9]/g, '') }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, altPhone: e.target.value.replace(/[^0-9]/g, '') }))
+                      }
                       placeholder="e.g. 9841234567"
                       className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
                     />
@@ -433,7 +616,7 @@ const CheckoutPage = () => {
 
             {/* Payment Method Banner (Strictly COD) */}
             <div className="p-6 rounded-3xl bg-festival-card border border-emerald-500/40 space-y-3">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2.5 text-emerald-400 font-bold text-sm">
                   <ShieldCheck className="w-6 h-6" />
                   <span className="text-white text-base">Payment Method: Cash On Delivery (COD)</span>
@@ -504,7 +687,7 @@ const CheckoutPage = () => {
               <button
                 type="submit"
                 disabled={submitting || (pinStatus.checked && !pinStatus.serviceable)}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-base shadow-2xl shadow-amber-950/60 transition-all flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-base shadow-2xl shadow-amber-950/60 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 {submitting ? (
                   <>

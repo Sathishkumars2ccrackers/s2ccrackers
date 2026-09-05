@@ -89,7 +89,7 @@ const ProductDetailPage = () => {
     }
   };
 
-  const handleAddToCart = (openDrawer = true) => {
+  const handleAddToCart = (openDrawer = false) => {
     if (product && product.stockQuantity > 0) {
       addToCart(product, quantity, openDrawer);
     }
@@ -320,7 +320,7 @@ const ProductDetailPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
                   disabled={isOutOfStock}
-                  onClick={() => handleAddToCart(true)}
+                  onClick={() => handleAddToCart(false)}
                   className="py-3.5 px-4 rounded-xl bg-festival-card hover:bg-festival-cardHover border border-amber-500/40 text-amber-300 hover:text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-40"
                 >
                   <ShoppingBag className="w-4 h-4" />

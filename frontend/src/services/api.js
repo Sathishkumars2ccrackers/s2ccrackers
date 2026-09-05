@@ -141,15 +141,20 @@ export const analyticsService = {
 
 // 11. Setting Services
 export const settingService = {
-  // Primary method names (used in api.js consistently)
   getPublicSettings: () => api.get('/settings/public'),
   getAdminSettings: () => api.get('/settings/admin'),
   updateSettings: (data) => api.put('/settings/admin', data),
   getBackupUrl: () => `${API_BASE}/settings/admin/backup`,
-  // Aliases used in SettingsManager.jsx
   getPublic: () => api.get('/settings/public'),
   updateAdmin: (data) => api.put('/settings/admin', data),
   downloadBackup: () => api.get('/settings/admin/backup', { responseType: 'json' }),
+};
+
+// 12. User Services (MongoDB Customer Profile Sync)
+export const userService = {
+  syncUser: (userData) => api.post('/users/sync', userData),
+  updateProfile: (userData) => api.put('/users/profile', userData),
+  getProfile: (uid) => api.get(`/users/profile/${uid}`),
 };
 
 export default api;
