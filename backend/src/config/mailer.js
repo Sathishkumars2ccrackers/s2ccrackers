@@ -156,7 +156,7 @@ const generateCustomerEmailHTML = (order) => {
             <tr style="background-color: #1e293b;">
               <td style="padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
                 <p style="margin: 0 0 6px 0; color: #f1f5f9; font-weight: bold;">S2C Crackers - Sivakasi</p>
-                <p style="margin: 0 0 6px 0;">Phone/WhatsApp: ${process.env.BUSINESS_PHONE || '+91 94421 87654'}</p>
+                <p style="margin: 0 0 6px 0;">Phone/WhatsApp: ${process.env.BUSINESS_PHONE || '+91 99444 76516'}</p>
                 <p style="margin: 0;">www.s2ccrackers.com | Wish you a Joyous & Safe Festival of Lights!</p>
               </td>
             </tr>
@@ -202,7 +202,7 @@ const sendCustomerOrderConfirmationEmail = async (order) => {
   if (transporter && to) {
     try {
       const info = await transporter.sendMail({
-        from: `"${process.env.BUSINESS_NAME || 'S2C Crackers'}" <${process.env.SMTP_USER || 'orders@s2ccrackers.com'}>`,
+        from: `"${process.env.BUSINESS_NAME || 'S2C Crackers'}" <${process.env.SMTP_USER || 's2ccrackers@gmail.com'}>`,
         to,
         subject,
         html,

@@ -22,9 +22,9 @@ const getPublicSettings = async (req, res, next) => {
       settings: {
         businessName: setting.businessName || 'S2C Crackers',
         businessDomain: setting.businessDomain || 'www.s2ccrackers.com',
-        phone: setting.phone || '+91 94421 87654',
-        whatsappNumber: setting.whatsappNumber || '919442187654',
-        email: setting.email || 'orders@s2ccrackers.com',
+        phone: setting.phone || '+91 99444 76516',
+        whatsappNumber: setting.whatsappNumber || '919944476516',
+        email: setting.email || 's2ccrackers@gmail.com',
         address: setting.address || '124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123',
         minOrderAmount: setting.minOrderAmount || 500,
         freeDeliveryThreshold: setting.freeDeliveryThreshold || 3000,

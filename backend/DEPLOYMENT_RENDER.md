@@ -44,8 +44,8 @@ In the **Environment Variables** section of your Render Web Service, add the fol
 | `CLOUDINARY_API_SECRET` | `kixGCTNDt5JzWCRWrsh7S-DpEes` | Cloudinary API Secret |
 | `BUSINESS_NAME` | `S2C Crackers` | Store business title |
 | `BUSINESS_DOMAIN` | `www.s2ccrackers.com` | Business domain |
-| `BUSINESS_PHONE` | `+91 94421 87654` | Customer service contact |
-| `BUSINESS_WHATSAPP_NUMBER` | `919442187654` | WhatsApp order notifications |
+| `BUSINESS_PHONE` | `+91 99444 76516` | Customer service contact |
+| `BUSINESS_WHATSAPP_NUMBER` | `919944476516` | WhatsApp order notifications |
 | `ADMIN_EMAIL` | `admin@s2ccrackers.com` | Admin email address |
 | `FRONTEND_URL` | `https://s2ccrackers.vercel.app` (your Vercel URL) | Allowed CORS origin |
 | `MIN_ORDER_AMOUNT` | `500` | Minimum order policy |

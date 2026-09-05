@@ -451,9 +451,9 @@ const seedDatabase = async () => {
       await Setting.create({
         businessName: 'S2C Crackers',
         businessDomain: 'www.s2ccrackers.com',
-        phone: '+91 94421 87654',
-        whatsappNumber: '919442187654',
-        email: 'orders@s2ccrackers.com',
+        phone: '+91 99444 76516',
+        whatsappNumber: '919944476516',
+        email: 's2ccrackers@gmail.com',
         address: '124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123',
         minOrderAmount: 500,
         freeDeliveryThreshold: 3000,

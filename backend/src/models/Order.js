@@ -67,6 +67,11 @@ const orderSchema = new mongoose.Schema(
       trim: true,
       index: true,
     },
+    uid: {
+      type: String,
+      default: '',
+      index: true,
+    },
     customerDetails: {
       name: {
         type: String,

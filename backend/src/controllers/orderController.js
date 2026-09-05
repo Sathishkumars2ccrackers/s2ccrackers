@@ -8,7 +8,7 @@ const { sendCustomerOrderConfirmationEmail, sendAdminNewOrderAlertEmail } = requ
 const { logActivity } = require('../utils/activityLogger');
 
 // Generate pre-filled WhatsApp confirmation message
-const buildWhatsAppMessage = (order, businessPhone = '919442187654') => {
+const buildWhatsAppMessage = (order, businessPhone = '919944476516') => {
   const itemsText = order.items
     .map((item) => `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})`)
     .join('\n');
@@ -28,7 +28,7 @@ const buildWhatsAppMessage = (order, businessPhone = '919442187654') => {
 // @access  Public
 const placeOrder = async (req, res, next) => {
   try {
-    const { customerDetails, items: rawItems, notes } = req.body;
+    const { customerDetails, items: rawItems, notes, uid } = req.body;
 
     if (!customerDetails || !rawItems || !Array.isArray(rawItems) || rawItems.length === 0) {
       return res.status(400).json({
@@ -111,7 +111,7 @@ const placeOrder = async (req, res, next) => {
       minOrderAmount: 500,
       freeDeliveryThreshold: 3000,
       defaultDeliveryFee: 150,
-      whatsappNumber: '919442187654',
+      whatsappNumber: '919944476516',
     };
 
     if (calculatedSubtotal < setting.minOrderAmount) {
@@ -145,6 +145,7 @@ const placeOrder = async (req, res, next) => {
     // 5. Create Order
     const order = await Order.create({
       orderId,
+      uid: uid || customerDetails.uid || '',
       customerDetails: {
         name: name.trim(),
         phone: phone.trim(),
@@ -203,7 +204,7 @@ const placeOrder = async (req, res, next) => {
     }
 
     // 8. Generate WhatsApp Link Payload
-    const whatsappPayload = buildWhatsAppMessage(order, setting.whatsappNumber || '919442187654');
+    const whatsappPayload = buildWhatsAppMessage(order, setting.whatsappNumber || '919944476516');
 
     // 9. Dispatch Non-blocking Email Notifications
     sendCustomerOrderConfirmationEmail(order).catch((err) =>
@@ -273,8 +274,8 @@ const getOrderByOrderId = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
 
-    const setting = (await Setting.findOne()) || { whatsappNumber: '919442187654' };
-    const whatsappPayload = buildWhatsAppMessage(order, setting.whatsappNumber || '919442187654');
+    const setting = (await Setting.findOne()) || { whatsappNumber: '919944476516' };
+    const whatsappPayload = buildWhatsAppMessage(order, setting.whatsappNumber || '919944476516');
 
     res.status(200).json({
       success: true,

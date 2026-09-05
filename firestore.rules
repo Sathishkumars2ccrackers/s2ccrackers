@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ==========================================
+    // 1. USERS COLLECTION
+    // Users can only read and update their own document
+    // ==========================================
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ==========================================
+    // 2. ADDRESSES COLLECTION
+    // Users can only create, read, update, delete addresses where uid == auth.uid
+    // ==========================================
+    match /addresses/{addressId} {
+      allow read, update, delete: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+
+    // ==========================================
+    // 3. ORDERS COLLECTION
+    // Customers can read their own orders and write order references
+    // ==========================================
+    match /orders/{orderId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow create, update: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+
+    // ==========================================
+    // 4. WISHLIST COLLECTION
+    // Users can only access wishlist items belonging to their uid
+    // ==========================================
+    match /wishlist/{itemId} {
+      allow read, write: if request.auth != null && (
+        (resource == null && request.resource.data.uid == request.auth.uid) ||
+        (resource != null && resource.data.uid == request.auth.uid)
+      );
+    }
+  }
+}

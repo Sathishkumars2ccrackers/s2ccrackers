@@ -12,15 +12,15 @@ const settingSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      default: '+91 94421 87654',
+      default: '+91 99444 76516',
     },
     whatsappNumber: {
       type: String,
-      default: '919442187654',
+      default: '919944476516',
     },
     email: {
       type: String,
-      default: 'orders@s2ccrackers.com',
+      default: 's2ccrackers@gmail.com',
     },
     address: {
       type: String,
