@@ -5,6 +5,7 @@ const {
   placeOrder,
   trackOrder,
   getOrderByOrderId,
+  getMyOrders,
   getAllOrdersAdmin,
   updateOrderStatus,
   cancelOrderAdmin,
@@ -22,7 +23,11 @@ const orderLimiter = rateLimit({
 
 // Public Routes
 router.post('/', orderLimiter, placeOrder);
+
 router.get('/track', trackOrder);
+
+router.get('/user/:uid', getMyOrders);
+
 router.get('/:orderId', getOrderByOrderId);
 
 // Admin Routes

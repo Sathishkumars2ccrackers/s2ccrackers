@@ -286,7 +286,26 @@ const getOrderByOrderId = async (req, res, next) => {
     next(error);
   }
 };
+// @desc    Get orders of logged in user
+// @route   GET /api/orders/user/:uid
+// @access  Public
 
+const getMyOrders = async (req, res, next) => {
+  try {
+    const { uid } = req.params;
+
+    const orders = await Order.find({ uid })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      orders,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 // ================= ADMIN CONTROLLERS =================
 
 // @desc    Get all orders for Admin with filters and pagination
@@ -472,6 +491,7 @@ module.exports = {
   placeOrder,
   trackOrder,
   getOrderByOrderId,
+  getMyOrders,
   getAllOrdersAdmin,
   updateOrderStatus,
   cancelOrderAdmin,
