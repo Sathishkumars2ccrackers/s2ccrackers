@@ -143,9 +143,10 @@ const placeOrder = async (req, res, next) => {
     }
 
     // 5. Create Order
+    const cleanUid = (uid || customerDetails?.uid || '').toString().trim();
     const order = await Order.create({
       orderId,
-      uid: uid || customerDetails.uid || '',
+      uid: cleanUid,
       customerDetails: {
         name: name.trim(),
         phone: phone.trim(),
@@ -286,20 +287,31 @@ const getOrderByOrderId = async (req, res, next) => {
     next(error);
   }
 };
-// @desc    Get orders of logged in user
+// @desc    Get orders of logged in customer by Firebase UID
 // @route   GET /api/orders/user/:uid
 // @access  Public
-
 const getMyOrders = async (req, res, next) => {
   try {
     const { uid } = req.params;
 
-    const orders = await Order.find({ uid })
+    if (!uid || !uid.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Firebase user UID is required.',
+      });
+    }
+
+    const cleanUid = uid.trim();
+
+    const orders = await Order.find({
+      $or: [{ uid: cleanUid }, { 'customerDetails.uid': cleanUid }],
+    })
       .sort({ createdAt: -1 })
       .lean();
 
     res.status(200).json({
       success: true,
+      count: orders.length,
       orders,
     });
   } catch (error) {

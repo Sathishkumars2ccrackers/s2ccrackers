@@ -25,7 +25,7 @@ import {
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { orderService, pincodeService } from '../services/api';
-import { getUserAddresses, saveOrderToFirestore } from '../services/firestoreService';
+import { getUserAddresses } from '../services/firestoreService';
 import { formatCurrency } from '../utils/formatters';
 
 const MIN_ORDER_AMOUNT = 500;
@@ -251,9 +251,9 @@ const CheckoutPage = () => {
 
     try {
       const orderPayload = {
-        uid: user.uid,
+        uid: user?.uid || '',
         customerDetails: {
-          uid: user.uid,
+          uid: user?.uid || '',
           name: formData.name.trim(),
           phone: formData.phone.trim(),
           altPhone: formData.altPhone.trim(),
@@ -279,16 +279,6 @@ const CheckoutPage = () => {
       const res = await orderService.placeOrder(orderPayload);
 
       if (res.data?.success && res.data.orderId) {
-        // 2. Save into Firestore orders collection under user.uid
-        await saveOrderToFirestore(
-          {
-            ...res.data.order,
-            orderId: res.data.orderId,
-            uid: user.uid,
-          },
-          user.uid
-        );
-
         clearCart();
         navigate(`/order-success/${res.data.orderId}`, {
           state: { order: res.data.order, whatsapp: res.data.whatsapp },
