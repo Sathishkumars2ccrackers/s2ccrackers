@@ -1,5 +1,7 @@
 import axios from 'axios';
+
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
   baseURL: API_BASE,
 });
@@ -33,7 +35,7 @@ api.interceptors.response.use(
 
 // === API SERVICE METHODS ===
 
-// 1. Auth Services
+// 1. Admin Auth Services
 export const authService = {
   login: (credentials) => api.post('/auth/login', credentials),
   getProfile: () => api.get('/auth/me'),
@@ -94,7 +96,6 @@ export const orderService = {
   placeOrder: (orderData) => api.post('/orders', orderData),
   trackOrder: (orderId, phone) => api.get('/orders/track', { params: { orderId, phone } }),
   getByOrderId: (orderId) => api.get(`/orders/${orderId}`),
-  getUserOrders: (uid) => api.get(`/orders/user/${encodeURIComponent(uid)}`),
   getAllAdmin: (params) => api.get('/orders/admin/all', { params }),
   updateStatus: (id, status, note) => api.patch(`/orders/admin/${id}/status`, { status, note }),
   cancelOrder: (id, reason) => api.patch(`/orders/admin/${id}/cancel`, { reason }),
@@ -122,7 +123,7 @@ export const bannerService = {
   delete: (id) => api.delete(`/banners/admin/${id}`),
 };
 
-// 8. Customer Services
+// 8. Customer Services (Admin Directory)
 export const customerService = {
   getAllAdmin: (params) => api.get('/customers/admin/all', { params }),
   getDetailsAdmin: (id) => api.get(`/customers/admin/${id}`),
@@ -151,13 +152,6 @@ export const settingService = {
   getPublic: () => api.get('/settings/public'),
   updateAdmin: (data) => api.put('/settings/admin', data),
   downloadBackup: () => api.get('/settings/admin/backup', { responseType: 'json' }),
-};
-
-// 12. User Services (MongoDB Customer Profile Sync)
-export const userService = {
-  syncUser: (userData) => api.post('/users/sync', userData),
-  updateProfile: (userData) => api.put('/users/profile', userData),
-  getProfile: (uid) => api.get(`/users/profile/${uid}`),
 };
 
 export default api;

@@ -5,8 +5,6 @@ import Footer from './components/common/Footer';
 import CartDrawer from './components/cart/CartDrawer';
 import FloatingCartBar from './components/cart/FloatingCartBar';
 import WhatsAppFloatingButton from './components/common/WhatsAppFloatingButton';
-import LoginModal from './components/auth/LoginModal';
-import ProtectedRoute from './components/auth/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
 // Customer Storefront Pages (Lazy Loaded for fast initial load)
@@ -17,7 +15,6 @@ const CartPage = lazy(() => import('./pages/CartPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'));
 const OrderTrackingPage = lazy(() => import('./pages/OrderTrackingPage'));
-const AccountPage = lazy(() => import('./pages/AccountPage'));
 const SafetyPage = lazy(() => import('./pages/SafetyPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
@@ -45,7 +42,6 @@ const App = () => {
           <CartDrawer />
           <FloatingCartBar />
           <WhatsAppFloatingButton />
-          <LoginModal />
         </>
       )}
 
@@ -64,24 +60,6 @@ const App = () => {
             <Route path="/safety" element={<SafetyPage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/contact" element={<ContactPage />} />
-
-            {/* Protected Customer Routes */}
-            <Route
-              path="/account"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <ProtectedRoute>
-                  <AccountPage />
-                </ProtectedRoute>
-              }
-            />
 
             {/* Admin Portal Routes */}
             <Route path="/admin/login" element={<AdminLoginPage />} />

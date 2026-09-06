@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -7,38 +7,27 @@ import {
   MapPin,
   Menu,
   X,
-  Sparkles,
   Phone,
   Truck,
   ShieldCheck,
   Flame,
   ChevronDown,
   Gift,
-  Zap,
-  User,
-  Package,
-  LogOut,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
-import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../utils/formatters';
 import PincodeModal from './PincodeModal';
-import UserAvatar from './UserAvatar';
 import logoSvg from '../../assets/logo.svg';
 
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItemsCount, cartSubtotal, openCart, pincodeInfo } = useCart();
-  const { user, profile, openLoginModal, logout } = useAuth();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isPincodeModalOpen, setIsPincodeModalOpen] = useState(false);
-  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
-  const dropdownRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,21 +37,9 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsUserDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  // Close mobile menu & dropdown on route changes
+  // Close mobile menu on route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
-    setIsUserDropdownOpen(false);
   }, [location.pathname, location.search]);
 
   const handleSearchSubmit = (e) => {
@@ -81,10 +58,6 @@ const Navbar = () => {
     { name: 'Safety Tips', path: '/safety' },
     { name: 'Contact', path: '/contact' },
   ];
-
-  const customerName = profile?.name || user?.displayName || 'Customer';
-  const customerFirstName = customerName.split(' ')[0];
-  const customerEmail = profile?.email || user?.email || '';
 
   return (
     <>
@@ -154,7 +127,7 @@ const Navbar = () => {
               </button>
             </form>
 
-            {/* Right Action Icons: Pincode Check, Customer Profile / Login, Cart Drawer */}
+            {/* Right Action Icons: Pincode Check, Cart Drawer */}
             <div className="flex items-center gap-2 sm:gap-3">
               {/* Pincode Indicator */}
               <button
@@ -169,91 +142,14 @@ const Navbar = () => {
                 <ChevronDown className="w-3 h-3 text-slate-400" />
               </button>
 
-              {/* Customer Auth Profile / Login Button (Desktop) */}
-              {user ? (
-                <div className="relative hidden sm:block" ref={dropdownRef}>
-                  <button
-                    onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
-                    className="flex items-center gap-2 py-1 px-2.5 rounded-full bg-festival-card hover:bg-festival-cardHover border border-amber-500/30 hover:border-amber-400 text-xs text-white transition-all shadow-md"
-                  >
-                    <UserAvatar user={user} profile={profile} size="xs" />
-                    <span className="font-bold max-w-[90px] truncate">{customerFirstName}</span>
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 text-amber-400 transition-transform ${
-                        isUserDropdownOpen ? 'rotate-180' : ''
-                      }`}
-                    />
-                  </button>
-
-                  {/* Customer Profile Dropdown */}
-                  <AnimatePresence>
-                    {isUserDropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute right-0 mt-2 w-56 rounded-2xl bg-festival-card border border-festival-border shadow-2xl p-2 z-50 space-y-1 backdrop-blur-xl"
-                      >
-                        {/* User Header */}
-                        <div className="px-3 py-2.5 border-b border-festival-border/70">
-                          <p className="text-xs font-black text-white truncate">{customerName}</p>
-                          <p className="text-[11px] text-slate-400 truncate">{customerEmail}</p>
-                        </div>
-
-                        {/* Dropdown Links */}
-                        <Link
-                          to="/account"
-                          onClick={() => setIsUserDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-colors"
-                        >
-                          <User className="w-4 h-4 text-amber-400" />
-                          <span>My Account</span>
-                        </Link>
-
-                        <Link
-                          to="/account?tab=orders"
-                          onClick={() => setIsUserDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-colors"
-                        >
-                          <Package className="w-4 h-4 text-amber-400" />
-                          <span>My Orders</span>
-                        </Link>
-
-                        <Link
-                          to="/account?tab=addresses"
-                          onClick={() => setIsUserDropdownOpen(false)}
-                          className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-colors"
-                        >
-                          <MapPin className="w-4 h-4 text-amber-400" />
-                          <span>Saved Addresses</span>
-                        </Link>
-
-                        <div className="border-t border-festival-border/70 my-1" />
-
-                        <button
-                          onClick={() => {
-                            setIsUserDropdownOpen(false);
-                            logout();
-                          }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:bg-rose-950/40 transition-colors text-left"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          <span>Sign Out</span>
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ) : (
-                <button
-                  onClick={() => openLoginModal()}
-                  className="hidden sm:flex items-center gap-1.5 py-1.5 px-3.5 rounded-full bg-festival-card hover:bg-festival-cardHover border border-amber-500/30 hover:border-amber-400 text-xs font-bold text-amber-300 hover:text-white transition-all shadow-md"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Login</span>
-                </button>
-              )}
+              {/* Track Order Direct Button (Desktop Header) */}
+              <Link
+                to="/track-order"
+                className="hidden sm:flex items-center gap-1.5 py-1.5 px-3.5 rounded-full bg-festival-card hover:bg-festival-cardHover border border-amber-500/30 hover:border-amber-400 text-xs font-bold text-amber-300 hover:text-white transition-all shadow-md"
+              >
+                <Truck className="w-3.5 h-3.5 text-amber-400" />
+                <span>Track Order</span>
+              </Link>
 
               {/* Cart Drawer Trigger */}
               <motion.button
@@ -331,36 +227,6 @@ const Navbar = () => {
               exit={{ opacity: 0, height: 0 }}
               className="lg:hidden bg-festival-card border-b border-festival-border px-4 py-4 space-y-4"
             >
-              {/* Mobile Customer Profile Section */}
-              {user ? (
-                <div className="p-3.5 rounded-2xl bg-festival-dark border border-festival-border flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <UserAvatar user={user} profile={profile} size="sm" />
-                    <div className="truncate">
-                      <p className="font-bold text-white text-xs truncate">{customerName}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{customerEmail}</p>
-                    </div>
-                  </div>
-                  <Link
-                    to="/account"
-                    className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-[11px] flex-shrink-0"
-                  >
-                    Account
-                  </Link>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    openLoginModal();
-                  }}
-                  className="w-full py-3 px-4 rounded-2xl bg-gradient-to-r from-red-600 to-amber-600 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-200" />
-                  <span>Sign In with Google</span>
-                </button>
-              )}
-
               {/* Mobile Search Input */}
               <form onSubmit={handleSearchSubmit} className="relative">
                 <input
@@ -404,38 +270,6 @@ const Navbar = () => {
                     </Link>
                   </li>
                 ))}
-
-                {user && (
-                  <>
-                    <li className="pt-2 border-t border-festival-border/40">
-                      <Link
-                        to="/account?tab=orders"
-                        className="block px-3 py-2 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-colors"
-                      >
-                        My Orders
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/account?tab=addresses"
-                        className="block px-3 py-2 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-colors"
-                      >
-                        Saved Addresses
-                      </Link>
-                    </li>
-                    <li>
-                      <button
-                        onClick={() => {
-                          setIsMobileMenuOpen(false);
-                          logout();
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-lg text-rose-400 hover:bg-rose-950/30 transition-colors font-bold text-xs"
-                      >
-                        Sign Out
-                      </button>
-                    </li>
-                  </>
-                )}
               </ul>
             </motion.div>
           )}

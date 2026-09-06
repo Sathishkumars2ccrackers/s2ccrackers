@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Phone, Mail, MessageCircle, Shield, Award, Truck, Heart, ExternalLink, Lock } from 'lucide-react';
+import { MapPin, Phone, Mail, MessageCircle, Shield, Award, Truck, Lock } from 'lucide-react';
 import logoSvg from '../../assets/logo.svg';
 
 const Footer = () => {
@@ -129,11 +129,6 @@ const Footer = () => {
             Customer Care
           </h4>
           <ul className="space-y-2 text-xs">
-            <li>
-              <Link to="/account" className="hover:text-amber-400 transition-colors">
-                My Customer Account
-              </Link>
-            </li>
             <li>
               <Link to="/track-order" className="hover:text-amber-400 transition-colors">
                 Track Order Status

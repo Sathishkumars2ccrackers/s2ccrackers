@@ -22,7 +22,6 @@ const customerRoutes = require('./routes/customerRoutes');
 const activityLogRoutes = require('./routes/activityLogRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const settingRoutes = require('./routes/settingRoutes');
-const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -52,7 +51,6 @@ if (process.env.NODE_ENV === 'development') {
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);

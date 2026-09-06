@@ -287,37 +287,6 @@ const getOrderByOrderId = async (req, res, next) => {
     next(error);
   }
 };
-// @desc    Get orders of logged in customer by Firebase UID
-// @route   GET /api/orders/user/:uid
-// @access  Public
-const getMyOrders = async (req, res, next) => {
-  try {
-    const { uid } = req.params;
-
-    if (!uid || !uid.trim()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Firebase user UID is required.',
-      });
-    }
-
-    const cleanUid = uid.trim();
-
-    const orders = await Order.find({
-      $or: [{ uid: cleanUid }, { 'customerDetails.uid': cleanUid }],
-    })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    res.status(200).json({
-      success: true,
-      count: orders.length,
-      orders,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 // ================= ADMIN CONTROLLERS =================
 
 // @desc    Get all orders for Admin with filters and pagination
@@ -518,7 +487,6 @@ module.exports = {
   placeOrder,
   trackOrder,
   getOrderByOrderId,
-  getMyOrders,
   getAllOrdersAdmin,
   updateOrderStatus,
   cancelOrderAdmin,
