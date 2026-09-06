@@ -138,6 +138,8 @@ export const analyticsService = {
   getDashboardSummary: () => api.get('/analytics/dashboard-summary'),
   getExportUrl: (type = 'orders', format = 'xlsx') =>
     `${API_BASE}/analytics/export?type=${type}&format=${format}`,
+  exportData: (type = 'orders', format = 'xlsx') =>
+    api.get('/analytics/export', { params: { type, format }, responseType: 'blob' }),
 };
 
 // 11. Setting Services

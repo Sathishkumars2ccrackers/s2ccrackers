@@ -20,9 +20,10 @@ import {
   ChevronDown,
   Loader2,
 } from 'lucide-react';
-import { orderService, analyticsService } from '../../services/api';
+import { orderService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { downloadExport } from '../../utils/downloadAdminFile';
 import { createWhatsAppOrderUrl } from '../../utils/whatsappHelper';
 import LoadingSpinner from '../common/LoadingSpinner';
 import logoSvg from '../../assets/logo.svg';
@@ -63,6 +64,19 @@ const OrderManager = () => {
   const [cancelReasonType, setCancelReasonType] = useState('Out of Stock');
   const [customCancelReason, setCustomCancelReason] = useState('');
   const [cancellingOrder, setCancellingOrder] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await downloadExport('orders', 'xlsx');
+      toastSuccess('Orders exported successfully!');
+    } catch (err) {
+      toastError(err.message || 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Status update
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -162,14 +176,19 @@ const OrderManager = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href={analyticsService.getExportUrl('orders', 'xlsx')}
-            download
-            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4 text-amber-400" />
-            <span>Export Orders (.xlsx)</span>
-          </a>
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+            ) : (
+              <Download className="w-4 h-4 text-amber-400" />
+            )}
+            <span>{isExporting ? 'Preparing export...' : 'Export Orders (.xlsx)'}</span>
+          </button>
         </div>
       </div>
 

@@ -22,9 +22,10 @@ import {
   Package,
   Wand2,
 } from 'lucide-react';
-import { productService, categoryService, analyticsService } from '../../services/api';
+import { productService, categoryService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/formatters';
+import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const COMMON_BRANDS = ['NACHIYAR', 'Brothers', 'SURYA', 'Sree Balaji'];
@@ -90,6 +91,19 @@ const ProductManager = () => {
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
   const [priceAdjustment, setPriceAdjustment] = useState({ adjustmentType: 'percentage', value: 10, categoryId: 'all' });
   const [adjustingPrice, setAdjustingPrice] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await downloadExport('products', 'xlsx');
+      toastSuccess('Product catalog exported successfully!');
+    } catch (err) {
+      toastError(err.message || 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -374,14 +388,15 @@ const ProductManager = () => {
             <span>Bulk Import (Excel/CSV)</span>
           </button>
 
-          <a
-            href={analyticsService.getExportUrl('products', 'xlsx')}
-            download
-            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4" />
-            <span>Export Catalog (.xlsx)</span>
-          </a>
+            {isExporting ? <Loader2 className="w-4 h-4 animate-spin text-amber-400" /> : <Download className="w-4 h-4" />}
+            <span>{isExporting ? 'Preparing export...' : 'Export Catalog (.xlsx)'}</span>
+          </button>
 
           <button
             onClick={() => setIsPriceModalOpen(true)}

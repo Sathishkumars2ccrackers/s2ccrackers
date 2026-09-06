@@ -245,13 +245,15 @@ const exportData = async (req, res, next) => {
     });
 
     if (format === 'csv') {
-      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
       res.setHeader('Content-Disposition', `attachment; filename="${fileName}.csv"`);
+      res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
       return res.send(fileBuffer);
     }
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}.xlsx"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.send(fileBuffer);
   } catch (error) {
     next(error);

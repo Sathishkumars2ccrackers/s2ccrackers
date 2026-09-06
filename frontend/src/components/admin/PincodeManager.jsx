@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Plus, Trash2, Edit2, Upload, Download, Search, CheckCircle2, XCircle, X } from 'lucide-react';
-import { pincodeService, analyticsService } from '../../services/api';
+import { MapPin, Plus, Trash2, Edit2, Upload, Download, Search, CheckCircle2, XCircle, X, Loader2 } from 'lucide-react';
+import { pincodeService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/formatters';
+import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const PincodeManager = () => {
@@ -12,6 +13,7 @@ const PincodeManager = () => {
   const [pincodes, setPincodes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -28,6 +30,18 @@ const PincodeManager = () => {
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
   const [bulkFile, setBulkFile] = useState(null);
   const [bulkImporting, setBulkImporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await downloadExport('pincodes', 'xlsx');
+      toastSuccess('Serviceable pincodes exported successfully!');
+    } catch (err) {
+      toastError(err.message || 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const fetchPincodes = async () => {
     setLoading(true);
@@ -148,14 +162,19 @@ const PincodeManager = () => {
             <span>Bulk Import Pincodes</span>
           </button>
 
-          <a
-            href={analyticsService.getExportUrl('pincodes', 'xlsx')}
-            download
-            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4 text-amber-400" />
-            <span>Export (.xlsx)</span>
-          </a>
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+            ) : (
+              <Download className="w-4 h-4 text-amber-400" />
+            )}
+            <span>{isExporting ? 'Preparing export...' : 'Export (.xlsx)'}</span>
+          </button>
 
           <button
             onClick={openAdd}

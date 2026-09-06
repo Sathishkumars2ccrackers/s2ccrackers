@@ -12,10 +12,12 @@ import {
   X,
   Plus,
   Minus,
+  Loader2,
 } from 'lucide-react';
-import { productService, inventoryService, analyticsService } from '../../services/api';
+import { productService, inventoryService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/formatters';
+import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const InventoryManager = () => {
@@ -26,11 +28,24 @@ const InventoryManager = () => {
   const [overview, setOverview] = useState(null);
   const [search, setSearch] = useState('');
   const [stockFilter, setStockFilter] = useState('all');
+  const [isExporting, setIsExporting] = useState(false);
 
   // Inline edit state
   const [editingId, setEditingId] = useState(null);
   const [newStockVal, setNewStockVal] = useState(0);
   const [adjustReason, setAdjustReason] = useState('Manual Stock Count');
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await downloadExport('inventory', 'xlsx');
+      toastSuccess('Inventory report exported successfully!');
+    } catch (err) {
+      toastError(err.message || 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const fetchInventory = async () => {
     setLoading(true);
@@ -82,14 +97,19 @@ const InventoryManager = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <a
-            href={analyticsService.getExportUrl('inventory', 'xlsx')}
-            download
-            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors"
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4 text-amber-400" />
-            <span>Export Inventory (.xlsx)</span>
-          </a>
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+            ) : (
+              <Download className="w-4 h-4 text-amber-400" />
+            )}
+            <span>{isExporting ? 'Preparing export...' : 'Export Inventory (.xlsx)'}</span>
+          </button>
         </div>
       </div>
 

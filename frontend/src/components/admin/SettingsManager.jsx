@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Save, Download, Database, ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
 import { settingService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { downloadAdminFile } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const SettingsManager = () => {
@@ -85,19 +86,13 @@ const SettingsManager = () => {
   const handleDownloadBackup = async () => {
     setBackingUp(true);
     try {
-      const res = await settingService.downloadBackup();
-      const blob = new Blob([JSON.stringify(res.data, null, 2)], { type: 'application/json' });
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `s2c_crackers_db_backup_${new Date().toISOString().slice(0, 10)}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      await downloadAdminFile(
+        '/settings/admin/backup',
+        `s2c_crackers_db_backup_${new Date().toISOString().slice(0, 10)}.json`
+      );
       toastSuccess('Database backup downloaded successfully!');
     } catch (err) {
-      toastError('Failed to generate database backup');
+      toastError(err.message || 'Failed to generate database backup');
     } finally {
       setBackingUp(false);
     }

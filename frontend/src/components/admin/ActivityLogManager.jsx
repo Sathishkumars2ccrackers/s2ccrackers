@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Shield, Search, Filter, User } from 'lucide-react';
+import { Clock, Shield, Search, Filter, User, Download, Loader2 } from 'lucide-react';
 import { activityLogService } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 import { formatDate } from '../../utils/formatters';
+import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const ActivityLogManager = () => {
+  const { toastSuccess, toastError } = useToast();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionType, setActionType] = useState('all');
   const [entity, setEntity] = useState('all');
   const [search, setSearch] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      await downloadExport('activity-logs', 'xlsx');
+      toastSuccess('Audit logs exported successfully!');
+    } catch (err) {
+      toastError(err.message || 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -37,11 +53,29 @@ const ActivityLogManager = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-festival-card border border-festival-border p-6 rounded-3xl">
-        <h2 className="text-xl font-bold text-white">Administrator Audit Logs</h2>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Detailed trail of all product additions, price updates, inventory adjustments, order status changes, and settings modifications
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-festival-card border border-festival-border p-6 rounded-3xl">
+        <div>
+          <h2 className="text-xl font-bold text-white">Administrator Audit Logs</h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Detailed trail of all product additions, price updates, inventory adjustments, order status changes, and settings modifications
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={isExporting}
+            className="px-4 py-2.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isExporting ? (
+              <Loader2 className="w-4 h-4 animate-spin text-amber-400" />
+            ) : (
+              <Download className="w-4 h-4 text-amber-400" />
+            )}
+            <span>{isExporting ? 'Preparing export...' : 'Export Audit Logs (.xlsx)'}</span>
+          </button>
+        </div>
       </div>
 
       {/* Filter bar */}

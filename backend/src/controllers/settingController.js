@@ -153,6 +153,7 @@ const exportDatabaseBackup = async (req, res, next) => {
 
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Access-Control-Expose-Headers', 'Content-Disposition');
     res.send(jsonString);
   } catch (error) {
     next(error);
