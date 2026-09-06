@@ -13,40 +13,35 @@ import {
   ArrowRight,
   Loader2,
   Lock,
+  Truck,
+  Home,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { orderService, pincodeService } from '../services/api';
+import { orderService } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 
 const MIN_ORDER_AMOUNT = 500;
 const FREE_DELIVERY_THRESHOLD = 3000;
+const STANDARD_DELIVERY_FEE = 150;
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { cartItems, cartSubtotal, totalSavings, totalItemsCount, clearCart, pincodeInfo, setPincodeInfo } = useCart();
+  const { cartItems, cartSubtotal, totalSavings, totalItemsCount, clearCart } = useCart();
 
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
     altPhone: '',
     email: '',
-    address: '',
-    city: pincodeInfo?.city || '',
-    pincode: pincodeInfo?.pincode || '',
+    doorNo: '',
+    street: '',
+    city: '',
+    state: 'Tamil Nadu',
+    pincode: '',
     landmark: '',
-    state: pincodeInfo?.state || 'Tamil Nadu',
     notes: '',
   });
 
-  const [pinStatus, setPinStatus] = useState({
-    checked: !!pincodeInfo?.serviceable,
-    serviceable: !!pincodeInfo?.serviceable,
-    deliveryFee: pincodeInfo?.deliveryFee !== undefined ? pincodeInfo.deliveryFee : 150,
-    estimatedDays: pincodeInfo?.estimatedDays || '2-4 business days',
-    message: pincodeInfo?.message || '',
-  });
-
-  const [pinVerifying, setPinVerifying] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -57,70 +52,12 @@ const CheckoutPage = () => {
     }
   }, [cartItems, navigate]);
 
-  // Live verify pincode when 6 digits are entered
-  const verifyPincode = async (pin) => {
-    if (!pin || pin.length !== 6 || !/^[1-9][0-9]{5}$/.test(pin)) {
-      setPinStatus({ checked: false, serviceable: false, deliveryFee: 150, estimatedDays: '', message: '' });
-      return;
-    }
-
-    setPinVerifying(true);
-    setError('');
-
-    try {
-      const res = await pincodeService.checkPincode(pin);
-      if (res.data?.success) {
-        setPinStatus({
-          checked: true,
-          serviceable: res.data.serviceable,
-          deliveryFee: res.data.deliveryFee || 150,
-          estimatedDays: res.data.estimatedDays || '2-4 business days',
-          message: res.data.message,
-        });
-
-        if (res.data.serviceable) {
-          setPincodeInfo(res.data);
-          setFormData((prev) => ({
-            ...prev,
-            city: res.data.city || prev.city,
-            state: res.data.state || prev.state,
-          }));
-        }
-      }
-    } catch {
-      setPinStatus({
-        checked: true,
-        serviceable: false,
-        deliveryFee: 150,
-        estimatedDays: '',
-        message: 'Could not verify delivery serviceability.',
-      });
-    } finally {
-      setPinVerifying(false);
-    }
-  };
-
-  const handlePincodeChange = (e) => {
-    const val = e.target.value.replace(/[^0-9]/g, '');
-    setFormData((prev) => ({ ...prev, pincode: val }));
-    if (val.length === 6) {
-      verifyPincode(val);
-    } else {
-      setPinStatus({ checked: false, serviceable: false, deliveryFee: 150, estimatedDays: '', message: '' });
-    }
-  };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const calculateDeliveryFee = () => {
-    if (cartSubtotal >= FREE_DELIVERY_THRESHOLD) return 0;
-    return pinStatus.checked && pinStatus.serviceable ? pinStatus.deliveryFee : 150;
-  };
-
-  const deliveryFee = calculateDeliveryFee();
+  const deliveryFee = cartSubtotal >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_FEE;
   const grandTotal = cartSubtotal + deliveryFee;
 
   const handleSubmitOrder = async (e) => {
@@ -138,23 +75,28 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (!formData.address.trim()) {
-      setError('Please enter your street delivery address.');
+    if (!formData.doorNo.trim()) {
+      setError('Please enter your house / door number.');
+      return;
+    }
+
+    if (!formData.street.trim()) {
+      setError('Please enter your street / area name.');
       return;
     }
 
     if (!formData.city.trim()) {
-      setError('Please enter your city / district.');
+      setError('Please enter your city / town / district.');
       return;
     }
 
-    if (!formData.pincode.trim() || formData.pincode.length !== 6) {
-      setError('Please enter a valid 6-digit delivery PIN code.');
+    if (!formData.state.trim()) {
+      setError('Please enter your state.');
       return;
     }
 
-    if (!pinStatus.checked || !pinStatus.serviceable) {
-      setError('Delivery is currently not available for this PIN code. Please verify with our WhatsApp support.');
+    if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode.trim())) {
+      setError('Please enter a valid 6-digit postal PIN code.');
       return;
     }
 
@@ -165,6 +107,8 @@ const CheckoutPage = () => {
 
     setSubmitting(true);
 
+    const fullStreetAddress = `${formData.doorNo.trim()}, ${formData.street.trim()}`;
+
     try {
       const orderPayload = {
         customerDetails: {
@@ -172,11 +116,11 @@ const CheckoutPage = () => {
           phone: formData.phone.trim(),
           altPhone: formData.altPhone.trim(),
           email: formData.email.trim(),
-          address: formData.address.trim(),
+          address: fullStreetAddress,
           city: formData.city.trim(),
           pincode: formData.pincode.trim(),
           landmark: formData.landmark.trim(),
-          state: formData.state.trim() || 'Tamil Nadu',
+          state: formData.state.trim(),
         },
         items: cartItems.map((item) => ({
           productId: item.productId,
@@ -189,7 +133,7 @@ const CheckoutPage = () => {
         notes: formData.notes.trim(),
       };
 
-      // Submit order directly to backend (creates order, adjusts stock, generates WhatsApp link)
+      // Submit order directly to backend without any pincode restrictions
       const res = await orderService.placeOrder(orderPayload);
 
       if (res.data?.success && res.data.orderId) {
@@ -218,14 +162,22 @@ const CheckoutPage = () => {
               <span>Direct Guest Checkout (COD)</span>
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Zero prepayment risk! Complete your shipping details to receive direct factory dispatch from Sivakasi. No login required.
+              Zero prepayment risk! Complete your shipping details to receive direct factory dispatch from Sivakasi across India.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-festival-card border border-emerald-500/30 text-emerald-300 text-xs font-bold self-start sm:self-auto">
-            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-            <span>Instant Booking • Pay on Delivery</span>
+            <Truck className="w-4 h-4 text-emerald-400" />
+            <span>All-India Delivery • Pay on Delivery</span>
           </div>
+        </div>
+
+        {/* Nationwide Notice Banner */}
+        <div className="p-4 rounded-2xl bg-festival-card border border-emerald-500/30 flex items-center gap-3 text-xs text-slate-200">
+          <Truck className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+          <span>
+            <strong>We deliver across India.</strong> Delivery availability and dispatch schedule will be confirmed after order review.
+          </span>
         </div>
 
         {/* Error Alert */}
@@ -254,7 +206,7 @@ const CheckoutPage = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                    Customer Full Name <span className="text-rose-400">*</span>
+                    Full Name <span className="text-rose-400">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -316,7 +268,7 @@ const CheckoutPage = () => {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                    Email Address (For Order Invoice Copy - Optional)
+                    Email Address (For Invoice Copy - Optional)
                   </label>
                   <div className="relative">
                     <input
@@ -332,8 +284,77 @@ const CheckoutPage = () => {
                 </div>
               </div>
 
-              {/* Pincode & City with Live Checker */}
+              {/* House/Door No & Street/Area */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    House / Door Number <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="doorNo"
+                      required
+                      value={formData.doorNo}
+                      onChange={handleChange}
+                      placeholder="e.g. Door No. 12/4B, Block C"
+                      className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                    />
+                    <Home className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Street / Area Name <span className="text-rose-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      name="street"
+                      required
+                      value={formData.street}
+                      onChange={handleChange}
+                      placeholder="e.g. Gandhi Nagar 2nd Street"
+                      className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                    />
+                    <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
+              </div>
+
+              {/* City, State & Pincode */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    City / Town / District <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    required
+                    value={formData.city}
+                    onChange={handleChange}
+                    placeholder="e.g. Chennai, Madurai, Mumbai"
+                    className="w-full bg-festival-dark border border-festival-border rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    State <span className="text-rose-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    required
+                    value={formData.state}
+                    onChange={handleChange}
+                    placeholder="e.g. Tamil Nadu, Karnataka"
+                    className="w-full bg-festival-dark border border-festival-border rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
                     PIN Code (6 Digits) <span className="text-rose-400">*</span>
@@ -345,65 +366,18 @@ const CheckoutPage = () => {
                       required
                       maxLength={6}
                       value={formData.pincode}
-                      onChange={handlePincodeChange}
-                      placeholder="e.g. 600001 or 626123"
-                      className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-white font-bold placeholder:font-normal placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                      onChange={(e) =>
+                        setFormData((prev) => ({ ...prev, pincode: e.target.value.replace(/[^0-9]/g, '') }))
+                      }
+                      placeholder="e.g. 600001, 560001"
+                      className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white font-mono placeholder:font-sans placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
                     />
                     <MapPin className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-                    {pinVerifying && (
-                      <Loader2 className="w-4 h-4 text-amber-400 animate-spin absolute right-3.5 top-1/2 -translate-y-1/2" />
-                    )}
-                    {!pinVerifying && pinStatus.checked && (
-                      pinStatus.serviceable ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      ) : (
-                        <AlertCircle className="w-4 h-4 text-rose-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                      )
-                    )}
-                  </div>
-                  {pinStatus.checked && (
-                    <p className={`text-[11px] font-medium mt-1.5 ${pinStatus.serviceable ? 'text-emerald-300' : 'text-rose-300'}`}>
-                      {pinStatus.message}
-                    </p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                    City / Town / District <span className="text-rose-400">*</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      name="city"
-                      required
-                      value={formData.city}
-                      onChange={handleChange}
-                      placeholder="e.g. Chennai, Madurai, Sivakasi"
-                      className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-                    />
-                    <Building className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
               </div>
 
-              {/* Street Address */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                  Complete Street Address <span className="text-rose-400">*</span>
-                </label>
-                <textarea
-                  name="address"
-                  required
-                  rows={2}
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="Door No, Building Name, Street / Area Name"
-                  className="w-full bg-festival-dark border border-festival-border rounded-xl p-3.5 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              {/* Landmark & State */}
+              {/* Landmark & Notes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
@@ -414,36 +388,24 @@ const CheckoutPage = () => {
                     name="landmark"
                     value={formData.landmark}
                     onChange={handleChange}
-                    placeholder="Near Temple / Petrol Bunk / Bus Stop"
+                    placeholder="Near Temple / Petrol Bunk / School"
                     className="w-full bg-festival-dark border border-festival-border rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">State</label>
+                  <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+                    Delivery Notes (Optional)
+                  </label>
                   <input
                     type="text"
-                    name="state"
-                    value={formData.state}
+                    name="notes"
+                    value={formData.notes}
                     onChange={handleChange}
-                    className="w-full bg-festival-dark border border-festival-border rounded-xl px-4 py-3 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
+                    placeholder="e.g. Call before delivery"
+                    className="w-full bg-festival-dark border border-festival-border rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
                   />
                 </div>
-              </div>
-
-              {/* Special Delivery Notes */}
-              <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
-                  Delivery Notes / Festival Instructions (Optional)
-                </label>
-                <input
-                  type="text"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleChange}
-                  placeholder="e.g. Call before delivery / deliver between 10am - 5pm"
-                  className="w-full bg-festival-dark border border-festival-border rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-                />
               </div>
             </div>
 
@@ -459,7 +421,7 @@ const CheckoutPage = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Pay cash to our delivery executive when your Sivakasi crackers box arrives at your doorstep. Zero online fraud risk!
+                Pay cash to our delivery executive when your Sivakasi crackers package arrives at your address. Zero online fraud risk!
               </p>
             </div>
           </div>
@@ -519,7 +481,7 @@ const CheckoutPage = () => {
               {/* Submit CTA */}
               <button
                 type="submit"
-                disabled={submitting || (pinStatus.checked && !pinStatus.serviceable)}
+                disabled={submitting}
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-base shadow-2xl shadow-amber-950/60 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 {submitting ? (

@@ -2,7 +2,6 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Customer = require('../models/Customer');
 const ActivityLog = require('../models/ActivityLog');
-const Pincode = require('../models/Pincode');
 const { exportToBuffer } = require('../utils/excelEngine');
 const { logActivity } = require('../utils/activityLogger');
 
@@ -209,20 +208,6 @@ const exportData = async (req, res, next) => {
           'Entity ID': l.entityId,
           'Action Details': l.details,
           'IP Address': l.ipAddress || '',
-        }));
-        break;
-
-      case 'pincodes':
-        sheetName = 'Pincodes';
-        fileName = `s2c-serviceable-pincodes-${Date.now()}`;
-        const pincodes = await Pincode.find().sort({ pincode: 1 }).lean();
-        exportData = pincodes.map((p) => ({
-          'Pincode': p.pincode,
-          'City': p.city,
-          'State': p.state,
-          'Delivery Fee (INR)': p.deliveryFee,
-          'Estimated Days': p.estimatedDays,
-          'Status': p.isActive ? 'Active' : 'Disabled',
         }));
         break;
 

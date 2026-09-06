@@ -78,20 +78,7 @@ export const productService = {
     }),
 };
 
-// 4. Pincode Services
-export const pincodeService = {
-  checkPincode: (pincode) => api.post('/pincodes/check', { pincode }),
-  getAllAdmin: (params) => api.get('/pincodes/admin/all', { params }),
-  create: (data) => api.post('/pincodes/admin', data),
-  update: (id, data) => api.put(`/pincodes/admin/${id}`, data),
-  delete: (id) => api.delete(`/pincodes/admin/${id}`),
-  importBulk: (formData) =>
-    api.post('/pincodes/admin/bulk-import', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-};
-
-// 5. Order Services
+// 4. Order Services
 export const orderService = {
   placeOrder: (orderData) => api.post('/orders', orderData),
   trackOrder: (orderId, phone) => api.get('/orders/track', { params: { orderId, phone } }),

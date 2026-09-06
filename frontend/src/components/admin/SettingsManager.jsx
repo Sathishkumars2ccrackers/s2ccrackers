@@ -269,7 +269,7 @@ const SettingsManager = () => {
             <div>
               <h3 className="text-white text-base">Full Database JSON Backup</h3>
               <p className="text-xs text-slate-400 font-normal">
-                Download complete store collection data (Products, Orders, Customers, Pincodes, Settings)
+                Download complete store collection data (Products, Categories, Orders, Customers, Banners, Settings)
               </p>
             </div>
           </div>

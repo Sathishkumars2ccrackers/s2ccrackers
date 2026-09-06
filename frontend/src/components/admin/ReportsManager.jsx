@@ -29,7 +29,6 @@ const ReportsManager = () => {
     { label: 'Full Product Catalog & Prices', entity: 'products', icon: Package },
     { label: 'Inventory & Stock Counts', entity: 'inventory', icon: FileSpreadsheet },
     { label: 'Customer Directory Database', entity: 'customers', icon: TrendingUp },
-    { label: 'Serviceable Delivery Pincodes', entity: 'pincodes', icon: DollarSign },
     { label: 'Administrator Audit Logs', entity: 'activity-logs', icon: Shield },
   ];
 

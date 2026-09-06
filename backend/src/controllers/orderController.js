@@ -1,7 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Customer = require('../models/Customer');
-const Pincode = require('../models/Pincode');
 const Setting = require('../models/Setting');
 const { generateOrderId } = require('../utils/orderIdGenerator');
 const { sendCustomerOrderConfirmationEmail, sendAdminNewOrderAlertEmail } = require('../config/mailer');
@@ -45,17 +44,9 @@ const placeOrder = async (req, res, next) => {
       });
     }
 
-    // 1. Verify Pincode Serviceability
     const cleanPin = pincode.toString().trim();
-    const serviceablePin = await Pincode.findOne({ pincode: cleanPin, isActive: true });
-    if (!serviceablePin) {
-      return res.status(400).json({
-        success: false,
-        message: `Delivery is currently not available for PIN code ${cleanPin}. Please check delivery with our customer support on WhatsApp.`,
-      });
-    }
 
-    // 2. Validate Items & Stock Availability
+    // 1. Validate Items & Stock Availability
     const productIds = rawItems.map((item) => item.productId);
     const products = await Product.find({ _id: { $in: productIds } });
     const productMap = new Map(products.map((p) => [p._id.toString(), p]));
@@ -106,7 +97,7 @@ const placeOrder = async (req, res, next) => {
       });
     }
 
-    // 3. Calculate Delivery Fee & Thresholds
+    // 2. Calculate Delivery Fee & Thresholds
     const setting = (await Setting.findOne()) || {
       minOrderAmount: 500,
       freeDeliveryThreshold: 3000,
@@ -121,14 +112,10 @@ const placeOrder = async (req, res, next) => {
       });
     }
 
-    let deliveryFee = serviceablePin.deliveryFee !== undefined ? serviceablePin.deliveryFee : setting.defaultDeliveryFee;
-    if (calculatedSubtotal >= setting.freeDeliveryThreshold) {
-      deliveryFee = 0; // Free delivery above threshold
-    }
-
+    let deliveryFee = calculatedSubtotal >= setting.freeDeliveryThreshold ? 0 : (setting.defaultDeliveryFee !== undefined ? setting.defaultDeliveryFee : 150);
     const totalAmount = calculatedSubtotal + deliveryFee;
 
-    // 4. Generate Order ID (S2C-YYYYMMDD-XXXXXX)
+    // 3. Generate Order ID (S2C-YYYYMMDD-XXXXXX)
     let orderId = generateOrderId();
     let isUnique = false;
     let attempts = 0;
@@ -142,7 +129,7 @@ const placeOrder = async (req, res, next) => {
       }
     }
 
-    // 5. Create Order
+    // 4. Create Order
     const cleanUid = (uid || customerDetails?.uid || '').toString().trim();
     const order = await Order.create({
       orderId,
@@ -156,7 +143,7 @@ const placeOrder = async (req, res, next) => {
         city: city.trim(),
         pincode: cleanPin,
         landmark: customerDetails.landmark ? customerDetails.landmark.trim() : '',
-        state: customerDetails.state ? customerDetails.state.trim() : (serviceablePin.state || 'Tamil Nadu'),
+        state: customerDetails.state ? customerDetails.state.trim() : 'Tamil Nadu',
       },
       items: validatedItems,
       subtotal: calculatedSubtotal,

@@ -7,7 +7,6 @@ dotenv.config({ path: path.join(__dirname, '../../.env') });
 const Admin = require('../models/Admin');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
-const Pincode = require('../models/Pincode');
 const Banner = require('../models/Banner');
 const Setting = require('../models/Setting');
 
@@ -368,40 +367,7 @@ const seedDatabase = async () => {
 
     console.log(`🧨 Product Catalog Loaded: ${seededCount} new products created, ${updatedCount} existing products synced (Total: ${rawCatalog.length} official items).`);
 
-    // 4. Seed Serviceable Pincodes
-    const pincodesData = [
-      { pincode: '626123', city: 'Sivakasi', state: 'Tamil Nadu', deliveryFee: 0, estimatedDays: '1-2 business days' },
-      { pincode: '626124', city: 'Sivakasi East', state: 'Tamil Nadu', deliveryFee: 0, estimatedDays: '1-2 business days' },
-      { pincode: '626189', city: 'Sivakasi South', state: 'Tamil Nadu', deliveryFee: 0, estimatedDays: '1-2 business days' },
-      { pincode: '626001', city: 'Virudhunagar', state: 'Tamil Nadu', deliveryFee: 50, estimatedDays: '1-2 business days' },
-      { pincode: '600001', city: 'Chennai Central', state: 'Tamil Nadu', deliveryFee: 150, estimatedDays: '2-3 business days' },
-      { pincode: '600028', city: 'Chennai (R.A. Puram)', state: 'Tamil Nadu', deliveryFee: 150, estimatedDays: '2-3 business days' },
-      { pincode: '600040', city: 'Chennai (Anna Nagar)', state: 'Tamil Nadu', deliveryFee: 150, estimatedDays: '2-3 business days' },
-      { pincode: '600096', city: 'Chennai (OMR / Perungudi)', state: 'Tamil Nadu', deliveryFee: 150, estimatedDays: '2-3 business days' },
-      { pincode: '625001', city: 'Madurai Main', state: 'Tamil Nadu', deliveryFee: 100, estimatedDays: '1-2 business days' },
-      { pincode: '625020', city: 'Madurai (K.K. Nagar)', state: 'Tamil Nadu', deliveryFee: 100, estimatedDays: '1-2 business days' },
-      { pincode: '641001', city: 'Coimbatore Town', state: 'Tamil Nadu', deliveryFee: 150, estimatedDays: '2-3 business days' },
-      { pincode: '641012', city: 'Coimbatore (Gandhipuram)', state: 'Tamil Nadu', deliveryFee: 150, estimatedDays: '2-3 business days' },
-      { pincode: '620001', city: 'Trichy Central', state: 'Tamil Nadu', deliveryFee: 120, estimatedDays: '2-3 business days' },
-      { pincode: '636001', city: 'Salem City', state: 'Tamil Nadu', deliveryFee: 150, estimatedDays: '2-3 business days' },
-      { pincode: '627001', city: 'Tirunelveli Town', state: 'Tamil Nadu', deliveryFee: 100, estimatedDays: '1-2 business days' },
-      { pincode: '560001', city: 'Bangalore (MG Road)', state: 'Karnataka', deliveryFee: 200, estimatedDays: '3-4 business days' },
-      { pincode: '560034', city: 'Bangalore (Koramangala)', state: 'Karnataka', deliveryFee: 200, estimatedDays: '3-4 business days' },
-      { pincode: '560068', city: 'Bangalore (Electronic City)', state: 'Karnataka', deliveryFee: 200, estimatedDays: '3-4 business days' },
-      { pincode: '500001', city: 'Hyderabad (Abids)', state: 'Telangana', deliveryFee: 250, estimatedDays: '3-5 business days' },
-    ];
-
-    let insertedPincodes = 0;
-    for (const pin of pincodesData) {
-      const existing = await Pincode.findOne({ pincode: pin.pincode });
-      if (!existing) {
-        await Pincode.create({ ...pin, isActive: true });
-        insertedPincodes++;
-      }
-    }
-    console.log(`📍 Seeded ${insertedPincodes} delivery pincodes.`);
-
-    // 5. Seed Banners
+    // 4. Seed Banners
     const bannersData = [
       {
         title: 'Diwali Mega Fireworks 2026',

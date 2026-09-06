@@ -6,7 +6,6 @@ import {
   Package,
   Boxes,
   ShoppingBag,
-  MapPin,
   Image,
   Users,
   FileText,
@@ -16,8 +15,6 @@ import {
   Menu,
   X,
   ExternalLink,
-  ShieldCheck,
-  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { analyticsService } from '../services/api';
@@ -25,7 +22,6 @@ import DashboardOverviewWidget from '../components/admin/DashboardOverviewWidget
 import ProductManager from '../components/admin/ProductManager';
 import InventoryManager from '../components/admin/InventoryManager';
 import OrderManager from '../components/admin/OrderManager';
-import PincodeManager from '../components/admin/PincodeManager';
 import BannerManager from '../components/admin/BannerManager';
 import CustomerManager from '../components/admin/CustomerManager';
 import ActivityLogManager from '../components/admin/ActivityLogManager';
@@ -38,7 +34,6 @@ const TABS = [
   { id: 'products', label: 'Product Catalog', icon: Package },
   { id: 'inventory', label: 'Stock & Inventory', icon: Boxes },
   { id: 'orders', label: 'Orders & Dispatch', icon: ShoppingBag },
-  { id: 'pincodes', label: 'Delivery Pincodes', icon: MapPin },
   { id: 'banners', label: 'Home Banners', icon: Image },
   { id: 'customers', label: 'Customer Directory', icon: Users },
   { id: 'logs', label: 'Activity Audit Trail', icon: FileText },
@@ -190,7 +185,6 @@ const AdminDashboardPage = () => {
         {activeTab === 'products' && <ProductManager />}
         {activeTab === 'inventory' && <InventoryManager />}
         {activeTab === 'orders' && <OrderManager />}
-        {activeTab === 'pincodes' && <PincodeManager />}
         {activeTab === 'banners' && <BannerManager />}
         {activeTab === 'customers' && <CustomerManager />}
         {activeTab === 'logs' && <ActivityLogManager />}

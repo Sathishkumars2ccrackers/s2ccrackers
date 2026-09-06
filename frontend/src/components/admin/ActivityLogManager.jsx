@@ -120,7 +120,6 @@ const ActivityLogManager = () => {
             <option value="Order">Order</option>
             <option value="Inventory">Inventory</option>
             <option value="Banner">Banner</option>
-            <option value="Pincode">Pincode</option>
             <option value="Setting">Setting</option>
           </select>
         </div>

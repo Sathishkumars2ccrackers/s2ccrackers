@@ -4,7 +4,6 @@ import { useToast } from './ToastContext';
 const CartContext = createContext(null);
 
 const CART_STORAGE_KEY = 's2c_shopping_cart';
-const PINCODE_STORAGE_KEY = 's2c_delivery_pincode';
 
 export const CartProvider = ({ children }) => {
   const { toastSuccess, toastWarning, toastInfo } = useToast();
@@ -18,26 +17,11 @@ export const CartProvider = ({ children }) => {
     }
   });
 
-  const [pincodeInfo, setPincodeInfo] = useState(() => {
-    try {
-      const saved = localStorage.getItem(PINCODE_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
-
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
   }, [cartItems]);
-
-  useEffect(() => {
-    if (pincodeInfo) {
-      localStorage.setItem(PINCODE_STORAGE_KEY, JSON.stringify(pincodeInfo));
-    }
-  }, [pincodeInfo]);
 
   // Add product to cart without automatically opening drawer
   const addToCart = (product, quantity = 1, showDrawer = false) => {
@@ -161,8 +145,6 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         removeFromCart,
         clearCart,
-        pincodeInfo,
-        setPincodeInfo,
       }}
     >
       {children}

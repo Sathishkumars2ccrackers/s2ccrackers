@@ -3,7 +3,6 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 const Order = require('../models/Order');
 const Customer = require('../models/Customer');
-const Pincode = require('../models/Pincode');
 const Banner = require('../models/Banner');
 const { logActivity } = require('../utils/activityLogger');
 
@@ -115,12 +114,11 @@ const updateSettings = async (req, res, next) => {
 // @access  Private (Admin)
 const exportDatabaseBackup = async (req, res, next) => {
   try {
-    const [products, categories, orders, customers, pincodes, banners, settings] = await Promise.all([
+    const [products, categories, orders, customers, banners, settings] = await Promise.all([
       Product.find().lean(),
       Category.find().lean(),
       Order.find().lean(),
       Customer.find().lean(),
-      Pincode.find().lean(),
       Banner.find().lean(),
       Setting.find().lean(),
     ]);
@@ -134,7 +132,6 @@ const exportDatabaseBackup = async (req, res, next) => {
         categories,
         orders,
         customers,
-        pincodes,
         banners,
         settings,
       },
