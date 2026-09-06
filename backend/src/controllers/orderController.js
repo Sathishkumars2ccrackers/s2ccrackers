@@ -394,6 +394,15 @@ const updateOrderStatus = async (req, res, next) => {
     const oldStatus = order.status;
     order.status = status;
 
+    // Handle cancellation state transitions
+    if (status === 'Cancelled' && oldStatus !== 'Cancelled') {
+      order.cancellationReason = note?.trim() || 'No reason provided';
+      order.cancelledAt = new Date();
+    } else if (oldStatus === 'Cancelled' && status !== 'Cancelled') {
+      order.cancellationReason = '';
+      order.cancelledAt = null;
+    }
+
     order.statusHistory.push({
       status,
       timestamp: new Date(),
@@ -460,11 +469,17 @@ const cancelOrderAdmin = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Order is already cancelled.' });
     }
 
+    const cancellationReason = reason && typeof reason === 'string' && reason.trim() ? reason.trim() : 'No reason provided';
+    const cancelledAt = new Date();
+
     order.status = 'Cancelled';
+    order.cancellationReason = cancellationReason;
+    order.cancelledAt = cancelledAt;
+
     order.statusHistory.push({
       status: 'Cancelled',
-      timestamp: new Date(),
-      note: reason ? `Cancelled by Admin: ${reason}` : 'Order cancelled by Admin',
+      timestamp: cancelledAt,
+      note: `Cancelled by Admin: ${cancellationReason}`,
       updatedBy: req.admin ? req.admin.name : 'Admin',
     });
 

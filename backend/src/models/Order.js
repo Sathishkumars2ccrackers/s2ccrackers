@@ -176,6 +176,14 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    cancellationReason: {
+      type: String,
+      default: '',
+    },
+    cancelledAt: {
+      type: Date,
+      default: null,
+    },
     isWhatsAppConfirmed: {
       type: Boolean,
       default: false,

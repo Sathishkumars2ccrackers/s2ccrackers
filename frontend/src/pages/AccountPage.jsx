@@ -450,6 +450,18 @@ const AccountPage = () => {
                             </p>
                           </div>
 
+                          {order.status === 'Cancelled' && (
+                            <div className="w-full p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 text-[11px] text-rose-300 space-y-0.5">
+                              <p className="font-semibold text-rose-200 flex items-center gap-1.5">
+                                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                                <span>Reason: {order.cancellationReason || 'Not available'}</span>
+                              </p>
+                              <p className="text-[10px] text-rose-300/80">
+                                Cancelled On: {order.cancelledAt ? formatDate(order.cancelledAt) : (order.updatedAt ? formatDate(order.updatedAt) : 'Not available')}
+                              </p>
+                            </div>
+                          )}
+
                           <div className="flex items-center justify-between sm:justify-end gap-4">
                             <span className="text-sm font-black text-white">
                               {formatCurrency(order.totalAmount || order.amount)}
@@ -663,6 +675,25 @@ const AccountPage = () => {
                               {order.status || 'Pending'}
                             </span>
                           </div>
+
+                          {/* Cancellation Alert Banner */}
+                          {order.status === 'Cancelled' && (
+                            <div className="p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-xs space-y-1.5 shadow-sm">
+                              <div className="flex items-center justify-between flex-wrap gap-1">
+                                <span className="font-extrabold text-rose-300 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
+                                  <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+                                  <span>Order Cancelled</span>
+                                </span>
+                                <span className="text-[11px] text-slate-400">
+                                  Cancelled On: {order.cancelledAt ? formatDate(order.cancelledAt, true) : (order.updatedAt ? formatDate(order.updatedAt, true) : 'Not available')}
+                                </span>
+                              </div>
+                              <div className="text-slate-200 text-xs pl-5 leading-relaxed">
+                                <span className="text-slate-400 font-medium">Reason: </span>
+                                <span className="font-bold text-white">{order.cancellationReason || 'Not available'}</span>
+                              </div>
+                            </div>
+                          )}
 
                           {/* Purchased Items Preview */}
                           <div className="space-y-2 text-xs">

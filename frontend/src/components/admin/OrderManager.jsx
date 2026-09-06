@@ -8,6 +8,7 @@ import {
   Printer,
   CheckCircle2,
   XCircle,
+  AlertCircle,
   Truck,
   Package,
   Clock,
@@ -17,6 +18,7 @@ import {
   X,
   ExternalLink,
   ChevronDown,
+  Loader2,
 } from 'lucide-react';
 import { orderService, analyticsService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -34,6 +36,15 @@ const STATUS_COLORS = {
   Cancelled: 'bg-rose-950/80 text-rose-300 border-rose-500/40',
 };
 
+const CANCELLATION_REASONS = [
+  'Out of Stock',
+  'Customer Requested Cancellation',
+  'Delivery Not Available',
+  'Wrong Pricing',
+  'Payment Verification Failed',
+  'Other',
+];
+
 const OrderManager = () => {
   const { toastSuccess, toastError, toastWarning } = useToast();
 
@@ -46,6 +57,12 @@ const OrderManager = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+
+  // Cancellation Modal States
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [cancelReasonType, setCancelReasonType] = useState('Out of Stock');
+  const [customCancelReason, setCustomCancelReason] = useState('');
+  const [cancellingOrder, setCancellingOrder] = useState(false);
 
   // Status update
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -103,18 +120,33 @@ const OrderManager = () => {
     }
   };
 
-  const handleCancelOrder = async () => {
-    if (!selectedOrder) return;
-    const reason = prompt('Please enter the reason for cancellation (Stock will be automatically restored):');
-    if (reason === null) return;
+  const handleOpenCancelModal = (order = null) => {
+    if (order) setSelectedOrder(order);
+    setCancelReasonType('Out of Stock');
+    setCustomCancelReason('');
+    setIsCancelModalOpen(true);
+  };
 
+  const handleConfirmCancelOrder = async (e) => {
+    e?.preventDefault();
+    if (!selectedOrder) return;
+
+    const finalReason =
+      cancelReasonType === 'Other'
+        ? (customCancelReason.trim() || 'Other')
+        : cancelReasonType;
+
+    setCancellingOrder(true);
     try {
-      const res = await orderService.cancelOrder(selectedOrder._id, reason);
+      const res = await orderService.cancelOrder(selectedOrder._id, finalReason);
       toastSuccess(res.data.message);
+      setIsCancelModalOpen(false);
       setIsDetailModalOpen(false);
       fetchOrders();
     } catch (err) {
-      toastError('Failed to cancel order');
+      toastError(err.response?.data?.message || 'Failed to cancel order');
+    } finally {
+      setCancellingOrder(false);
     }
   };
 
@@ -308,11 +340,31 @@ const OrderManager = () => {
                     />
                   </div>
                 </div>
+
+                {/* Cancelled Order Notice for Admin */}
+                {selectedOrder.status === 'Cancelled' && (
+                  <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-xs space-y-1.5">
+                    <div className="flex items-center justify-between flex-wrap gap-1">
+                      <span className="font-extrabold text-rose-400 uppercase flex items-center gap-1.5">
+                        <AlertCircle className="w-4 h-4" />
+                        <span>Status: Cancelled</span>
+                      </span>
+                      <span className="text-[11px] text-slate-400">
+                        Cancelled At: {selectedOrder.cancelledAt ? formatDate(selectedOrder.cancelledAt, true) : 'Not available'}
+                      </span>
+                    </div>
+                    <div className="text-slate-300">
+                      <span className="font-semibold text-slate-400">Cancellation Reason: </span>
+                      <span className="text-white font-medium">{selectedOrder.cancellationReason || 'Not available'}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="flex justify-between items-center pt-2">
                   {selectedOrder.status !== 'Cancelled' && (
                     <button
                       type="button"
-                      onClick={handleCancelOrder}
+                      onClick={() => handleOpenCancelModal(selectedOrder)}
                       className="text-xs text-rose-400 font-bold hover:underline"
                     >
                       Cancel Order & Restock
@@ -372,6 +424,111 @@ const OrderManager = () => {
                   Print Formal Invoice
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Professional Cancel Order Confirmation Modal */}
+      <AnimatePresence>
+        {isCancelModalOpen && selectedOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => !cancellingOrder && setIsCancelModalOpen(false)}
+              className="fixed inset-0 bg-black/85 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-lg bg-festival-card border border-rose-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 my-8 space-y-5"
+            >
+              <div className="flex items-start justify-between pb-3 border-b border-festival-border">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-rose-400 font-extrabold uppercase tracking-wider flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    <span>Cancel & Restock Order</span>
+                  </span>
+                  <h3 className="text-lg font-black text-white font-mono">{selectedOrder.orderId}</h3>
+                </div>
+                <button
+                  onClick={() => !cancellingOrder && setIsCancelModalOpen(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Warning notice */}
+              <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-xs text-amber-200/90 leading-relaxed">
+                <p className="font-bold text-amber-300">⚠️ Automatic Inventory Restocking:</p>
+                <p className="text-[11px] mt-0.5">
+                  Cancelling will restore {(selectedOrder.items || []).reduce((acc, i) => acc + (i.quantity || 0), 0)} item(s) back into active stock and record this cancellation reason on the customer's account and tracking pages.
+                </p>
+              </div>
+
+              <form onSubmit={handleConfirmCancelOrder} className="space-y-4 text-xs">
+                <div>
+                  <label className="block text-slate-300 font-bold mb-1.5 uppercase tracking-wide">
+                    Cancellation Reason <span className="text-rose-400">*</span>
+                  </label>
+                  <select
+                    value={cancelReasonType}
+                    onChange={(e) => setCancelReasonType(e.target.value)}
+                    className="w-full bg-festival-dark border border-festival-border rounded-xl p-3 text-white text-xs sm:text-sm focus:outline-none focus:border-rose-500"
+                  >
+                    {CANCELLATION_REASONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {cancelReasonType === 'Other' && (
+                  <div>
+                    <label className="block text-slate-300 font-bold mb-1.5 uppercase tracking-wide">
+                      Custom Cancellation Reason <span className="text-rose-400">*</span>
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      value={customCancelReason}
+                      onChange={(e) => setCustomCancelReason(e.target.value)}
+                      placeholder="Enter specific reason for customer and dispatch records..."
+                      className="w-full bg-festival-dark border border-festival-border rounded-xl p-3 text-white text-xs sm:text-sm placeholder:text-slate-500 focus:outline-none focus:border-rose-500 resize-none"
+                    />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={cancellingOrder}
+                    onClick={() => setIsCancelModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl border border-festival-border text-slate-300 hover:text-white font-bold text-xs transition-colors"
+                  >
+                    Keep Order Active
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={cancellingOrder}
+                    className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-950/50 transition-all flex items-center gap-2 disabled:opacity-50"
+                  >
+                    {cancellingOrder ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Cancelling & Restocking...</span>
+                      </>
+                    ) : (
+                      <span>Confirm Cancellation</span>
+                    )}
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

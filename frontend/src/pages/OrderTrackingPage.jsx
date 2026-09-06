@@ -191,11 +191,28 @@ const OrderTrackingPage = () => {
 
               {/* Progress Stepper Line */}
               {order.status === 'Cancelled' ? (
-                <div className="p-6 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-center space-y-2">
-                  <XCircle className="w-8 h-8 text-rose-400 mx-auto" />
-                  <h3 className="text-sm font-bold text-white">This Order Has Been Cancelled</h3>
-                  <p className="text-xs text-rose-200">
-                    If you have questions regarding this cancellation, please contact our Sivakasi WhatsApp support.
+                <div className="p-6 sm:p-8 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-center space-y-4">
+                  <XCircle className="w-10 h-10 text-rose-400 mx-auto" />
+                  <div className="space-y-1">
+                    <h3 className="text-base sm:text-lg font-bold text-white">Order Cancelled</h3>
+                    <p className="text-xs text-rose-200">
+                      This order has been cancelled and its reserved stock has been returned to inventory.
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-xl bg-festival-dark/80 border border-rose-500/30 text-xs max-w-md mx-auto text-left space-y-1.5">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400 flex-wrap gap-1">
+                      <span className="font-semibold text-rose-300 uppercase tracking-wider text-[10px]">Cancellation Details</span>
+                      <span>
+                        Cancelled On: {order.cancelledAt ? formatDate(order.cancelledAt, true) : (order.updatedAt ? formatDate(order.updatedAt, true) : 'Not available')}
+                      </span>
+                    </div>
+                    <p className="text-slate-200 pt-0.5">
+                      <span className="text-slate-400 font-medium">Reason: </span>
+                      <span className="font-bold text-white">{order.cancellationReason || 'Not available'}</span>
+                    </p>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    If you have questions regarding this cancellation, please contact our Sivakasi WhatsApp customer support.
                   </p>
                 </div>
               ) : (

@@ -13,8 +13,8 @@ import {
   CheckCircle2,
   Clock,
   ShieldCheck,
+  AlertCircle,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { createWhatsAppOrderUrl } from '../../utils/whatsappHelper';
 
@@ -98,6 +98,25 @@ const OrderDetailsModal = ({ isOpen, onClose, order }) => {
               </button>
             </div>
           </div>
+
+          {/* Cancelled Order Notice */}
+          {isCancelled && (
+            <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-xs space-y-2 no-print">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <span className="font-extrabold text-rose-300 uppercase tracking-wide flex items-center gap-1.5">
+                  <AlertCircle className="w-4 h-4 text-rose-400" />
+                  <span>Status: Cancelled</span>
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Cancelled At: {order.cancelledAt ? formatDate(order.cancelledAt, true) : (order.updatedAt ? formatDate(order.updatedAt, true) : 'Not available')}
+                </span>
+              </div>
+              <div className="text-slate-200">
+                <span className="text-slate-400 font-medium">Cancellation Reason: </span>
+                <span className="font-bold text-white">{order.cancellationReason || 'Not available'}</span>
+              </div>
+            </div>
+          )}
 
           {/* Status Timeline Bar */}
           {!isCancelled && (
