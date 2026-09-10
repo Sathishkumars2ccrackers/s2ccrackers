@@ -20,13 +20,22 @@ const orderLimiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Rate limiting on tracking: max 10 attempts per 15 minutes per IP
+const trackLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { success: false, message: 'Too many tracking attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Public Routes
 router.post('/', orderLimiter, placeOrder);
-router.get('/track', trackOrder);
-router.get('/:orderId', getOrderByOrderId);
+router.post('/track', trackLimiter, trackOrder);
 
 // Admin Routes
 router.get('/admin/all', protectAdmin, getAllOrdersAdmin);
+router.get('/admin/by-id/:orderId', protectAdmin, getOrderByOrderId);
 router.patch('/admin/:id/status', protectAdmin, updateOrderStatus);
 router.patch('/admin/:id/cancel', protectAdmin, cancelOrderAdmin);
 

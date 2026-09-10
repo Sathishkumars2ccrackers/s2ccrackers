@@ -89,6 +89,16 @@ const orderSchema = new mongoose.Schema(
         default: '',
         trim: true,
       },
+      alternatePhone: {
+        type: String,
+        default: '',
+        trim: true,
+      },
+      secondaryPhone: {
+        type: String,
+        default: '',
+        trim: true,
+      },
       email: {
         type: String,
         default: '',
@@ -158,6 +168,26 @@ const orderSchema = new mongoose.Schema(
       enum: ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Cancelled'],
       default: 'Pending',
       index: true,
+    },
+    dispatchStatus: {
+      type: String,
+      default: 'Order Placed',
+      trim: true,
+    },
+    trackingNumber: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    courierName: {
+      type: String,
+      default: 'Sivakasi Surface Transport',
+      trim: true,
+    },
+    estimatedDelivery: {
+      type: String,
+      default: '3-5 Business Days',
+      trim: true,
     },
     statusHistory: {
       type: [statusHistorySchema],

@@ -81,8 +81,8 @@ export const productService = {
 // 4. Order Services
 export const orderService = {
   placeOrder: (orderData) => api.post('/orders', orderData),
-  trackOrder: (orderId, phone) => api.get('/orders/track', { params: { orderId, phone } }),
-  getByOrderId: (orderId) => api.get(`/orders/${orderId}`),
+  trackOrder: (orderId, phone) => api.post('/orders/track', { orderId, phone }),
+  getByOrderId: (orderId) => api.get(`/orders/admin/by-id/${orderId}`),
   getAllAdmin: (params) => api.get('/orders/admin/all', { params }),
   updateStatus: (id, status, note) => api.patch(`/orders/admin/${id}/status`, { status, note }),
   cancelOrder: (id, reason) => api.patch(`/orders/admin/${id}/cancel`, { reason }),

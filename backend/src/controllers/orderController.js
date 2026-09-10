@@ -214,46 +214,132 @@ const placeOrder = async (req, res, next) => {
   }
 };
 
-// @desc    Track order by Order ID and Phone Number
-// @route   GET /api/orders/track
-// @access  Public
+// @desc    Track order securely by Order ID and Phone Number
+// @route   POST /api/orders/track
+// @access  Public (Rate-limited)
 const trackOrder = async (req, res, next) => {
   try {
-    const { orderId, phone } = req.query;
+    const { orderId, phone } = req.body || {};
 
-    if (!orderId && !phone) {
-      return res.status(400).json({ success: false, message: 'Please provide an Order ID or Mobile Number.' });
+    const genericNotFoundMessage = 'Order not found. Please verify your Order ID and Phone Number.';
+
+    if (!orderId || !phone || !orderId.toString().trim() || !phone.toString().trim()) {
+      return res.status(400).json({
+        success: false,
+        message: genericNotFoundMessage,
+      });
     }
 
-    const query = {};
-    if (orderId && orderId.trim()) {
-      query.orderId = orderId.trim().toUpperCase();
-    }
-    if (phone && phone.trim()) {
-      query['customerDetails.phone'] = phone.trim();
+    const cleanOrderId = orderId.toString().trim().toUpperCase();
+    const cleanPhoneDigits = phone.toString().replace(/\D/g, '');
+
+    if (!cleanPhoneDigits) {
+      return res.status(400).json({
+        success: false,
+        message: genericNotFoundMessage,
+      });
     }
 
-    const order = await Order.findOne(query).lean();
+    const order = await Order.findOne({ orderId: cleanOrderId }).lean();
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: 'No matching order found with the provided details. Please verify your Order ID and Phone Number.',
+        message: genericNotFoundMessage,
       });
     }
 
+    // Phone normalization helper
+    const normalizePhone = (p) => (p ? p.toString().replace(/\D/g, '') : '');
+
+    const candidatePhones = [
+      normalizePhone(order.customerDetails?.phone),
+      normalizePhone(order.customerDetails?.altPhone),
+      normalizePhone(order.customerDetails?.alternatePhone),
+      normalizePhone(order.customerDetails?.secondaryPhone),
+    ].filter(Boolean);
+
+    const last10Digits = cleanPhoneDigits.length >= 10 ? cleanPhoneDigits.slice(-10) : cleanPhoneDigits;
+
+    const isMatch = candidatePhones.some((stored) => {
+      if (stored === cleanPhoneDigits) return true;
+      if (last10Digits && stored.endsWith(last10Digits)) return true;
+      if (stored.length >= 10 && cleanPhoneDigits.length >= 10 && stored.slice(-10) === cleanPhoneDigits.slice(-10)) return true;
+      return false;
+    });
+
+    if (!isMatch) {
+      return res.status(404).json({
+        success: false,
+        message: genericNotFoundMessage,
+      });
+    }
+
+    // Derive dispatch status label
+    let dispatchStatusLabel = order.dispatchStatus || 'Order Placed';
+    if (!order.dispatchStatus) {
+      if (order.status === 'Shipped') dispatchStatusLabel = 'Dispatched / In Transit';
+      else if (order.status === 'Packed') dispatchStatusLabel = 'Factory Packed';
+      else if (order.status === 'Delivered') dispatchStatusLabel = 'Delivered';
+      else if (order.status === 'Cancelled') dispatchStatusLabel = 'Order Cancelled';
+      else if (order.status === 'Confirmed') dispatchStatusLabel = 'Confirmed';
+      else dispatchStatusLabel = 'Order Placed';
+    }
+
+    // Sanitize response strictly for privacy and security
+    // NEVER expose customer phone numbers, emails, internal admin notes, or admin user IDs
+    const sanitizedOrder = {
+      orderId: order.orderId,
+      customerName: order.customerDetails?.name || 'Valued Customer',
+      customerDetails: {
+        name: order.customerDetails?.name || 'Valued Customer',
+        address: order.customerDetails?.address || '',
+        city: order.customerDetails?.city || '',
+        state: order.customerDetails?.state || 'Tamil Nadu',
+        pincode: order.customerDetails?.pincode || '',
+        landmark: order.customerDetails?.landmark || '',
+      },
+      orderDate: order.createdAt,
+      createdAt: order.createdAt,
+      orderStatus: order.status,
+      status: order.status,
+      dispatchStatus: dispatchStatusLabel,
+      trackingNumber: order.trackingNumber || '',
+      courierName: order.courierName || 'Sivakasi Surface Transport',
+      estimatedDelivery: order.estimatedDelivery || (order.status === 'Delivered' ? 'Delivered' : '3-5 Business Days'),
+      items: (order.items || []).map((item) => ({
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        subtotal: item.subtotal || item.price * item.quantity,
+        image: item.image || '',
+      })),
+      subtotal: order.subtotal,
+      deliveryFee: order.deliveryFee,
+      totalAmount: order.totalAmount,
+      paymentMethod: order.paymentMethod || 'COD',
+      cancellationReason: order.status === 'Cancelled' ? (order.cancellationReason || 'No reason provided') : '',
+      cancelledAt: order.status === 'Cancelled' ? order.cancelledAt : null,
+      statusHistory: (order.statusHistory || []).map((h) => ({
+        status: h.status,
+        timestamp: h.timestamp,
+        note: h.note || '',
+      })),
+    };
+
     res.status(200).json({
       success: true,
-      order,
+      order: sanitizedOrder,
     });
   } catch (error) {
     next(error);
   }
 };
 
-// @desc    Get order details by Order ID
-// @route   GET /api/orders/:orderId
-// @access  Public
+// @desc    Get order details by Order ID (Admin Only)
+// @route   GET /api/orders/admin/by-id/:orderId
+// @access  Private (Admin)
 const getOrderByOrderId = async (req, res, next) => {
   try {
     const order = await Order.findOne({ orderId: req.params.orderId.toUpperCase() }).lean();

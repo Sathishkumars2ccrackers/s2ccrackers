@@ -25,8 +25,24 @@ const OrderSuccessPage = () => {
   const { orderId } = useParams();
   const location = useLocation();
 
-  const [order, setOrder] = useState(location.state?.order || null);
-  const [loading, setLoading] = useState(!location.state?.order);
+  const [order, setOrder] = useState(() => {
+    if (location.state?.order) {
+      try {
+        sessionStorage.setItem(`s2c_order_${orderId}`, JSON.stringify(location.state.order));
+      } catch (e) {
+        // Ignore session storage quota errors
+      }
+      return location.state.order;
+    }
+    try {
+      const stored = sessionStorage.getItem(`s2c_order_${orderId}`);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {
+      // Ignore parse errors
+    }
+    return null;
+  });
+  const [loading, setLoading] = useState(false);
 
   // Trigger festive celebratory confetti on mount
   useEffect(() => {
@@ -36,19 +52,7 @@ const OrderSuccessPage = () => {
       origin: { y: 0.6 },
       colors: ['#f59e0b', '#dc2626', '#ea580c', '#10b981', '#fbbf24'],
     });
-
-    if (!order) {
-      orderService
-        .getByOrderId(orderId)
-        .then((res) => {
-          if (res.data?.success) {
-            setOrder(res.data.order);
-          }
-        })
-        .catch((err) => console.error('Failed to load order:', err))
-        .finally(() => setLoading(false));
-    }
-  }, [orderId, order]);
+  }, []);
 
   const handlePrint = () => {
     window.print();
