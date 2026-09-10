@@ -106,7 +106,7 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <Link to="/products?category=sky-shots" className="hover:text-amber-400 transition-colors">
+              <Link to="/products?category=multi-shot-sky-shots" className="hover:text-amber-400 transition-colors">
                 Multi-Shot Sky Shots (வானவெடி)
               </Link>
             </li>
@@ -116,7 +116,7 @@ const Footer = () => {
               </Link>
             </li>
             <li>
-              <Link to="/products?category=gift-boxes" className="hover:text-amber-400 font-bold text-amber-300 transition-colors">
+              <Link to="/products?category=deluxe-gift-boxes" className="hover:text-amber-400 font-bold text-amber-300 transition-colors">
                 Festival Gift Box Combos
               </Link>
             </li>

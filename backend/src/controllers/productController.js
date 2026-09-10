@@ -1,8 +1,82 @@
+const mongoose = require('mongoose');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const { generateSlug, parseBulkProductFile } = require('../utils/excelEngine');
 const { logActivity } = require('../utils/activityLogger');
 const { deleteCloudinaryImage, extractPublicId } = require('../config/cloudinary');
+
+// Canonical Category Alias Map for fault-tolerant fuzzy resolution
+const CATEGORY_ALIAS_MAP = {
+  'sparklers': ['sparklers', 'sparkler'],
+  'ground-chakkars': ['ground-chakkars', 'ground-chakkar', 'groundchakkars', 'groundchakkar', 'ground chakkars', 'ground chakkar'],
+  'flower-pots': ['flower-pots', 'flower-pot', 'flowerpots', 'flowerpot', 'flower pots', 'flower pot'],
+  'rockets-missiles': ['rockets-missiles', 'rockets', 'rocket', 'missiles', 'missile', 'rockets-and-missiles', 'rockets & missiles', 'rockets missiles'],
+  'multi-shot-sky-shots': ['multi-shot-sky-shots', 'sky-shots', 'skyshots', 'ariel-fancy-shots', 'ariel fancy shots', 'fancy-shots', 'fancy shots', 'multishot-sky-shots', 'multi shot sky shots', 'sky shots'],
+  'sound-crackers': ['sound-crackers', 'sound-cracker', 'soundcrackers', 'soundcracker', 'sound crackers', 'sound cracker'],
+  'kids-special': ['kids-special', 'kids-novelties', 'kids special', 'kids novelties', 'kidsspecial', 'kidsnovelties', 'kids'],
+  'deluxe-gift-boxes': ['deluxe-gift-boxes', 'gift-boxes', 'gift-box', 'giftboxes', 'giftbox', 'deluxe gift boxes', 'gift boxes', 'gift box'],
+  'bijili-crackers': ['bijili-crackers', 'bijili-cracker', 'bijili crackers', 'bijili'],
+  'bombs': ['bombs', 'bomb'],
+  'twinkling-star': ['twinkling-star', 'twinkling-stars', 'twinkling star'],
+  'digital-wala': ['digital-wala', 'digital wala'],
+  'childrens-color-match-box': ['childrens-color-match-box', 'children-color-match-box', "children's color match box", 'color-match-box'],
+  'childrens-gun': ['childrens-gun', 'children-gun', "children's gun", 'children gun'],
+  'wala': ['wala', 'walas'],
+};
+
+// Robust helper to resolve category document from slug, ID, or name
+const resolveCategoryDoc = async (rawCategory) => {
+  if (!rawCategory || rawCategory === 'all') return null;
+  const cleanInput = decodeURIComponent(rawCategory).trim();
+
+  // 1. Direct MongoDB ObjectId match
+  if (cleanInput.match(/^[0-9a-fA-F]{24}$/)) {
+    const doc = await Category.findById(cleanInput);
+    if (doc) return doc;
+  }
+
+  const normalizedInput = cleanInput.toLowerCase().replace(/[\s_]+/g, '-');
+  const simpleInput = cleanInput.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+  // 2. Direct Slug Match (Case-insensitive)
+  let catDoc = await Category.findOne({
+    slug: { $regex: new RegExp(`^${normalizedInput.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') },
+  });
+  if (catDoc) return catDoc;
+
+  // 3. Direct Name Match (Case-insensitive)
+  catDoc = await Category.findOne({
+    name: { $regex: new RegExp(`^${cleanInput.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') },
+  });
+  if (catDoc) return catDoc;
+
+  // 4. Alias lookup
+  for (const [canonicalSlug, aliases] of Object.entries(CATEGORY_ALIAS_MAP)) {
+    if (
+      canonicalSlug === normalizedInput ||
+      canonicalSlug.replace(/[^a-z0-9]/g, '') === simpleInput ||
+      aliases.some((a) => a === normalizedInput || a === cleanInput.toLowerCase() || a.replace(/[^a-z0-9]/g, '') === simpleInput)
+    ) {
+      catDoc = await Category.findOne({
+        $or: [
+          { slug: canonicalSlug },
+          { slug: { $in: aliases } },
+        ],
+      });
+      if (catDoc) return catDoc;
+    }
+  }
+
+  // 5. Fallback partial regex search on name/slug
+  catDoc = await Category.findOne({
+    $or: [
+      { slug: { $regex: new RegExp(simpleInput, 'i') } },
+      { name: { $regex: new RegExp(cleanInput, 'i') } },
+    ],
+  });
+
+  return catDoc;
+};
 
 // @desc    Get public products with filters, search, brand, and sorting
 // @route   GET /api/products
@@ -36,15 +110,16 @@ const getProducts = async (req, res, next) => {
       ];
     }
 
-    // Category filter (slug or ObjectId)
+    // Category filter (slug, name, alias, or ObjectId)
     if (category && category !== 'all') {
-      if (category.match(/^[0-9a-fA-F]{24}$/)) {
-        query.category = category;
+      const resolvedCat = await resolveCategoryDoc(category);
+      if (resolvedCat) {
+        query.category = resolvedCat._id;
+        console.log(`[Products API] Resolved Category: "${category}" ➔ "${resolvedCat.name}" (Slug: ${resolvedCat.slug}, ID: ${resolvedCat._id})`);
       } else {
-        const catDoc = await Category.findOne({ slug: category });
-        if (catDoc) {
-          query.category = catDoc._id;
-        }
+        // Explicit category requested but not found -> Return 0 products
+        query.category = new mongoose.Types.ObjectId();
+        console.log(`[Products API] No matching category found for: "${category}". Returning empty product list.`);
       }
     }
 
@@ -117,6 +192,8 @@ const getProducts = async (req, res, next) => {
         .lean(),
       Product.countDocuments(query),
     ]);
+
+    console.log(`[Products API] Returned ${products.length} products (Total matches: ${total}) for category="${category || 'all'}", search="${search || ''}"`);
 
     res.status(200).json({
       success: true,

@@ -48,8 +48,8 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'All Crackers', path: '/products' },
-    { name: 'Gift Box Combos', path: '/products?category=gift-boxes', highlight: true },
-    { name: 'Sky Shots', path: '/products?category=sky-shots' },
+    { name: 'Gift Box Combos', path: '/products?category=deluxe-gift-boxes', highlight: true },
+    { name: 'Sky Shots', path: '/products?category=multi-shot-sky-shots' },
     { name: 'Track Order', path: '/track-order' },
     { name: 'Safety Tips', path: '/safety' },
     { name: 'Contact', path: '/contact' },

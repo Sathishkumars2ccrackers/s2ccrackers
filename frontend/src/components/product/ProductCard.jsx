@@ -73,9 +73,13 @@ const ProductCard = ({ product }) => {
         {/* Category & Brand Pills */}
         <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1 z-10 pointer-events-none">
           {product.category?.name && (
-            <span className="bg-festival-dark/90 text-amber-300/95 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-amber-500/30 backdrop-blur-sm truncate max-w-[130px]">
+            <Link
+              to={`/products?category=${product.category.slug || product.category._id}`}
+              onClick={(e) => e.stopPropagation()}
+              className="pointer-events-auto bg-festival-dark/90 hover:bg-amber-500 hover:text-slate-950 text-amber-300/95 text-[10px] font-semibold px-2 py-0.5 rounded-md border border-amber-500/30 backdrop-blur-sm truncate max-w-[130px] transition-colors"
+            >
               {product.category.name}
-            </span>
+            </Link>
           )}
           {product.brand && (
             <span className="bg-red-950/90 text-red-200 text-[10px] font-bold px-2 py-0.5 rounded-md border border-red-500/30 backdrop-blur-sm">

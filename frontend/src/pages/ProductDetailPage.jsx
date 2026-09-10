@@ -118,7 +118,7 @@ const ProductDetailPage = () => {
           <span>/</span>
           {product.category && (
             <>
-              <Link to={`/products?category=${product.category._id}`} className="hover:text-amber-400">
+              <Link to={`/products?category=${product.category.slug || product.category._id}`} className="hover:text-amber-400 font-semibold">
                 {product.category.name}
               </Link>
               <span>/</span>
@@ -376,8 +376,11 @@ const ProductDetailPage = () => {
               <h2 className="text-xl sm:text-2xl font-extrabold text-white">
                 Similar Sivakasi Fireworks
               </h2>
-              <Link to="/products" className="text-xs font-bold text-amber-400 hover:underline">
-                View All →
+              <Link
+                to={product.category?.slug ? `/products?category=${product.category.slug}` : '/products'}
+                className="text-xs font-bold text-amber-400 hover:underline"
+              >
+                View More in {product.category?.name || 'Category'} →
               </Link>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

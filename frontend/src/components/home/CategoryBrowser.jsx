@@ -35,14 +35,14 @@ const CATEGORY_META = {
     color: 'from-red-600 to-orange-600',
     desc: 'Majestic fountain showers of gold and colors',
   },
-  rockets: {
+  'rockets-missiles': {
     name: 'Rockets & Missiles',
     sub: 'ராக்கெட்',
     icon: Rocket,
     color: 'from-purple-600 to-indigo-600',
     desc: 'High altitude whistling sky rockets',
   },
-  'sky-shots': {
+  'multi-shot-sky-shots': {
     name: 'Multi-Shot Sky Shots',
     sub: 'வானவெடி',
     icon: Zap,
@@ -63,7 +63,7 @@ const CATEGORY_META = {
     color: 'from-emerald-500 to-teal-600',
     desc: 'Safe pop pops, snakes, and peacock shows',
   },
-  'gift-boxes': {
+  'deluxe-gift-boxes': {
     name: 'Deluxe Gift Boxes',
     sub: 'ஸ்பெஷல் கிப்ட் பாக்ஸ்',
     icon: Gift,
@@ -89,7 +89,7 @@ const CategoryBrowser = ({ categories = [] }) => {
           </div>
           <Link
             to="/products"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-400 hover:text-amber-300 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-400 hover:text-amber-300 transition-colors cursor-pointer"
           >
             <span>View All Categories & Crackers</span>
             <ArrowRight className="w-4 h-4" />
@@ -108,10 +108,12 @@ const CategoryBrowser = ({ categories = [] }) => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
                 whileHover={{ y: -5 }}
+                className="h-full"
               >
                 <Link
                   to={`/products?category=${slug}`}
-                  className="block h-full p-5 rounded-2xl bg-festival-card border border-festival-border hover:border-amber-500/50 transition-all duration-300 group shadow-lg hover:shadow-2xl hover:shadow-amber-950/20 flex flex-col justify-between"
+                  onClick={() => console.log(`[Category Browser] Clicked Category: "${meta.name}" (Slug: "${slug}")`)}
+                  className="block h-full p-5 rounded-2xl bg-festival-card border border-festival-border hover:border-amber-500/50 transition-all duration-300 group shadow-lg hover:shadow-2xl hover:shadow-amber-950/20 flex flex-col justify-between cursor-pointer select-none"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div

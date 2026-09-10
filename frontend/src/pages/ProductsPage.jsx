@@ -62,13 +62,25 @@ const ProductsPage = () => {
       });
   }, []);
 
+  // Helper to determine if a category is active with case-insensitive and slug/id tolerance
+  const isCategoryActive = (cat) => {
+    if (!category || category === 'all') return false;
+    const cleanActive = decodeURIComponent(category).trim().toLowerCase();
+    return (
+      cat.slug.toLowerCase() === cleanActive ||
+      cat.name.toLowerCase() === cleanActive ||
+      cat._id === category
+    );
+  };
+
   // Fetch Products whenever URL search params change
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
+      console.log(`[ProductsPage] 🔎 Fetching products with filters -> Category: "${category}", Search: "${search}", Brand: "${brand}", Sort: "${sort}", Page: ${page}`);
       try {
         const params = {
-          search,
+          search: search || undefined,
           category: category !== 'all' ? category : undefined,
           brand: brand !== 'all' ? brand : undefined,
           minPrice: minPrice || undefined,
@@ -81,12 +93,14 @@ const ProductsPage = () => {
 
         const res = await productService.getProducts(params);
         if (res.data?.success) {
-          setProducts(res.data.products || []);
+          const fetchedItems = res.data.products || [];
+          setProducts(fetchedItems);
           setTotalProducts(res.data.total || 0);
           setTotalPages(res.data.totalPages || 1);
+          console.log(`[ProductsPage] ✅ Successfully loaded ${fetchedItems.length} products (Total matches in DB: ${res.data.total || 0}) for category "${category}"`);
         }
       } catch (err) {
-        console.error('Failed to load products catalog:', err);
+        console.error('[ProductsPage] ❌ Failed to load products catalog:', err);
       } finally {
         setLoading(false);
       }
@@ -197,7 +211,7 @@ const ProductsPage = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-thin">
           <button
             onClick={() => updateFilters({ category: 'all' })}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${
+            className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
               category === 'all'
                 ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-md'
                 : 'bg-festival-card text-slate-300 hover:text-white border border-festival-border'
@@ -205,19 +219,22 @@ const ProductsPage = () => {
           >
             All Fireworks ({totalProducts})
           </button>
-          {categories.map((cat) => (
-            <button
-              key={cat._id}
-              onClick={() => updateFilters({ category: cat.slug })}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                category === cat.slug
-                  ? 'bg-amber-500 text-slate-950 font-bold shadow'
-                  : 'bg-festival-card text-slate-300 hover:text-white border border-festival-border'
-              }`}
-            >
-              {cat.name}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const active = isCategoryActive(cat);
+            return (
+              <button
+                key={cat._id}
+                onClick={() => updateFilters({ category: cat.slug })}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                  active
+                    ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                    : 'bg-festival-card text-slate-300 hover:text-white border border-festival-border'
+                }`}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
         </div>
 
         {/* Main Grid with Filter Sidebar */}
@@ -232,7 +249,7 @@ const ProductsPage = () => {
               {hasActiveFilters && (
                 <button
                   onClick={clearAllFilters}
-                  className="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1"
+                  className="text-[11px] font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
                 >
                   <RotateCcw className="w-3 h-3" />
                   Reset
@@ -262,7 +279,7 @@ const ProductsPage = () => {
               <div className="space-y-1 text-xs">
                 <button
                   onClick={() => updateFilters({ brand: 'all' })}
-                  className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                  className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
                     brand === 'all'
                       ? 'bg-amber-500 text-slate-950 font-bold shadow'
                       : 'text-slate-300 hover:bg-white/5 hover:text-white'
@@ -274,7 +291,7 @@ const ProductsPage = () => {
                   <button
                     key={b}
                     onClick={() => updateFilters({ brand: b })}
-                    className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                    className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
                       brand === b
                         ? 'bg-amber-500 text-slate-950 font-bold shadow'
                         : 'text-slate-300 hover:bg-white/5 hover:text-white'
@@ -315,11 +332,11 @@ const ProductsPage = () => {
 
             {/* Category Filter */}
             <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Categories (15)</h4>
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">Categories ({categories.length || 15})</h4>
               <div className="space-y-1 text-xs">
                 <button
                   onClick={() => updateFilters({ category: 'all' })}
-                  className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                  className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
                     category === 'all'
                       ? 'bg-amber-500 text-slate-950 font-bold shadow'
                       : 'text-slate-300 hover:bg-white/5 hover:text-white'
@@ -327,19 +344,22 @@ const ProductsPage = () => {
                 >
                   All Categories
                 </button>
-                {categories.map((cat) => (
-                  <button
-                    key={cat._id}
-                    onClick={() => updateFilters({ category: cat.slug })}
-                    className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors truncate ${
-                      category === cat.slug
-                        ? 'bg-amber-500 text-slate-950 font-bold shadow'
-                        : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                    }`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
+                {categories.map((cat) => {
+                  const active = isCategoryActive(cat);
+                  return (
+                    <button
+                      key={cat._id}
+                      onClick={() => updateFilters({ category: cat.slug })}
+                      className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors truncate cursor-pointer ${
+                        active
+                          ? 'bg-amber-500 text-slate-950 font-bold shadow'
+                          : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      {cat.name}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </aside>
@@ -355,13 +375,19 @@ const ProductsPage = () => {
                 <div className="w-16 h-16 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center mx-auto text-amber-400">
                   <Search className="w-8 h-8" />
                 </div>
-                <h3 className="text-lg font-bold text-white">No Firework Items Found</h3>
+                <h3 className="text-lg font-bold text-white">
+                  {category && category !== 'all'
+                    ? 'No products available in this category.'
+                    : 'No Firework Items Found'}
+                </h3>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Try adjusting your search terms, price range, or category filter to discover authentic Sivakasi crackers.
+                  {category && category !== 'all'
+                    ? 'We are currently preparing more stock for this festive cracker category from our Sivakasi factory. Please explore other categories.'
+                    : 'Try adjusting your search terms, price range, or category filter to discover authentic Sivakasi crackers.'}
                 </p>
                 <button
                   onClick={clearAllFilters}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow-lg hover:bg-amber-400 transition-colors"
+                  className="px-6 py-2.5 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs shadow-lg hover:bg-amber-400 transition-colors cursor-pointer"
                 >
                   Clear All Filters
                 </button>
@@ -381,7 +407,7 @@ const ProductsPage = () => {
                   <button
                     key={p}
                     onClick={() => updateFilters({ page: p })}
-                    className={`w-9 h-9 rounded-xl text-xs font-bold transition-all ${
+                    className={`w-9 h-9 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                       page === p
                         ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/30'
                         : 'bg-festival-card text-slate-300 hover:text-white border border-festival-border'
@@ -474,17 +500,20 @@ const ProductsPage = () => {
                     >
                       All Categories
                     </button>
-                    {categories.map((cat) => (
-                      <button
-                        key={cat._id}
-                        onClick={() => updateFilters({ category: cat.slug })}
-                        className={`w-full text-left px-3 py-1.5 rounded-lg ${
-                          category === cat.slug ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300'
-                        }`}
-                      >
-                        {cat.name}
-                      </button>
-                    ))}
+                    {categories.map((cat) => {
+                      const active = isCategoryActive(cat);
+                      return (
+                        <button
+                          key={cat._id}
+                          onClick={() => updateFilters({ category: cat.slug })}
+                          className={`w-full text-left px-3 py-1.5 rounded-lg ${
+                            active ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300'
+                          }`}
+                        >
+                          {cat.name}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -492,13 +521,13 @@ const ProductsPage = () => {
               <div className="pt-4 border-t border-festival-border flex gap-2">
                 <button
                   onClick={clearAllFilters}
-                  className="flex-1 py-2.5 rounded-xl bg-festival-dark text-slate-300 text-xs font-bold"
+                  className="flex-1 py-2.5 rounded-xl bg-festival-dark text-slate-300 text-xs font-bold cursor-pointer"
                 >
                   Reset
                 </button>
                 <button
                   onClick={() => setIsMobileFilterOpen(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold"
+                  className="flex-1 py-2.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold cursor-pointer"
                 >
                   Apply
                 </button>
