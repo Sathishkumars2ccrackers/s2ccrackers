@@ -42,7 +42,7 @@ export const SettingsProvider = ({ children }) => {
           minOrderAmount: s.minimumOrderAmount !== undefined ? s.minimumOrderAmount : (s.minOrderAmount || prev.minOrderAmount),
           freeDeliveryThreshold: s.freeDeliveryThreshold !== undefined ? s.freeDeliveryThreshold : prev.freeDeliveryThreshold,
           defaultDeliveryFee: s.defaultDeliveryFee !== undefined ? s.defaultDeliveryFee : prev.defaultDeliveryFee,
-          discountSlabs: Array.isArray(s.discountSlabs) && s.discountSlabs.length > 0 ? s.discountSlabs : prev.discountSlabs,
+          discountSlabs: Array.isArray(s.discountSlabs) ? s.discountSlabs : prev.discountSlabs,
           deliveryMessage: s.deliveryMessage || prev.deliveryMessage,
           cartProgressMessage: s.cartProgressMessage || prev.cartProgressMessage,
           festivalAnnouncement: s.festivalAnnouncement !== undefined ? s.festivalAnnouncement : prev.festivalAnnouncement,

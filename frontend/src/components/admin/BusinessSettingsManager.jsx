@@ -65,7 +65,7 @@ const BusinessSettingsManager = () => {
         setMinimumOrderAmount(s.minimumOrderAmount !== undefined ? s.minimumOrderAmount : (s.minOrderAmount || 500));
         setFreeDeliveryThreshold(s.freeDeliveryThreshold !== undefined ? s.freeDeliveryThreshold : 3000);
         setDefaultDeliveryFee(s.defaultDeliveryFee !== undefined ? s.defaultDeliveryFee : 150);
-        if (Array.isArray(s.discountSlabs) && s.discountSlabs.length > 0) {
+        if (Array.isArray(s.discountSlabs)) {
           setDiscountSlabs([...s.discountSlabs].sort((a, b) => a.minAmount - b.minAmount));
         }
         setDeliveryMessage(s.deliveryMessage || 'Door Delivery Available');
@@ -138,17 +138,17 @@ const BusinessSettingsManager = () => {
   };
 
   const handleSaveSlabModal = (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const minAmt = parseFloat(slabForm.minAmount);
     const discPct = parseFloat(slabForm.discountPercentage);
 
-    if (isNaN(minAmt) || minAmt <= 0) {
+    if (slabForm.minAmount === '' || isNaN(minAmt) || minAmt <= 0) {
       toastWarning('Please enter a valid minimum order amount greater than 0.');
       return;
     }
 
-    if (isNaN(discPct) || discPct <= 0 || discPct > 100) {
-      toastWarning('Please enter a valid discount percentage between 1% and 100%.');
+    if (slabForm.discountPercentage === '' || isNaN(discPct) || discPct <= 0 || discPct > 100) {
+      toastWarning('Please enter a valid discount percentage between 0.01% and 100%.');
       return;
     }
 
@@ -268,7 +268,7 @@ const BusinessSettingsManager = () => {
                 <input
                   type="number"
                   min="0"
-                  step="50"
+                  step="any"
                   value={minimumOrderAmount}
                   onChange={(e) => setMinimumOrderAmount(Math.max(0, parseFloat(e.target.value) || 0))}
                   placeholder="500"
@@ -351,7 +351,7 @@ const BusinessSettingsManager = () => {
                 <input
                   type="number"
                   min="0"
-                  step="100"
+                  step="any"
                   value={freeDeliveryThreshold}
                   onChange={(e) => setFreeDeliveryThreshold(Math.max(0, parseFloat(e.target.value) || 0))}
                   placeholder="3000"
@@ -524,7 +524,7 @@ const BusinessSettingsManager = () => {
                 <input
                   type="number"
                   min="0"
-                  step="100"
+                  step="any"
                   value={testAmount}
                   onChange={(e) => setTestAmount(parseFloat(e.target.value) || 0)}
                   className="w-full bg-festival-card border border-festival-border focus:border-amber-400 rounded-xl pl-7 pr-3 py-2 text-white font-mono font-bold text-xs"
@@ -537,7 +537,7 @@ const BusinessSettingsManager = () => {
                 <span>Applied Slab:</span>
                 <span className="font-bold text-amber-400 font-mono">
                   {testResults.discountPercentage > 0
-                    ? `${testResults.discountPercentage}% OFF (₹${formatCurrency(testResults.appliedSlab?.minAmount)} threshold)`
+                    ? `${testResults.discountPercentage}% OFF (${formatCurrency(testResults.appliedSlab?.minAmount)} threshold)`
                     : 'No discount (Below first tier)'}
                 </span>
               </div>
@@ -666,58 +666,70 @@ const BusinessSettingsManager = () => {
                 <span>{editingIndex !== null ? 'Edit Discount Rule' : 'Add New Discount Rule'}</span>
               </h3>
               <button
+                type="button"
                 onClick={() => setIsEditingSlab(false)}
-                className="text-slate-400 hover:text-white text-lg font-bold"
+                className="text-slate-400 hover:text-white text-lg font-bold p-1 rounded-lg hover:bg-white/10 transition-colors"
               >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleSaveSlabModal} className="space-y-4 text-xs">
+            <form onSubmit={handleSaveSlabModal} noValidate className="space-y-4 text-xs">
               <div>
                 <label className="block font-bold text-slate-300 uppercase mb-1.5">
-                  Minimum Order Amount (₹)
+                  Minimum Order Amount (₹) <span className="text-rose-400">*</span>
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  step="50"
-                  required
-                  value={slabForm.minAmount}
-                  onChange={(e) => setSlabForm({ ...slabForm, minAmount: e.target.value })}
-                  placeholder="e.g. 1000"
-                  className="w-full bg-festival-dark border border-festival-border rounded-xl px-3.5 py-2.5 text-white font-mono text-sm"
-                />
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    step="any"
+                    value={slabForm.minAmount}
+                    onChange={(e) => setSlabForm({ ...slabForm, minAmount: e.target.value })}
+                    placeholder="e.g. 1500"
+                    className="w-full bg-festival-dark border border-festival-border focus:border-amber-400 rounded-xl pl-8 pr-3.5 py-2.5 text-white font-mono text-sm"
+                  />
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Enter any minimum cart amount (e.g. ₹100, ₹250, ₹1500, ₹2750, ₹3000, ₹9999).
+                </p>
               </div>
 
               <div>
                 <label className="block font-bold text-slate-300 uppercase mb-1.5">
-                  Discount Percentage (%)
+                  Discount Percentage (%) <span className="text-rose-400">*</span>
                 </label>
-                <input
-                  type="number"
-                  min="1"
-                  max="100"
-                  step="0.5"
-                  required
-                  value={slabForm.discountPercentage}
-                  onChange={(e) => setSlabForm({ ...slabForm, discountPercentage: e.target.value })}
-                  placeholder="e.g. 10"
-                  className="w-full bg-festival-dark border border-festival-border rounded-xl px-3.5 py-2.5 text-white font-mono text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="any"
+                    value={slabForm.discountPercentage}
+                    onChange={(e) => setSlabForm({ ...slabForm, discountPercentage: e.target.value })}
+                    placeholder="e.g. 10"
+                    className="w-full bg-festival-dark border border-festival-border focus:border-amber-400 rounded-xl pl-3.5 pr-8 py-2.5 text-white font-mono text-sm"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                    %
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">
+                  Enter discount percentage from 0.01% to 100% (e.g. 5, 7.5, 10, 15).
+                </p>
               </div>
 
               <div className="pt-4 flex justify-end gap-3">
                 <button
                   type="button"
                   onClick={() => setIsEditingSlab(false)}
-                  className="px-4 py-2.5 rounded-xl bg-festival-dark text-slate-300 font-bold hover:text-white"
+                  className="px-4 py-2.5 rounded-xl bg-festival-dark text-slate-300 font-bold hover:text-white border border-festival-border transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2.5 bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 text-slate-950 font-black rounded-xl shadow-lg"
+                  className="px-6 py-2.5 bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-lg transition-all"
                 >
                   {editingIndex !== null ? 'Update Rule' : 'Add Rule'}
                 </button>

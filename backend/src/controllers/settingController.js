@@ -31,7 +31,7 @@ const getPublicSettings = async (req, res, next) => {
         minOrderAmount: minAmount,
         freeDeliveryThreshold: setting.freeDeliveryThreshold !== undefined ? setting.freeDeliveryThreshold : 3000,
         defaultDeliveryFee: setting.defaultDeliveryFee !== undefined ? setting.defaultDeliveryFee : 150,
-        discountSlabs: Array.isArray(setting.discountSlabs) && setting.discountSlabs.length > 0
+        discountSlabs: Array.isArray(setting.discountSlabs)
           ? setting.discountSlabs
           : [
               { minAmount: 1000, discountPercentage: 5 },
@@ -131,16 +131,16 @@ const updateSettings = async (req, res, next) => {
         const slabMin = parseFloat(slab.minAmount);
         const slabPct = parseFloat(slab.discountPercentage);
 
-        if (isNaN(slabMin) || slabMin < 0) {
+        if (isNaN(slabMin) || slabMin <= 0) {
           return res.status(400).json({
             success: false,
-            message: 'Each discount slab must have a valid minimum order amount (>= 0).',
+            message: 'Each discount slab must have a valid minimum order amount greater than 0.',
           });
         }
-        if (isNaN(slabPct) || slabPct < 0 || slabPct > 100) {
+        if (isNaN(slabPct) || slabPct <= 0 || slabPct > 100) {
           return res.status(400).json({
             success: false,
-            message: 'Discount percentage must be between 0% and 100%.',
+            message: 'Discount percentage must be greater than 0% and up to 100%.',
           });
         }
 
