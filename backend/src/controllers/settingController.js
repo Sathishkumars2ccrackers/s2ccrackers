@@ -7,7 +7,7 @@ const Banner = require('../models/Banner');
 const { logActivity } = require('../utils/activityLogger');
 
 // @desc    Get public site settings
-// @route   GET /api/settings/public
+// @route   GET /api/settings/public or GET /api/settings
 // @access  Public
 const getPublicSettings = async (req, res, next) => {
   try {
@@ -15,6 +15,8 @@ const getPublicSettings = async (req, res, next) => {
     if (!setting) {
       setting = await Setting.create({});
     }
+
+    const minAmount = setting.minimumOrderAmount !== undefined ? setting.minimumOrderAmount : (setting.minOrderAmount || 500);
 
     res.status(200).json({
       success: true,
@@ -25,12 +27,23 @@ const getPublicSettings = async (req, res, next) => {
         whatsappNumber: setting.whatsappNumber || '919944476516',
         email: setting.email || 's2ccrackers@gmail.com',
         address: setting.address || 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India',
-        minOrderAmount: setting.minOrderAmount || 500,
-        freeDeliveryThreshold: setting.freeDeliveryThreshold || 3000,
-        defaultDeliveryFee: setting.defaultDeliveryFee || 150,
+        minimumOrderAmount: minAmount,
+        minOrderAmount: minAmount,
+        freeDeliveryThreshold: setting.freeDeliveryThreshold !== undefined ? setting.freeDeliveryThreshold : 3000,
+        defaultDeliveryFee: setting.defaultDeliveryFee !== undefined ? setting.defaultDeliveryFee : 150,
+        discountSlabs: Array.isArray(setting.discountSlabs) && setting.discountSlabs.length > 0
+          ? setting.discountSlabs
+          : [
+              { minAmount: 1000, discountPercentage: 5 },
+              { minAmount: 3000, discountPercentage: 10 },
+              { minAmount: 5000, discountPercentage: 15 },
+            ],
+        deliveryMessage: setting.deliveryMessage || 'Door Delivery Available',
+        cartProgressMessage: setting.cartProgressMessage || 'Add more items to unlock benefits',
         festivalAnnouncement: setting.festivalAnnouncement || '',
         isStoreOpen: setting.isStoreOpen !== undefined ? setting.isStoreOpen : true,
         storeClosedNotice: setting.storeClosedNotice || '',
+        updatedAt: setting.updatedAt,
       },
     });
   } catch (error) {
@@ -55,7 +68,7 @@ const getAdminSettings = async (req, res, next) => {
 };
 
 // @desc    Update settings (Admin)
-// @route   PUT /api/settings/admin
+// @route   PUT /api/settings/admin or PUT /api/settings
 // @access  Private (Admin)
 const updateSettings = async (req, res, next) => {
   try {
@@ -71,23 +84,79 @@ const updateSettings = async (req, res, next) => {
       whatsappNumber,
       email,
       address,
+      minimumOrderAmount,
       minOrderAmount,
       freeDeliveryThreshold,
       defaultDeliveryFee,
+      discountSlabs,
+      deliveryMessage,
+      cartProgressMessage,
       festivalAnnouncement,
       isStoreOpen,
       storeClosedNotice,
     } = req.body;
 
-    if (businessName) setting.businessName = businessName.trim();
-    if (businessDomain) setting.businessDomain = businessDomain.trim();
-    if (phone) setting.phone = phone.trim();
-    if (whatsappNumber) setting.whatsappNumber = whatsappNumber.trim();
-    if (email) setting.email = email.trim().toLowerCase();
-    if (address) setting.address = address.trim();
-    if (minOrderAmount !== undefined) setting.minOrderAmount = parseFloat(minOrderAmount);
-    if (freeDeliveryThreshold !== undefined) setting.freeDeliveryThreshold = parseFloat(freeDeliveryThreshold);
-    if (defaultDeliveryFee !== undefined) setting.defaultDeliveryFee = parseFloat(defaultDeliveryFee);
+    if (businessName !== undefined) setting.businessName = businessName.trim();
+    if (businessDomain !== undefined) setting.businessDomain = businessDomain.trim();
+    if (phone !== undefined) setting.phone = phone.trim();
+    if (whatsappNumber !== undefined) setting.whatsappNumber = whatsappNumber.trim();
+    if (email !== undefined) setting.email = email.trim().toLowerCase();
+    if (address !== undefined) setting.address = address.trim();
+
+    const targetMinOrder = minimumOrderAmount !== undefined ? minimumOrderAmount : minOrderAmount;
+    if (targetMinOrder !== undefined) {
+      const parsedMin = Math.max(0, parseFloat(targetMinOrder) || 0);
+      setting.minimumOrderAmount = parsedMin;
+      setting.minOrderAmount = parsedMin;
+    }
+
+    if (freeDeliveryThreshold !== undefined) {
+      setting.freeDeliveryThreshold = Math.max(0, parseFloat(freeDeliveryThreshold) || 0);
+    }
+    if (defaultDeliveryFee !== undefined) {
+      setting.defaultDeliveryFee = Math.max(0, parseFloat(defaultDeliveryFee) || 0);
+    }
+
+    // Validate and update discount slabs
+    if (discountSlabs !== undefined) {
+      if (!Array.isArray(discountSlabs)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Discount slabs must be an array of rules.',
+        });
+      }
+
+      const formattedSlabs = [];
+      for (const slab of discountSlabs) {
+        const slabMin = parseFloat(slab.minAmount);
+        const slabPct = parseFloat(slab.discountPercentage);
+
+        if (isNaN(slabMin) || slabMin < 0) {
+          return res.status(400).json({
+            success: false,
+            message: 'Each discount slab must have a valid minimum order amount (>= 0).',
+          });
+        }
+        if (isNaN(slabPct) || slabPct < 0 || slabPct > 100) {
+          return res.status(400).json({
+            success: false,
+            message: 'Discount percentage must be between 0% and 100%.',
+          });
+        }
+
+        formattedSlabs.push({
+          minAmount: slabMin,
+          discountPercentage: slabPct,
+        });
+      }
+
+      // Sort slabs ascending by minAmount
+      formattedSlabs.sort((a, b) => a.minAmount - b.minAmount);
+      setting.discountSlabs = formattedSlabs;
+    }
+
+    if (deliveryMessage !== undefined) setting.deliveryMessage = deliveryMessage.trim();
+    if (cartProgressMessage !== undefined) setting.cartProgressMessage = cartProgressMessage.trim();
     if (festivalAnnouncement !== undefined) setting.festivalAnnouncement = festivalAnnouncement;
     if (isStoreOpen !== undefined) setting.isStoreOpen = isStoreOpen;
     if (storeClosedNotice !== undefined) setting.storeClosedNotice = storeClosedNotice;
@@ -99,7 +168,7 @@ const updateSettings = async (req, res, next) => {
       actionType: 'SETTINGS_UPDATE',
       entityType: 'Setting',
       entityId: setting._id,
-      details: 'Updated business contact details and store delivery policies',
+      details: `Updated business rules (Min order: ₹${setting.minimumOrderAmount}, Free delivery: ₹${setting.freeDeliveryThreshold}, Slabs: ${setting.discountSlabs?.length || 0})`,
       req,
     });
 

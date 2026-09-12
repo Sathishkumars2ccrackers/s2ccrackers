@@ -132,6 +132,7 @@ export const analyticsService = {
 
 // 11. Setting Services
 export const settingService = {
+  getSettings: () => api.get('/settings'),
   getPublicSettings: () => api.get('/settings/public'),
   getAdminSettings: () => api.get('/settings/admin'),
   updateSettings: (data) => api.put('/settings/admin', data),

@@ -17,16 +17,20 @@ import {
   Home,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useSettings } from '../context/SettingsContext';
 import { orderService } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
-
-const MIN_ORDER_AMOUNT = 500;
-const FREE_DELIVERY_THRESHOLD = 3000;
-const STANDARD_DELIVERY_FEE = 150;
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { cartItems, cartSubtotal, totalSavings, totalItemsCount, clearCart } = useCart();
+  const {
+    minimumOrderAmount,
+    freeDeliveryThreshold,
+    defaultDeliveryFee,
+    deliveryMessage,
+    calculateDiscount,
+  } = useSettings();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -57,8 +61,9 @@ const CheckoutPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const deliveryFee = cartSubtotal >= FREE_DELIVERY_THRESHOLD ? 0 : STANDARD_DELIVERY_FEE;
-  const grandTotal = cartSubtotal + deliveryFee;
+  const { discountPercentage, discountAmount } = calculateDiscount(cartSubtotal);
+  const deliveryFee = cartSubtotal >= freeDeliveryThreshold ? 0 : defaultDeliveryFee;
+  const grandTotal = Math.max(0, cartSubtotal - discountAmount + deliveryFee);
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
@@ -100,8 +105,8 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (cartSubtotal < MIN_ORDER_AMOUNT) {
-      setError(`Minimum order amount is ₹${MIN_ORDER_AMOUNT}. Please add more items.`);
+    if (cartSubtotal < minimumOrderAmount) {
+      setError(`Minimum order amount is ₹${minimumOrderAmount}. Please add more items.`);
       return;
     }
 
@@ -414,7 +419,7 @@ const CheckoutPage = () => {
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2.5 text-emerald-400 font-bold text-sm">
                   <ShieldCheck className="w-6 h-6" />
-                  <span className="text-white text-base">Door Delivery Available</span>
+                  <span className="text-white text-base">{deliveryMessage || 'Door Delivery Available'}</span>
                 </div>
                 <span className="px-3 py-1 bg-emerald-500 text-slate-950 font-black text-xs rounded-full">
                   SAFE DIRECT DISPATCH
@@ -464,6 +469,12 @@ const CheckoutPage = () => {
                   <div className="flex justify-between text-emerald-400 font-bold">
                     <span>Festival Factory Savings:</span>
                     <span>-{formatCurrency(totalSavings)}</span>
+                  </div>
+                )}
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
+                    <span>Special Discount ({discountPercentage}%):</span>
+                    <span>-{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-300">

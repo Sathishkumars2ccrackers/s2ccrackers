@@ -10,6 +10,7 @@ import {
   Users,
   FileText,
   TrendingUp,
+  SlidersHorizontal,
   Settings,
   LogOut,
   Menu,
@@ -26,6 +27,7 @@ import BannerManager from '../components/admin/BannerManager';
 import CustomerManager from '../components/admin/CustomerManager';
 import ActivityLogManager from '../components/admin/ActivityLogManager';
 import ReportsManager from '../components/admin/ReportsManager';
+import BusinessSettingsManager from '../components/admin/BusinessSettingsManager';
 import SettingsManager from '../components/admin/SettingsManager';
 import logoSvg from '../assets/logo.svg';
 
@@ -38,6 +40,7 @@ const TABS = [
   { id: 'customers', label: 'Customer Directory', icon: Users },
   { id: 'logs', label: 'Activity Audit Trail', icon: FileText },
   { id: 'reports', label: 'Sales Reports & Export', icon: TrendingUp },
+  { id: 'business-settings', label: 'Business Settings', icon: SlidersHorizontal },
   { id: 'settings', label: 'Store Settings & Backup', icon: Settings },
 ];
 
@@ -189,6 +192,7 @@ const AdminDashboardPage = () => {
         {activeTab === 'customers' && <CustomerManager />}
         {activeTab === 'logs' && <ActivityLogManager />}
         {activeTab === 'reports' && <ReportsManager />}
+        {activeTab === 'business-settings' && <BusinessSettingsManager />}
         {activeTab === 'settings' && <SettingsManager />}
       </main>
     </div>

@@ -6,13 +6,38 @@ const { generateOrderId } = require('../utils/orderIdGenerator');
 const { sendCustomerOrderConfirmationEmail, sendAdminNewOrderAlertEmail } = require('../config/mailer');
 const { logActivity } = require('../utils/activityLogger');
 
+// Calculate highest matching discount slab from business settings
+const calculateDiscount = (subtotal, slabs = []) => {
+  if (!slabs || !Array.isArray(slabs) || slabs.length === 0 || subtotal <= 0) {
+    return { discountPercentage: 0, discountAmount: 0 };
+  }
+
+  const matchingSlabs = slabs.filter((s) => subtotal >= s.minAmount && s.discountPercentage > 0);
+  if (matchingSlabs.length === 0) {
+    return { discountPercentage: 0, discountAmount: 0 };
+  }
+
+  // Pick highest matching minimum amount slab (or highest discount %)
+  matchingSlabs.sort((a, b) => b.minAmount - a.minAmount || b.discountPercentage - a.discountPercentage);
+  const bestSlab = matchingSlabs[0];
+  const discountPercentage = bestSlab.discountPercentage;
+  const discountAmount = Math.round((subtotal * discountPercentage) / 100);
+
+  return { discountPercentage, discountAmount };
+};
+
 // Generate pre-filled WhatsApp confirmation message
 const buildWhatsAppMessage = (order, businessPhone = '919944476516') => {
   const itemsText = order.items
     .map((item) => `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})`)
     .join('\n');
 
-  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}\n\nTotal Amount: ₹${order.totalAmount}\nPayment Method: Door Delivery Available\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
+  let discountText = '';
+  if (order.discountAmount > 0) {
+    discountText = `\nItems Subtotal: ₹${order.subtotal}\nSpecial Discount (${order.discountPercentage}%): -₹${order.discountAmount}\nDelivery: ${order.deliveryFee > 0 ? '₹' + order.deliveryFee : 'FREE'}`;
+  }
+
+  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}${discountText}\n\nTotal Amount: ₹${order.totalAmount}\nPayment Method: Door Delivery Available\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
 
   const encodedMessage = encodeURIComponent(rawMessage);
   const cleanNumber = businessPhone.replace(/[^0-9]/g, '');
@@ -97,23 +122,35 @@ const placeOrder = async (req, res, next) => {
       });
     }
 
-    // 2. Calculate Delivery Fee & Thresholds
+    // 2. Fetch Business Settings & Calculate Delivery Fee, Discount Slabs & Thresholds
     const setting = (await Setting.findOne()) || {
+      minimumOrderAmount: 500,
       minOrderAmount: 500,
       freeDeliveryThreshold: 3000,
       defaultDeliveryFee: 150,
+      discountSlabs: [
+        { minAmount: 1000, discountPercentage: 5 },
+        { minAmount: 3000, discountPercentage: 10 },
+        { minAmount: 5000, discountPercentage: 15 },
+      ],
       whatsappNumber: '919944476516',
     };
 
-    if (calculatedSubtotal < setting.minOrderAmount) {
+    const minRequired = setting.minimumOrderAmount !== undefined ? setting.minimumOrderAmount : (setting.minOrderAmount || 500);
+
+    if (calculatedSubtotal < minRequired) {
       return res.status(400).json({
         success: false,
-        message: `Minimum order amount is ₹${setting.minOrderAmount}. Please add more items to place your festival order.`,
+        message: `Minimum order amount is ₹${minRequired}. Please add more items to place your festival order.`,
       });
     }
 
-    let deliveryFee = calculatedSubtotal >= setting.freeDeliveryThreshold ? 0 : (setting.defaultDeliveryFee !== undefined ? setting.defaultDeliveryFee : 150);
-    const totalAmount = calculatedSubtotal + deliveryFee;
+    const { discountPercentage, discountAmount } = calculateDiscount(calculatedSubtotal, setting.discountSlabs);
+
+    const freeThreshold = setting.freeDeliveryThreshold !== undefined ? setting.freeDeliveryThreshold : 3000;
+    const defaultFee = setting.defaultDeliveryFee !== undefined ? setting.defaultDeliveryFee : 150;
+    const deliveryFee = calculatedSubtotal >= freeThreshold ? 0 : defaultFee;
+    const totalAmount = Math.max(0, calculatedSubtotal - discountAmount + deliveryFee);
 
     // 3. Generate Order ID (S2C-YYYYMMDD-XXXXXX)
     let orderId = generateOrderId();
@@ -147,6 +184,8 @@ const placeOrder = async (req, res, next) => {
       },
       items: validatedItems,
       subtotal: calculatedSubtotal,
+      discountPercentage,
+      discountAmount,
       deliveryFee,
       totalAmount,
       paymentMethod: 'Door Delivery Available',

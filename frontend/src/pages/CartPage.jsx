@@ -1,12 +1,10 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, ArrowRight, Trash2, Plus, Minus, ShieldCheck, Sparkles, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Trash2, Plus, Minus, ShieldCheck, Sparkles, ArrowLeft, Percent, TrendingUp } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+import { useSettings } from '../context/SettingsContext';
 import { formatCurrency } from '../utils/formatters';
-
-const MIN_ORDER_AMOUNT = 500;
-const FREE_DELIVERY_THRESHOLD = 3000;
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -20,9 +18,20 @@ const CartPage = () => {
     clearCart,
   } = useCart();
 
-  const isMinOrderMet = cartSubtotal >= MIN_ORDER_AMOUNT;
-  const freeDeliveryProgress = Math.min(100, Math.round((cartSubtotal / FREE_DELIVERY_THRESHOLD) * 100));
-  const amountNeededForFreeDelivery = Math.max(0, FREE_DELIVERY_THRESHOLD - cartSubtotal);
+  const {
+    minimumOrderAmount,
+    deliveryMessage,
+    cartProgressMessage,
+    calculateDiscount,
+    getFreeDeliveryProgress,
+  } = useSettings();
+
+  const isMinOrderMet = cartSubtotal >= minimumOrderAmount;
+  const { progressPercent: freeDeliveryProgress, amountNeeded: amountNeededForFreeDelivery, isUnlocked: isFreeDeliveryUnlocked, threshold: freeThreshold } =
+    getFreeDeliveryProgress(cartSubtotal);
+
+  const { discountPercentage, discountAmount, nextSlab, amountNeededForNextSlab } = calculateDiscount(cartSubtotal);
+  const finalCartTotal = Math.max(0, cartSubtotal - discountAmount);
 
   if (cartItems.length === 0) {
     return (
@@ -86,6 +95,24 @@ const CartPage = () => {
             />
           </div>
         </div>
+
+        {/* Discount Slab Incentive Banner */}
+        {nextSlab && amountNeededForNextSlab > 0 && (
+          <div className="p-3.5 rounded-2xl bg-purple-950/30 border border-purple-500/30 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2 text-purple-200 font-medium">
+              <Percent className="w-4 h-4 text-purple-400 flex-shrink-0" />
+              <span>
+                Add <strong className="text-purple-300">{formatCurrency(amountNeededForNextSlab)}</strong> more to unlock an extra <strong className="text-amber-300 font-mono">{nextSlab.discountPercentage}% Special Discount</strong>!
+              </span>
+            </div>
+            <Link
+              to="/products"
+              className="text-[11px] font-bold text-purple-300 hover:text-white underline flex-shrink-0"
+            >
+              Add More Crackers →
+            </Link>
+          </div>
+        )}
 
         {/* Cart Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -180,20 +207,29 @@ const CartPage = () => {
                   <span>-{formatCurrency(totalSavings)}</span>
                 </div>
               )}
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
+                  <span className="flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Special Discount ({discountPercentage}%):</span>
+                  </span>
+                  <span>-{formatCurrency(discountAmount)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-slate-300">
                 <span>Estimated Shipping:</span>
-                <span>{cartSubtotal >= FREE_DELIVERY_THRESHOLD ? 'FREE' : 'Calculated at checkout'}</span>
+                <span>{isFreeDeliveryUnlocked ? 'FREE' : 'Calculated at checkout'}</span>
               </div>
               <div className="pt-3 border-t border-festival-border flex justify-between text-base font-black text-white">
                 <span>Total Amount:</span>
-                <span className="text-amber-400 text-lg">{formatCurrency(cartSubtotal)}</span>
+                <span className="text-amber-400 text-lg">{formatCurrency(finalCartTotal)}</span>
               </div>
             </div>
 
             {/* Min order check */}
             {!isMinOrderMet && (
               <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800/50 text-rose-300 text-xs leading-relaxed">
-                ⚠️ Minimum order amount is <strong>{formatCurrency(MIN_ORDER_AMOUNT)}</strong>. Please add {formatCurrency(MIN_ORDER_AMOUNT - cartSubtotal)} more to checkout.
+                ⚠️ Minimum order amount is <strong>{formatCurrency(minimumOrderAmount)}</strong>. Please add {formatCurrency(minimumOrderAmount - cartSubtotal)} more to checkout.
               </div>
             )}
 
@@ -208,7 +244,7 @@ const CartPage = () => {
 
             <div className="p-3 rounded-xl bg-festival-dark/80 border border-emerald-500/20 text-[11px] text-emerald-400 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-              <span>Door Delivery Available • Payment details confirmed after order placement</span>
+              <span>{deliveryMessage || 'Door Delivery Available'} • Payment confirmed after order</span>
             </div>
           </div>
         </div>
@@ -218,3 +254,4 @@ const CartPage = () => {
 };
 
 export default CartPage;
+

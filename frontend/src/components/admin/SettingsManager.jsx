@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Save, Download, Database, ShieldCheck, AlertTriangle, Loader2 } from 'lucide-react';
 import { settingService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
+import { useSettings } from '../../context/SettingsContext';
 import { downloadAdminFile } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const SettingsManager = () => {
   const { toastSuccess, toastError } = useToast();
+  const { refreshSettings } = useSettings();
 
   const [settings, setSettings] = useState({
     storeName: 'S2C Crackers',
@@ -39,8 +41,8 @@ const SettingsManager = () => {
             contactPhone: s.phone || prev.contactPhone,
             supportEmail: s.email || prev.supportEmail,
             factoryAddress: s.address || prev.factoryAddress,
-            minOrderAmount: s.minOrderAmount || prev.minOrderAmount,
-            freeDeliveryThreshold: s.freeDeliveryThreshold || prev.freeDeliveryThreshold,
+            minOrderAmount: s.minimumOrderAmount !== undefined ? s.minimumOrderAmount : (s.minOrderAmount || prev.minOrderAmount),
+            freeDeliveryThreshold: s.freeDeliveryThreshold !== undefined ? s.freeDeliveryThreshold : prev.freeDeliveryThreshold,
             announcementText: s.festivalAnnouncement || prev.announcementText,
             isStoreOpen: s.isStoreOpen !== undefined ? s.isStoreOpen : prev.isStoreOpen,
             storeClosedMessage: s.storeClosedNotice || prev.storeClosedMessage,
@@ -69,12 +71,14 @@ const SettingsManager = () => {
         whatsappNumber: settings.whatsappNumber,
         email: settings.supportEmail,
         address: settings.factoryAddress,
-        minOrderAmount: settings.minOrderAmount,
-        freeDeliveryThreshold: settings.freeDeliveryThreshold,
+        minimumOrderAmount: Number(settings.minOrderAmount),
+        minOrderAmount: Number(settings.minOrderAmount),
+        freeDeliveryThreshold: Number(settings.freeDeliveryThreshold),
         festivalAnnouncement: settings.announcementText,
         isStoreOpen: settings.isStoreOpen,
         storeClosedNotice: settings.storeClosedMessage,
       });
+      await refreshSettings();
       toastSuccess('Store configuration updated successfully!');
     } catch (err) {
       toastError('Failed to save settings');

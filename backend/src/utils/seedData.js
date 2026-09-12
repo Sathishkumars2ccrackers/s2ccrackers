@@ -421,9 +421,17 @@ const seedDatabase = async () => {
         whatsappNumber: '919944476516',
         email: 's2ccrackers@gmail.com',
         address: 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India',
+        minimumOrderAmount: 500,
         minOrderAmount: 500,
         freeDeliveryThreshold: 3000,
         defaultDeliveryFee: 150,
+        discountSlabs: [
+          { minAmount: 1000, discountPercentage: 5 },
+          { minAmount: 3000, discountPercentage: 10 },
+          { minAmount: 5000, discountPercentage: 15 },
+        ],
+        deliveryMessage: 'Door Delivery Available',
+        cartProgressMessage: 'Add more items to unlock benefits',
         festivalAnnouncement: '💥 SIVAKASI DIRECT FACTORY SALE! Book your Festival Crackers early & Get Up To 80% OFF. Door Delivery Available across India! 💥',
         isStoreOpen: true,
       });

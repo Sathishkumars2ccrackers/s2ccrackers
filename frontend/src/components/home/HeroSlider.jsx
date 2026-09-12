@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, ShieldCheck, Truck, ChevronLeft, ChevronRight, Gift, Flame } from 'lucide-react';
+import { useSettings } from '../../context/SettingsContext';
 import FireworksCanvas from '../common/FireworksCanvas';
 
 const DEFAULT_SLIDES = [
@@ -41,6 +42,7 @@ const DEFAULT_SLIDES = [
 ];
 
 const HeroSlider = ({ banners = [] }) => {
+  const { deliveryMessage } = useSettings();
   const slides = banners && banners.length > 0 ? banners : DEFAULT_SLIDES;
   const [current, setCurrent] = useState(0);
 
@@ -159,7 +161,7 @@ const HeroSlider = ({ banners = [] }) => {
           <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-300 font-medium">
             <div className="flex items-center gap-2 text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
-              <span>Door Delivery Available</span>
+              <span>{deliveryMessage || 'Door Delivery Available'}</span>
             </div>
             <div className="flex items-center gap-2 text-amber-400">
               <Truck className="w-4 h-4" />

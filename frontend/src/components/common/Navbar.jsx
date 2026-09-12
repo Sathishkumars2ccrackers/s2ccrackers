@@ -13,6 +13,7 @@ import {
   Gift,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
 import logoSvg from '../../assets/logo.svg';
 
@@ -20,6 +21,7 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { totalItemsCount, cartSubtotal, openCart } = useCart();
+  const { settings, deliveryMessage, festivalAnnouncement } = useSettings();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -65,13 +67,13 @@ const Navbar = () => {
               Festival Sale 2026
             </span>
             <span className="text-amber-100/90 font-medium truncate">
-              💥 Genuine Sivakasi Direct Factory Prices! Up to 80% OFF • Door Delivery Available Across India!
+              {festivalAnnouncement || '💥 Genuine Sivakasi Direct Factory Prices! Up to 80% OFF • Door Delivery Available Across India!'}
             </span>
           </div>
           <div className="hidden md:flex items-center gap-5 text-slate-300 text-xs flex-shrink-0">
             <div className="flex items-center gap-1.5 text-amber-400">
               <Truck className="w-3.5 h-3.5" />
-              <span>All-India Delivery</span>
+              <span>{deliveryMessage || 'Door Delivery Available'}</span>
             </div>
             <div className="flex items-center gap-1.5 text-emerald-400">
               <ShieldCheck className="w-3.5 h-3.5" />

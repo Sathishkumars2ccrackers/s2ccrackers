@@ -1,15 +1,20 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShoppingBag, ArrowRight, Sparkles, Tag, Flame, CheckCircle2 } from 'lucide-react';
+import { ShoppingBag, ArrowRight, Sparkles, Tag, Flame, CheckCircle2, Percent } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
-
-const MIN_ORDER_AMOUNT = 500;
-const FREE_DELIVERY_THRESHOLD = 3000;
 
 const FloatingCartBar = () => {
   const { totalItemsCount, cartSubtotal, totalSavings, openCart } = useCart();
+  const {
+    minimumOrderAmount,
+    freeDeliveryThreshold,
+    cartProgressMessage,
+    calculateDiscount,
+    getFreeDeliveryProgress,
+  } = useSettings();
   const location = useLocation();
 
   // Hide floating cart on cart, checkout, order-success, and admin pages
@@ -23,27 +28,36 @@ const FloatingCartBar = () => {
     return null;
   }
 
-  // Calculate target progress (min order ₹500, or free shipping ₹3000)
-  const isMinOrderReached = cartSubtotal >= MIN_ORDER_AMOUNT;
-  const isFreeDeliveryReached = cartSubtotal >= FREE_DELIVERY_THRESHOLD;
+  const { discountPercentage, discountAmount, nextSlab, amountNeededForNextSlab } = calculateDiscount(cartSubtotal);
+  const { progressPercent: freeDeliveryProgress, amountNeeded: neededForFreeDelivery, isUnlocked: isFreeDeliveryReached } =
+    getFreeDeliveryProgress(cartSubtotal);
+
+  const isMinOrderReached = cartSubtotal >= minimumOrderAmount;
+  const finalPayable = Math.max(0, cartSubtotal - discountAmount);
+  const combinedSavings = totalSavings + discountAmount;
 
   let progressPercent = 0;
   let progressMessage = '';
   let targetDisplay = '';
 
   if (!isMinOrderReached) {
-    progressPercent = Math.min(100, Math.round((cartSubtotal / MIN_ORDER_AMOUNT) * 100));
-    const remaining = MIN_ORDER_AMOUNT - cartSubtotal;
+    progressPercent = minimumOrderAmount > 0 ? Math.min(100, Math.round((cartSubtotal / minimumOrderAmount) * 100)) : 100;
+    const remaining = minimumOrderAmount - cartSubtotal;
     progressMessage = `Add ${formatCurrency(remaining)} more to reach minimum order`;
-    targetDisplay = `${formatCurrency(cartSubtotal)} / ${formatCurrency(MIN_ORDER_AMOUNT)}`;
+    targetDisplay = `${formatCurrency(cartSubtotal)} / ${formatCurrency(minimumOrderAmount)}`;
+  } else if (nextSlab && amountNeededForNextSlab > 0 && amountNeededForNextSlab <= (freeDeliveryThreshold - cartSubtotal)) {
+    progressPercent = Math.min(100, Math.round((cartSubtotal / nextSlab.minAmount) * 100));
+    progressMessage = `Add ${formatCurrency(amountNeededForNextSlab)} more for ${nextSlab.discountPercentage}% Special Discount! 🎁`;
+    targetDisplay = `${formatCurrency(cartSubtotal)} / ${formatCurrency(nextSlab.minAmount)}`;
   } else if (!isFreeDeliveryReached) {
-    progressPercent = Math.min(100, Math.round((cartSubtotal / FREE_DELIVERY_THRESHOLD) * 100));
-    const remaining = FREE_DELIVERY_THRESHOLD - cartSubtotal;
-    progressMessage = `Add ${formatCurrency(remaining)} more for FREE Delivery! 🎉`;
-    targetDisplay = `${formatCurrency(cartSubtotal)} / ${formatCurrency(FREE_DELIVERY_THRESHOLD)}`;
+    progressPercent = freeDeliveryProgress;
+    progressMessage = `Add ${formatCurrency(neededForFreeDelivery)} more for FREE Delivery! 🎉`;
+    targetDisplay = `${formatCurrency(cartSubtotal)} / ${formatCurrency(freeDeliveryThreshold)}`;
   } else {
     progressPercent = 100;
-    progressMessage = '🎉 FREE Delivery Unlocked across South India!';
+    progressMessage = discountPercentage > 0
+      ? `🎉 FREE Delivery + ${discountPercentage}% Special Discount Unlocked!`
+      : '🎉 FREE Delivery Unlocked across India!';
     targetDisplay = `${formatCurrency(cartSubtotal)}`;
   }
 
@@ -93,10 +107,10 @@ const FloatingCartBar = () => {
                   <span className="text-xs sm:text-sm font-black text-white">
                     {totalItemsCount} {totalItemsCount === 1 ? 'Item' : 'Items'}
                   </span>
-                  {totalSavings > 0 && (
+                  {combinedSavings > 0 && (
                     <span className="text-[10px] sm:text-xs font-extrabold text-emerald-300 bg-emerald-950/80 px-2 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
                       <Tag className="w-3 h-3 text-emerald-400" />
-                      <span>Saved {formatCurrency(totalSavings)}</span>
+                      <span>Saved {formatCurrency(combinedSavings)}</span>
                     </span>
                   )}
                   <span className="hidden md:inline-block text-[11px] font-mono text-amber-300/90 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
@@ -122,7 +136,7 @@ const FloatingCartBar = () => {
                   Cart Total
                 </span>
                 <span className="text-sm sm:text-base font-black text-amber-400">
-                  {formatCurrency(cartSubtotal)}
+                  {formatCurrency(finalPayable)}
                 </span>
               </div>
 

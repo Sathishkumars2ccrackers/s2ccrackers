@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { productService } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { useSettings } from '../context/SettingsContext';
 import { formatCurrency } from '../utils/formatters';
 import ProductCard from '../components/product/ProductCard';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -26,6 +27,7 @@ const ProductDetailPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { addToCart, openCart } = useCart();
+  const { deliveryMessage } = useSettings();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -355,7 +357,7 @@ const ProductDetailPage = () => {
             <div className="pt-4 border-t border-festival-border/60 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
               <div className="flex items-center gap-1.5 text-emerald-400">
                 <ShieldCheck className="w-4 h-4" />
-                <span>Door Delivery Available</span>
+                <span>{deliveryMessage || 'Door Delivery Available'}</span>
               </div>
               <div className="flex items-center gap-1.5 text-amber-400">
                 <Award className="w-4 h-4" />
