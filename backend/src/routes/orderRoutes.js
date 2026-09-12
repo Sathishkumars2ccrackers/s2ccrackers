@@ -8,6 +8,7 @@ const {
   getAllOrdersAdmin,
   updateOrderStatus,
   cancelOrderAdmin,
+  recordWhatsAppConfirmation,
 } = require('../controllers/orderController');
 const { protectAdmin } = require('../middleware/auth');
 
@@ -38,5 +39,6 @@ router.get('/admin/all', protectAdmin, getAllOrdersAdmin);
 router.get('/admin/by-id/:orderId', protectAdmin, getOrderByOrderId);
 router.patch('/admin/:id/status', protectAdmin, updateOrderStatus);
 router.patch('/admin/:id/cancel', protectAdmin, cancelOrderAdmin);
+router.patch('/admin/:id/whatsapp-confirm', protectAdmin, recordWhatsAppConfirmation);
 
 module.exports = router;

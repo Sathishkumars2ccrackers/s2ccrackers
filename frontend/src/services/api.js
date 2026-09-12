@@ -84,8 +84,9 @@ export const orderService = {
   trackOrder: (orderId, phone) => api.post('/orders/track', { orderId, phone }),
   getByOrderId: (orderId) => api.get(`/orders/admin/by-id/${orderId}`),
   getAllAdmin: (params) => api.get('/orders/admin/all', { params }),
-  updateStatus: (id, status, note) => api.patch(`/orders/admin/${id}/status`, { status, note }),
+  updateStatus: (id, status, note, adminNotes) => api.patch(`/orders/admin/${id}/status`, { status, note, adminNotes }),
   cancelOrder: (id, reason) => api.patch(`/orders/admin/${id}/cancel`, { reason }),
+  recordWhatsAppConfirmation: (id, data) => api.patch(`/orders/admin/${id}/whatsapp-confirm`, data),
 };
 
 // 6. Inventory Services

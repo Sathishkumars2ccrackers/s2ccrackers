@@ -460,11 +460,15 @@ const getAllOrdersAdmin = async (req, res, next) => {
 // @access  Private (Admin)
 const updateOrderStatus = async (req, res, next) => {
   try {
-    const { status, note } = req.body;
+    const { status, note, adminNotes } = req.body;
     const order = await Order.findById(req.params.id);
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    if (adminNotes !== undefined) {
+      order.adminNotes = adminNotes.trim();
     }
 
     const validStatuses = ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Cancelled'];
@@ -595,6 +599,65 @@ const cancelOrderAdmin = async (req, res, next) => {
   }
 };
 
+// @desc    Record Admin WhatsApp Confirmation Communication & Optional Auto-confirm
+// @route   PATCH /api/orders/admin/:id/whatsapp-confirm
+// @access  Private (Admin)
+const recordWhatsAppConfirmation = async (req, res, next) => {
+  try {
+    const { autoConfirm = true, adminNotes } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const adminIdentifier = req.admin ? req.admin.name || req.admin.email || 'Admin' : 'Admin';
+    const now = new Date();
+
+    order.whatsappConfirmationSent = true;
+    order.whatsappConfirmationSentAt = now;
+    order.whatsappConfirmationSentBy = adminIdentifier;
+    order.isWhatsAppConfirmed = true;
+
+    if (adminNotes !== undefined) {
+      order.adminNotes = adminNotes.trim();
+    }
+
+    let statusUpdated = false;
+    if (autoConfirm && order.status === 'Pending') {
+      order.status = 'Confirmed';
+      order.statusHistory.push({
+        status: 'Confirmed',
+        timestamp: now,
+        note: `Order reviewed and confirmed via WhatsApp by ${adminIdentifier}`,
+        updatedBy: adminIdentifier,
+      });
+      statusUpdated = true;
+    }
+
+    await order.save();
+
+    await logActivity({
+      admin: req.admin,
+      actionType: 'ORDER_WHATSAPP_CONFIRM',
+      entityType: 'Order',
+      entityId: order.orderId,
+      details: `WhatsApp confirmation communication recorded for order ${order.orderId}. Status: ${order.status}`,
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: statusUpdated
+        ? `WhatsApp confirmation recorded & order marked as Confirmed!`
+        : `WhatsApp communication logged successfully.`,
+      order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   placeOrder,
   trackOrder,
@@ -602,4 +665,5 @@ module.exports = {
   getAllOrdersAdmin,
   updateOrderStatus,
   cancelOrderAdmin,
+  recordWhatsAppConfirmation,
 };

@@ -217,6 +217,11 @@ const orderSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    adminNotes: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     cancellationReason: {
       type: String,
       default: '',
@@ -228,6 +233,19 @@ const orderSchema = new mongoose.Schema(
     isWhatsAppConfirmed: {
       type: Boolean,
       default: false,
+    },
+    whatsappConfirmationSent: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    whatsappConfirmationSentAt: {
+      type: Date,
+      default: null,
+    },
+    whatsappConfirmationSentBy: {
+      type: String,
+      default: '',
     },
   },
   { timestamps: true }
