@@ -64,7 +64,7 @@ async function runSecurityTests() {
       subtotal: 900,
       deliveryFee: 150,
       totalAmount: 1050,
-      paymentMethod: 'COD',
+      paymentMethod: 'Door Delivery Available',
       status: 'Shipped',
       dispatchStatus: 'Dispatched / In Transit',
       trackingNumber: 'VRL-MDU-847291',
@@ -75,7 +75,7 @@ async function runSecurityTests() {
         {
           status: 'Pending',
           timestamp: new Date(Date.now() - 3600000 * 24),
-          note: 'Order placed by customer (Cash on Delivery)',
+          note: 'Order placed by customer (Door Delivery Available)',
           updatedBy: 'Customer',
         },
         {

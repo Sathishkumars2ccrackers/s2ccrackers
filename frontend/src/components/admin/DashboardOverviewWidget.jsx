@@ -20,7 +20,7 @@ const DashboardOverviewWidget = ({ data, onNavigateTab }) => {
 
   const statCards = [
     {
-      title: 'Total Revenue (COD Confirmed)',
+      title: 'Total Revenue (Confirmed Orders)',
       value: formatCurrency(summary?.totalRevenue || 0),
       subtitle: `Today: ${formatCurrency(summary?.todayRevenue || 0)}`,
       icon: TrendingUp,

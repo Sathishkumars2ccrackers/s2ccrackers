@@ -13,32 +13,12 @@ const Footer = () => {
       <div className="border-b border-festival-border/60 py-8 bg-festival-card/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <Award className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-white font-bold text-sm">100% Genuine Sivakasi</h4>
-              <p className="text-xs text-slate-400">Direct from Sivakasi manufacturing units</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20">
+            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
               <Truck className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-white font-bold text-sm">Pan-South India Shipping</h4>
-              <p className="text-xs text-slate-400">Safe, regulated road transport dispatch</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <Shield className="w-6 h-6" />
-            </div>
-            <div>
-              <h4 className="text-white font-bold text-sm">Cash On Delivery (COD)</h4>
-              <p className="text-xs text-slate-400">Pay safely after package delivery</p>
+              <h4 className="text-white font-bold text-sm">Door Delivery Available</h4>
+              <p className="text-xs text-slate-400">Direct delivery to your doorstep</p>
             </div>
           </div>
 
@@ -47,8 +27,28 @@ const Footer = () => {
               <MessageCircle className="w-6 h-6" />
             </div>
             <div>
-              <h4 className="text-white font-bold text-sm">WhatsApp Quick Support</h4>
+              <h4 className="text-white font-bold text-sm">Order Confirmation via WhatsApp</h4>
               <p className="text-xs text-slate-400">Instant order confirmation & support</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20">
+              <Shield className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-white font-bold text-sm">Delivery Across India</h4>
+              <p className="text-xs text-slate-400">Safe, regulated road transport dispatch</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Award className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-white font-bold text-sm">Customer Support Available</h4>
+              <p className="text-xs text-slate-400">8:00 AM to 10:00 PM during festival season</p>
             </div>
           </div>
         </div>
@@ -67,7 +67,7 @@ const Footer = () => {
           <div className="pt-2 text-xs space-y-2 text-slate-300">
             <div className="flex items-start gap-2.5">
               <MapPin className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
-              <span>124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123</span>
+              <span>Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India</span>
             </div>
             <div className="flex items-center gap-2.5">
               <Phone className="w-4 h-4 text-amber-400 flex-shrink-0" />
@@ -146,7 +146,7 @@ const Footer = () => {
             </li>
             <li>
               <Link to="/contact" className="hover:text-amber-400 transition-colors">
-                Contact & Factory Location
+                Contact & Shop Location
               </Link>
             </li>
             <li>
@@ -176,12 +176,12 @@ const Footer = () => {
       <div className="border-t border-festival-border/50 py-4 bg-[#050308]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
           <div>
-            © {new Date().getFullYear()} S2C Crackers (www.s2ccrackers.com). All Rights Reserved. Sivakasi, Tamil Nadu.
+            © {new Date().getFullYear()} S2C Crackers (www.s2ccrackers.com). All Rights Reserved. Tamil Nadu, India.
           </div>
           <div className="flex items-center gap-4">
             <Link to="/safety" className="hover:text-slate-400">Safety Policy</Link>
             <span>•</span>
-            <Link to="/contact" className="hover:text-slate-400">Terms & COD Policy</Link>
+            <Link to="/contact" className="hover:text-slate-400">Terms & Delivery Policy</Link>
           </div>
         </div>
       </div>

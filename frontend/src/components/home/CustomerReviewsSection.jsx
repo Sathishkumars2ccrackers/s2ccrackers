@@ -8,7 +8,7 @@ const REVIEWS = [
     rating: 5,
     date: 'Diwali Celebration',
     review:
-      'Super fresh Sivakasi crackers! The 38-items Gold Gift Box was extraordinary and every single item burst perfectly with no misfires. The COD option gave complete peace of mind.',
+      'Super fresh Sivakasi crackers! The 38-items Gold Gift Box was extraordinary and every single item burst perfectly with no misfires. The door delivery service gave complete peace of mind.',
     product: 'S2C Gold Festival Box (38 Items)',
   },
   {
@@ -53,7 +53,7 @@ const CustomerReviewsSection = () => {
             Trusted by 25,000+ Happy Families
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-2">
-            See what customers across South India say about S2C Crackers factory-direct quality, safe packing, and Cash On Delivery service.
+            See what customers across South India say about S2C Crackers factory-direct quality, safe packing, and Door Delivery service.
           </p>
         </div>
 

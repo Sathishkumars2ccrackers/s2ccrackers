@@ -24,7 +24,7 @@ const settingSchema = new mongoose.Schema(
     },
     address: {
       type: String,
-      default: '124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123',
+      default: 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India',
     },
     minOrderAmount: {
       type: Number,
@@ -40,7 +40,7 @@ const settingSchema = new mongoose.Schema(
     },
     festivalAnnouncement: {
       type: String,
-      default: '💥 SIVAKASI DIRECT FACTORY PRICES! Book your Festival Crackers early & Get Up To 80% OFF. Cash on Delivery Available! 💥',
+      default: '💥 SIVAKASI DIRECT FACTORY PRICES! Book your Festival Crackers early & Get Up To 80% OFF. Door Delivery Available Across India! 💥',
     },
     isStoreOpen: {
       type: Boolean,

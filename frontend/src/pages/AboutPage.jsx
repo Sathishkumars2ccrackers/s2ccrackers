@@ -45,9 +45,9 @@ const AboutPage = () => {
               <p className="text-[11px] text-slate-400">Wholesale price list</p>
             </div>
             <div className="p-4 rounded-2xl bg-festival-dark border border-festival-border text-center space-y-1">
-              <span className="text-2xl font-black text-emerald-400">COD</span>
-              <p className="text-xs font-bold text-white">Zero Risk Booking</p>
-              <p className="text-[11px] text-slate-400">Cash on delivery only</p>
+              <span className="text-2xl font-black text-emerald-400">Door</span>
+              <p className="text-xs font-bold text-white">Door Delivery</p>
+              <p className="text-[11px] text-slate-400">Available across India</p>
             </div>
           </div>
         </div>

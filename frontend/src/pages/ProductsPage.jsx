@@ -153,7 +153,7 @@ const ProductsPage = () => {
               S2C Festival Fireworks Catalog
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Showing {totalProducts} authentic cracker varieties across 15 categories • 100% Cash On Delivery
+              Showing {totalProducts} authentic cracker varieties across 15 categories • Door Delivery Available
             </p>
           </div>
 

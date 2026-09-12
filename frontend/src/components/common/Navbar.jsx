@@ -65,7 +65,7 @@ const Navbar = () => {
               Festival Sale 2026
             </span>
             <span className="text-amber-100/90 font-medium truncate">
-              💥 Genuine Sivakasi Direct Factory Prices! Up to 80% OFF • 100% Cash On Delivery Available!
+              💥 Genuine Sivakasi Direct Factory Prices! Up to 80% OFF • Door Delivery Available Across India!
             </span>
           </div>
           <div className="hidden md:flex items-center gap-5 text-slate-300 text-xs flex-shrink-0">
@@ -193,7 +193,7 @@ const Navbar = () => {
             <div className="flex items-center gap-3 text-xs text-amber-400 font-medium">
               <span className="flex items-center gap-1">
                 <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500 animate-pulse" />
-                COD Only • Zero Prepayment Risk
+                Door Delivery Available Across India
               </span>
             </div>
           </div>

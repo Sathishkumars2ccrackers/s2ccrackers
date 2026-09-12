@@ -21,7 +21,7 @@ Phone Number: ${order.customerDetails.phone}
 Ordered Items:
 ${itemsList}
 
-Total Amount: ₹${order.totalAmount} (Cash On Delivery)
+Total Amount: ₹${order.totalAmount} (Door Delivery Available)
 Delivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}
 
 Please confirm my order.`;

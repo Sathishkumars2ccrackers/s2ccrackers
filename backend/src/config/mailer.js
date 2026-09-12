@@ -61,7 +61,7 @@ const generateCustomerEmailHTML = (order) => {
                 <h1 style="color: #fef08a; margin: 0; font-size: 26px; letter-spacing: 1px;">✨ S2C CRACKERS ✨</h1>
                 <p style="color: #ffffff; margin: 6px 0 0 0; font-size: 14px;">Direct Factory Genuine Sivakasi Fireworks</p>
                 <div style="background-color: #f59e0b; color: #451a03; display: inline-block; padding: 4px 16px; border-radius: 20px; font-weight: bold; font-size: 12px; margin-top: 12px;">
-                  ORDER CONFIRMED (COD)
+                  ORDER CONFIRMED - DOOR DELIVERY
                 </div>
               </td>
             </tr>
@@ -88,8 +88,8 @@ const generateCustomerEmailHTML = (order) => {
                       <td style="color: #1e293b; text-align: right;">${new Date(order.createdAt || Date.now()).toLocaleDateString('en-IN', { dateStyle: 'long' })}</td>
                     </tr>
                     <tr>
-                      <td style="color: #92400e; font-weight: bold;">Payment Method:</td>
-                      <td style="color: #047857; font-weight: bold; text-align: right;">Cash On Delivery (COD)</td>
+                      <td style="color: #92400e; font-weight: bold;">Payment & Delivery:</td>
+                      <td style="color: #047857; font-weight: bold; text-align: right;">Door Delivery Available</td>
                     </tr>
                   </table>
                 </div>
@@ -120,7 +120,7 @@ const generateCustomerEmailHTML = (order) => {
                       <td style="padding: 6px 12px; text-align: right; color: #1e293b; font-weight: 500;">₹${order.deliveryFee || 0}</td>
                     </tr>
                     <tr style="background-color: #fef2f2;">
-                      <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 15px;">Grand Total (Pay on Delivery):</td>
+                      <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 15px;">Grand Total:</td>
                       <td style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 16px;">₹${order.totalAmount}</td>
                     </tr>
                   </tfoot>
@@ -155,7 +155,7 @@ const generateCustomerEmailHTML = (order) => {
             <!-- Footer -->
             <tr style="background-color: #1e293b;">
               <td style="padding: 20px; text-align: center; color: #94a3b8; font-size: 12px;">
-                <p style="margin: 0 0 6px 0; color: #f1f5f9; font-weight: bold;">S2C Crackers - Sivakasi</p>
+                <p style="margin: 0 0 6px 0; color: #f1f5f9; font-weight: bold;">Azhagar Crackers - S2C Crackers</p>
                 <p style="margin: 0 0 6px 0;">Phone/WhatsApp: ${process.env.BUSINESS_PHONE || '+91 99444 76516'}</p>
                 <p style="margin: 0;">www.s2ccrackers.com | Wish you a Joyous & Safe Festival of Lights!</p>
               </td>
@@ -182,7 +182,7 @@ const generateAdminEmailHTML = (order) => {
     <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 24px; border: 1px solid #cbd5e1;">
       <h2 style="color: #b91c1c; margin-top: 0;">🚨 New Order Received: ${order.orderId}</h2>
       <p><strong>Customer:</strong> ${order.customerDetails.name} (${order.customerDetails.phone})</p>
-      <p><strong>Total Amount:</strong> ₹${order.totalAmount} (COD)</p>
+      <p><strong>Total Amount:</strong> ₹${order.totalAmount} (Door Delivery)</p>
       <p><strong>Address:</strong> ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}</p>
       <p><strong>Items:</strong></p>
       <ul>${itemsSummary}</ul>
@@ -196,7 +196,7 @@ const generateAdminEmailHTML = (order) => {
 // Dispatch customer confirmation email
 const sendCustomerOrderConfirmationEmail = async (order) => {
   const to = order.customerDetails.email;
-  const subject = `Order Confirmed: ${order.orderId} - S2C Crackers (COD)`;
+  const subject = `Order Confirmed: ${order.orderId} - S2C Crackers (Door Delivery)`;
   const html = generateCustomerEmailHTML(order);
 
   if (transporter && to) {

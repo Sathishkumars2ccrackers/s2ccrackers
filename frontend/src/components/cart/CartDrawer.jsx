@@ -201,7 +201,7 @@ const CartDrawer = () => {
                       <span>{cartSubtotal >= FREE_DELIVERY_THRESHOLD ? 'FREE' : 'Calculated at checkout'}</span>
                     </div>
                     <div className="pt-2 border-t border-festival-border flex justify-between text-sm font-bold text-white">
-                      <span>Estimated Total (Pay on COD):</span>
+                      <span>Estimated Total:</span>
                       <span className="text-amber-400 text-base">{formatCurrency(cartSubtotal)}</span>
                     </div>
                   </div>
@@ -219,13 +219,13 @@ const CartDrawer = () => {
                     onClick={handleCheckoutClick}
                     className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2"
                   >
-                    <span>Proceed to COD Checkout</span>
+                    <span>Proceed to Checkout</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
 
                   <div className="flex items-center justify-center gap-2 text-[11px] text-emerald-400 font-medium text-center">
                     <ShieldCheck className="w-4 h-4" />
-                    <span>Cash on Delivery Only • 100% Safe Factory Packaging</span>
+                    <span>Door Delivery Available • 100% Safe Factory Packaging</span>
                   </div>
                 </div>
               )}

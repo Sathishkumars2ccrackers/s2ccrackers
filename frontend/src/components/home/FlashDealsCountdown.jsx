@@ -59,7 +59,7 @@ const FlashDealsCountdown = ({ deals = [] }) => {
               Sivakasi Early Bird Booking Discount
             </h2>
             <p className="text-xs sm:text-sm text-slate-300 max-w-lg">
-              Book now to lock in factory direct wholesale rates before festive season price surge. All orders delivered via Cash On Delivery!
+              Book now to lock in factory direct wholesale rates before festive season price surge. Door Delivery Available across India!
             </p>
           </div>
 

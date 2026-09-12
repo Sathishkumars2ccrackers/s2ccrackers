@@ -67,9 +67,9 @@ async function testExpressRoutes() {
       customerDetails: {
         name: 'Route Test Buyer',
         phone: '9844001122',
-        address: '12 Main Road',
-        city: 'Sivakasi',
-        pincode: '626123',
+        address: '570 (East Part), Singapore Nagar, Chatitapatti',
+        city: 'Madurai',
+        pincode: '625014',
       },
       items: [{ productId: new mongoose.Types.ObjectId(), name: 'Standard Sparklers', price: 100, quantity: 1, subtotal: 100 }],
       subtotal: 100,

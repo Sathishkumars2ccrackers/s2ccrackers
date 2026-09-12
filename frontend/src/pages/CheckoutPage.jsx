@@ -159,16 +159,16 @@ const CheckoutPage = () => {
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
               <Lock className="w-7 h-7 text-amber-400" />
-              <span>Direct Guest Checkout (COD)</span>
+              <span>Direct Guest Checkout</span>
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Zero prepayment risk! Complete your shipping details to receive direct factory dispatch from Sivakasi across India.
+              Zero prepayment risk! Complete your shipping details to receive direct factory dispatch across India.
             </p>
           </div>
 
           <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-festival-card border border-emerald-500/30 text-emerald-300 text-xs font-bold self-start sm:self-auto">
             <Truck className="w-4 h-4 text-emerald-400" />
-            <span>All-India Delivery • Pay on Delivery</span>
+            <span>All-India Delivery • Door Delivery Available</span>
           </div>
         </div>
 
@@ -409,19 +409,19 @@ const CheckoutPage = () => {
               </div>
             </div>
 
-            {/* Payment Method Banner (Strictly COD) */}
+            {/* Payment & Delivery Banner */}
             <div className="p-6 rounded-3xl bg-festival-card border border-emerald-500/40 space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2.5 text-emerald-400 font-bold text-sm">
                   <ShieldCheck className="w-6 h-6" />
-                  <span className="text-white text-base">Payment Method: Cash On Delivery (COD)</span>
+                  <span className="text-white text-base">Door Delivery Available</span>
                 </div>
                 <span className="px-3 py-1 bg-emerald-500 text-slate-950 font-black text-xs rounded-full">
-                  NO PREPAYMENT NEEDED
+                  SAFE DIRECT DISPATCH
                 </span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                Pay cash to our delivery executive when your Sivakasi crackers package arrives at your address. Zero online fraud risk!
+                Payment method and delivery details will be confirmed by our team after order placement.
               </p>
             </div>
           </div>
@@ -473,7 +473,7 @@ const CheckoutPage = () => {
                   </span>
                 </div>
                 <div className="pt-3 border-t border-festival-border flex justify-between text-base font-black text-white">
-                  <span>Pay on Delivery:</span>
+                  <span>Total Amount:</span>
                   <span className="text-amber-400 text-xl">{formatCurrency(grandTotal)}</span>
                 </div>
               </div>
@@ -491,7 +491,7 @@ const CheckoutPage = () => {
                   </>
                 ) : (
                   <>
-                    <span>Confirm & Place Order (COD)</span>
+                    <span>Confirm & Place Order</span>
                     <ArrowRight className="w-5 h-5" />
                   </>
                 )}

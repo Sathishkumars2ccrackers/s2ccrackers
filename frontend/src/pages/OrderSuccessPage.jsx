@@ -104,7 +104,7 @@ const OrderSuccessPage = () => {
           <div>
             <span className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center justify-center gap-1.5 mb-1">
               <Sparkles className="w-4 h-4 fill-amber-400" />
-              Order Booked Successfully (COD)
+              Order Booked Successfully
             </span>
             <h1 className="text-2xl sm:text-4xl font-black text-white">
               Thank You, {order.customerDetails?.name}!
@@ -145,7 +145,7 @@ const OrderSuccessPage = () => {
               <div>
                 <h2 className="text-lg font-bold text-white">Order Summary & Receipt</h2>
                 <p className="text-xs text-slate-400">
-                  Placed on: {formatDate(order.createdAt, true)} • Payment Mode: <strong>Cash On Delivery (COD)</strong>
+                  Placed on: {formatDate(order.createdAt, true)} • Payment & Delivery: <strong>Door Delivery Available</strong>
                 </p>
               </div>
             </div>
@@ -193,7 +193,7 @@ const OrderSuccessPage = () => {
                   </td>
                 </tr>
                 <tr className="text-sm font-black text-white">
-                  <td colSpan="3" className="pt-3 text-right text-amber-400">Total (Pay on Delivery):</td>
+                  <td colSpan="3" className="pt-3 text-right text-amber-400">Total Amount:</td>
                   <td className="pt-3 text-right text-amber-400 text-base">{formatCurrency(order.totalAmount)}</td>
                 </tr>
               </tfoot>
@@ -221,7 +221,7 @@ const OrderSuccessPage = () => {
               </h4>
               <p>Direct dispatch from Sivakasi factory outlet.</p>
               <p>Packaging compliant with PESO safety regulations.</p>
-              <p className="text-emerald-300 font-semibold pt-1">Cash on Delivery collected at doorstep.</p>
+              <p className="text-emerald-300 font-semibold pt-1">Door Delivery Available across India.</p>
             </div>
           </div>
         </div>

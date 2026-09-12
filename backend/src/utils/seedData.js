@@ -420,11 +420,11 @@ const seedDatabase = async () => {
         phone: '+91 99444 76516',
         whatsappNumber: '919944476516',
         email: 's2ccrackers@gmail.com',
-        address: '124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123',
+        address: 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India',
         minOrderAmount: 500,
         freeDeliveryThreshold: 3000,
         defaultDeliveryFee: 150,
-        festivalAnnouncement: '💥 SIVAKASI DIRECT FACTORY SALE! Book your Festival Crackers early & Get Up To 80% OFF. Cash on Delivery Available across South India! 💥',
+        festivalAnnouncement: '💥 SIVAKASI DIRECT FACTORY SALE! Book your Festival Crackers early & Get Up To 80% OFF. Door Delivery Available across India! 💥',
         isStoreOpen: true,
       });
       console.log('⚙️ Seeded default business settings.');

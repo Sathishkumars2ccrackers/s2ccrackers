@@ -26,7 +26,7 @@ const STEPS = [
   { id: 'Confirmed', label: 'Confirmed', icon: CheckCircle2, desc: 'Order verified & queued' },
   { id: 'Packed', label: 'Factory Packed', icon: Package, desc: 'Moisture-barrier cartons' },
   { id: 'Shipped', label: 'Dispatched / In Transit', icon: Truck, desc: 'Handed to surface logistics' },
-  { id: 'Delivered', label: 'Delivered (COD Paid)', icon: Sparkles, desc: 'Delivered to doorstep' },
+  { id: 'Delivered', label: 'Delivered', icon: Sparkles, desc: 'Delivered to doorstep' },
 ];
 
 const OrderTrackingPage = () => {
@@ -486,7 +486,7 @@ const OrderTrackingPage = () => {
                     </span>
                   </div>
                   <div className="pt-2 flex justify-between text-sm font-black text-white border-t border-festival-border">
-                    <span className="text-amber-400">Grand Total (COD):</span>
+                    <span className="text-amber-400">Grand Total:</span>
                     <span className="text-amber-400 text-base font-mono">{formatCurrency(order.totalAmount)}</span>
                   </div>
                 </div>
@@ -511,7 +511,7 @@ const OrderTrackingPage = () => {
 
                   <div className="mt-4 pt-3 border-t border-festival-border/60 flex items-center gap-2 text-emerald-400">
                     <CreditCard className="w-4 h-4 flex-shrink-0" />
-                    <span className="font-bold">Payment Method: {order.paymentMethod || 'Cash On Delivery (COD)'}</span>
+                    <span className="font-bold">Payment & Delivery: {order.paymentMethod || 'Door Delivery Available'}</span>
                   </div>
                 </div>
 

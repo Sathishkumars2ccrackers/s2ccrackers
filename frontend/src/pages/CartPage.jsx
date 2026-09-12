@@ -53,7 +53,7 @@ const CartPage = () => {
               <ShoppingBag className="w-8 h-8 text-amber-400" />
               <span>Shopping Cart ({totalItemsCount} items)</span>
             </h1>
-            <p className="text-xs text-slate-400 mt-1">Review your festival cracker items before placing your COD order.</p>
+            <p className="text-xs text-slate-400 mt-1">Review your festival cracker items before placing your order.</p>
           </div>
           <button
             onClick={clearCart}
@@ -202,13 +202,13 @@ const CartPage = () => {
               onClick={() => navigate('/checkout')}
               className="w-full py-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2"
             >
-              <span>Proceed to COD Checkout</span>
+              <span>Proceed to Checkout</span>
               <ArrowRight className="w-4 h-4" />
             </button>
 
             <div className="p-3 rounded-xl bg-festival-dark/80 border border-emerald-500/20 text-[11px] text-emerald-400 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-              <span>Strictly Cash On Delivery (COD). No advance payment needed!</span>
+              <span>Door Delivery Available • Payment details confirmed after order placement</span>
             </div>
           </div>
         </div>

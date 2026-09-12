@@ -12,7 +12,7 @@ const buildWhatsAppMessage = (order, businessPhone = '919944476516') => {
     .map((item) => `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})`)
     .join('\n');
 
-  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}\n\nTotal Amount: ₹${order.totalAmount}\nPayment Method: Cash On Delivery (COD)\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
+  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}\n\nTotal Amount: ₹${order.totalAmount}\nPayment Method: Door Delivery Available\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
 
   const encodedMessage = encodeURIComponent(rawMessage);
   const cleanNumber = businessPhone.replace(/[^0-9]/g, '');
@@ -22,7 +22,7 @@ const buildWhatsAppMessage = (order, businessPhone = '919944476516') => {
   };
 };
 
-// @desc    Place a new customer order (Cash on Delivery)
+// @desc    Place a new customer order (Door Delivery)
 // @route   POST /api/orders
 // @access  Public
 const placeOrder = async (req, res, next) => {
@@ -149,7 +149,7 @@ const placeOrder = async (req, res, next) => {
       subtotal: calculatedSubtotal,
       deliveryFee,
       totalAmount,
-      paymentMethod: 'COD',
+      paymentMethod: 'Door Delivery Available',
       status: 'Pending',
       notes: notes ? notes.trim() : '',
     });
@@ -318,7 +318,7 @@ const trackOrder = async (req, res, next) => {
       subtotal: order.subtotal,
       deliveryFee: order.deliveryFee,
       totalAmount: order.totalAmount,
-      paymentMethod: order.paymentMethod || 'COD',
+      paymentMethod: order.paymentMethod || 'Door Delivery Available',
       cancellationReason: order.status === 'Cancelled' ? (order.cancellationReason || 'No reason provided') : '',
       cancelledAt: order.status === 'Cancelled' ? order.cancelledAt : null,
       statusHistory: (order.statusHistory || []).map((h) => ({

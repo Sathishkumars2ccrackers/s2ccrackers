@@ -71,7 +71,7 @@ const ReportsManager = () => {
           </div>
 
           <div className="p-6 rounded-3xl bg-festival-card border border-festival-border">
-            <span className="text-xs font-bold text-slate-400 uppercase">Today's Sales (COD)</span>
+            <span className="text-xs font-bold text-slate-400 uppercase">Today's Sales</span>
             <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
               {formatCurrency(stats.summary?.todayRevenue || 0)}
             </div>

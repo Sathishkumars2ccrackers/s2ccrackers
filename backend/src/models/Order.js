@@ -159,8 +159,8 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['COD'],
-      default: 'COD',
+      enum: ['Door Delivery Available', 'Door Delivery', 'COD', 'Online'],
+      default: 'Door Delivery Available',
       required: true,
     },
     status: {
@@ -196,7 +196,7 @@ const orderSchema = new mongoose.Schema(
           {
             status: 'Pending',
             timestamp: new Date(),
-            note: 'Order placed by customer (Cash on Delivery)',
+            note: 'Order placed by customer (Door Delivery Available)',
             updatedBy: 'Customer',
           },
         ];

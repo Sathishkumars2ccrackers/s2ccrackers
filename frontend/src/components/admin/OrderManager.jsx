@@ -171,7 +171,7 @@ const OrderManager = () => {
         <div>
           <h2 className="text-xl font-bold text-white">Order Management & Fulfillment</h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Process Cash On Delivery orders, update dispatch timelines, and print GST invoices
+            Process customer orders, update dispatch timelines, and print invoices
           </p>
         </div>
 
@@ -216,7 +216,7 @@ const OrderManager = () => {
             <option value="Confirmed">Confirmed (In Sivakasi Packing)</option>
             <option value="Packed">Packed & Sealed</option>
             <option value="Shipped">Dispatched / In Transit</option>
-            <option value="Delivered">Delivered (COD Paid)</option>
+            <option value="Delivered">Delivered</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
@@ -239,7 +239,7 @@ const OrderManager = () => {
                   <th className="p-4">Customer Details</th>
                   <th className="p-4">Delivery Location</th>
                   <th className="p-4 text-center">Items Qty</th>
-                  <th className="p-4 text-right">Amount (COD)</th>
+                  <th className="p-4 text-right">Amount</th>
                   <th className="p-4 text-center">Status</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
@@ -419,7 +419,7 @@ const OrderManager = () => {
                 <div className="pt-2 border-t border-festival-border space-y-1 text-right font-semibold">
                   <p className="text-slate-300">Subtotal: {formatCurrency(selectedOrder.subtotal)}</p>
                   <p className="text-slate-300">Delivery Fee: {formatCurrency(selectedOrder.deliveryFee)}</p>
-                  <p className="text-sm font-black text-amber-400">Total COD Amount: {formatCurrency(selectedOrder.totalAmount)}</p>
+                  <p className="text-sm font-black text-amber-400">Total Amount: {formatCurrency(selectedOrder.totalAmount)}</p>
                 </div>
               </div>
 
@@ -599,13 +599,13 @@ const OrderManager = () => {
                       <h1 className="text-xl font-black tracking-tight text-red-700">S2C CRACKERS</h1>
                       <p className="font-semibold text-slate-700">Direct Factory Sivakasi Fireworks</p>
                       <p className="text-[11px] text-slate-500 mt-0.5 max-w-xs">
-                        124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123<br />
+                        Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India<br />
                         Phone: +91 99444 76516 | Web: www.s2ccrackers.com
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <h2 className="text-base font-black uppercase text-slate-900">TAX INVOICE (COD)</h2>
+                    <h2 className="text-base font-black uppercase text-slate-900">TAX INVOICE</h2>
                     <p className="font-mono font-bold text-sm text-red-700 mt-0.5">#{selectedOrder.orderId}</p>
                     <p className="text-[11px] text-slate-500 mt-1">
                       Date: {formatDate(selectedOrder.createdAt, true)}
@@ -625,7 +625,7 @@ const OrderManager = () => {
                   </div>
                   <div className="text-right space-y-1">
                     <h4 className="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1">Dispatch Details:</h4>
-                    <p>Payment Mode: <strong className="text-emerald-700">Cash On Delivery (COD)</strong></p>
+                    <p>Payment Mode: <strong className="text-emerald-700">Door Delivery Available</strong></p>
                     <p>Dispatch Hub: <strong>Sivakasi Factory Center</strong></p>
                     <p>Status: <strong>{selectedOrder.status}</strong></p>
                   </div>
@@ -663,7 +663,7 @@ const OrderManager = () => {
                       <td className="p-2 text-right">{selectedOrder.deliveryFee === 0 ? 'FREE' : `₹${selectedOrder.deliveryFee}`}</td>
                     </tr>
                     <tr className="text-sm font-black bg-slate-100">
-                      <td colSpan="4" className="p-3 text-right text-red-700">Total Payable at Doorstep (COD):</td>
+                      <td colSpan="4" className="p-3 text-right text-red-700">Total Order Amount:</td>
                       <td className="p-3 text-right text-red-700 text-base">₹{selectedOrder.totalAmount}</td>
                     </tr>
                   </tfoot>

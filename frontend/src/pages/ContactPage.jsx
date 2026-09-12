@@ -39,9 +39,12 @@ const ContactPage = () => {
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
                 <MapPin className="w-5 h-5" />
               </div>
-              <h3 className="text-base font-bold text-white">Factory & Dispatch Hub</h3>
+              <h3 className="text-base font-bold text-white">Shop & Dispatch Hub</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123
+                Azhagar Crackers<br />
+                570 (East Part), Singapore Nagar,<br />
+                Chatitapatti, Madurai - 625014,<br />
+                Tamil Nadu, India
               </p>
             </div>
 

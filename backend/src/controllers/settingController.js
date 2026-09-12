@@ -24,7 +24,7 @@ const getPublicSettings = async (req, res, next) => {
         phone: setting.phone || '+91 99444 76516',
         whatsappNumber: setting.whatsappNumber || '919944476516',
         email: setting.email || 's2ccrackers@gmail.com',
-        address: setting.address || '124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123',
+        address: setting.address || 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India',
         minOrderAmount: setting.minOrderAmount || 500,
         freeDeliveryThreshold: setting.freeDeliveryThreshold || 3000,
         defaultDeliveryFee: setting.defaultDeliveryFee || 150,

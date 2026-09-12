@@ -159,7 +159,7 @@ const HeroSlider = ({ banners = [] }) => {
           <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-300 font-medium">
             <div className="flex items-center gap-2 text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
-              <span>100% Cash On Delivery</span>
+              <span>Door Delivery Available</span>
             </div>
             <div className="flex items-center gap-2 text-amber-400">
               <Truck className="w-4 h-4" />

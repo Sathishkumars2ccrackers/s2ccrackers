@@ -14,10 +14,10 @@ const SettingsManager = () => {
     contactPhone: '+91 99444 76516',
     whatsappNumber: '919944476516',
     supportEmail: 's2ccrackers@gmail.com',
-    factoryAddress: '124/B, Sivakasi Main Road, Viswanatham, Sivakasi, Tamil Nadu - 626123',
+    factoryAddress: 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India',
     minOrderAmount: 500,
     freeDeliveryThreshold: 3000,
-    announcementText: '🔥 DIWALI 2026 FACTORY DIRECT BOOKING OPEN • FLAT 80% DISCOUNT ON ALL SIVAKASI CRACKERS • 100% CASH ON DELIVERY (COD)',
+    announcementText: '🔥 DIWALI 2026 FACTORY DIRECT BOOKING OPEN • FLAT 80% DISCOUNT ON ALL SIVAKASI CRACKERS • DOOR DELIVERY AVAILABLE ACROSS INDIA',
     isStoreOpen: true,
     storeClosedMessage: 'Booking is temporarily paused for Diwali dispatch preparation.',
   });
@@ -167,7 +167,7 @@ const SettingsManager = () => {
 
         <div>
           <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-            Sivakasi Factory Physical Address
+            Shop & Dispatch Hub Physical Address
           </label>
           <textarea
             name="factoryAddress"

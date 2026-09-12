@@ -319,7 +319,7 @@ const ProductDetailPage = () => {
                 </span>
               </div>
 
-              {/* Action Buttons: Add to Cart & Instant Buy on COD */}
+              {/* Action Buttons: Add to Cart & Buy Now */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <button
                   disabled={isOutOfStock}
@@ -335,7 +335,7 @@ const ProductDetailPage = () => {
                   className="py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 disabled:opacity-40"
                 >
                   <Flame className="w-4 h-4 text-slate-950 fill-slate-950" />
-                  <span>Buy on COD (Cash on Delivery)</span>
+                  <span>Buy Now (Door Delivery)</span>
                 </button>
               </div>
 
@@ -355,7 +355,7 @@ const ProductDetailPage = () => {
             <div className="pt-4 border-t border-festival-border/60 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
               <div className="flex items-center gap-1.5 text-emerald-400">
                 <ShieldCheck className="w-4 h-4" />
-                <span>100% Cash On Delivery</span>
+                <span>Door Delivery Available</span>
               </div>
               <div className="flex items-center gap-1.5 text-amber-400">
                 <Award className="w-4 h-4" />
