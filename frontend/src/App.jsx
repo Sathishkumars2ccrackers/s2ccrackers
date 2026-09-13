@@ -64,7 +64,10 @@ const App = () => {
             {/* Admin Portal Routes */}
             <Route path="/admin/login" element={<AdminLoginPage />} />
             <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-            <Route path="/admin" element={<AdminLoginPage />} />
+            <Route path="/admin/orders/:orderId" element={<AdminDashboardPage />} />
+            <Route path="/admin/orders" element={<AdminDashboardPage />} />
+            <Route path="/admin/notifications" element={<AdminDashboardPage />} />
+            <Route path="/admin" element={<AdminDashboardPage />} />
 
             {/* Fallback */}
             <Route path="*" element={<HomePage />} />

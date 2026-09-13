@@ -143,4 +143,17 @@ export const settingService = {
   downloadBackup: () => api.get('/settings/admin/backup', { responseType: 'json' }),
 };
 
+// 12. Push Notification Services (FCM & Device Management)
+export const notificationService = {
+  getConfig: () => api.get('/notifications/config'),
+  getHealth: () => api.get('/notifications/health'),
+  registerToken: (data) => api.post('/notifications/register-token', data),
+  unregisterToken: (token) => api.post('/notifications/unregister-token', { token }),
+  getDevices: () => api.get('/notifications/devices'),
+  updateDevice: (id, data) => api.patch(`/notifications/devices/${id}`, data),
+  deleteDevice: (id) => api.delete(`/notifications/devices/${id}`),
+  getLogs: (params) => api.get('/notifications/logs', { params }),
+  sendTest: (token) => api.post('/notifications/test', { token }),
+};
+
 export default api;

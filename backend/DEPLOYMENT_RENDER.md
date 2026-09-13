@@ -51,6 +51,9 @@ In the **Environment Variables** section of your Render Web Service, add the fol
 | `MIN_ORDER_AMOUNT` | `500` | Minimum order policy |
 | `FREE_DELIVERY_THRESHOLD` | `3000` | Free shipping threshold (₹) |
 | `DEFAULT_DELIVERY_FEE` | `150` | Standard delivery fee (₹) |
+| `FIREBASE_PROJECT_ID` | `s2c-crackers` | Firebase Cloud Messaging Project ID |
+| `FIREBASE_CLIENT_EMAIL` | `your-service-account-email@s2c-crackers.iam.gserviceaccount.com` | Firebase Service Account Client Email |
+| `FIREBASE_SERVICE_ACCOUNT_KEY` | *(Paste entire Service Account JSON on a single line)* | Firebase Admin private key credentials for server push |
 
 ### Step 3: Deploy & Verify Backend
 1. Click **Create Web Service**.
@@ -58,6 +61,7 @@ In the **Environment Variables** section of your Render Web Service, add the fol
 3. Check the deployment log for:
    ```
    ✅ MongoDB Connected Successfully
+   ✅ Firebase Admin SDK successfully initialized for Live Push Notifications.
    🚀 S2C Crackers Production Backend Server running on port ...
    ```
 4. Test the health check endpoint: `https://your-render-app.onrender.com/api/health`.
@@ -78,11 +82,18 @@ In the **Environment Variables** section of your Render Web Service, add the fol
    - **Install Command**: `npm install`
 
 ### Step 2: Set Environment Variables on Vercel
-Add the following variable in Vercel:
+Add the following variables in Vercel:
 
 | Variable Name | Value | Description |
 | :--- | :--- | :--- |
-| `VITE_API_BASE_URL` | `https://your-render-app.onrender.com/api` | Backend API URL on Render |
+| `VITE_API_URL` | `https://your-render-app.onrender.com/api` | Backend API URL on Render |
+| `VITE_FIREBASE_API_KEY` | `AIzaSyCh6HPOdgwElndvmhAfepranBfXxZdBn5k` | Web Firebase API Key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | `s2c-crackers.firebaseapp.com` | Firebase Auth Domain |
+| `VITE_FIREBASE_PROJECT_ID` | `s2c-crackers` | Firebase Project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | `s2c-crackers.firebasestorage.app` | Firebase Storage Bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | `846368923282` | Firebase Cloud Messaging Sender ID |
+| `VITE_FIREBASE_APP_ID` | `1:846368923282:web:6693a3920be4908ad0104b` | Web App ID |
+| `VITE_FIREBASE_VAPID_KEY` | `your_vapid_public_key_from_firebase_console` | Web Push Certificate Public Key |
 
 ### Step 3: Deploy & Test
 1. Click **Deploy**.

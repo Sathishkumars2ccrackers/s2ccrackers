@@ -4,6 +4,7 @@ const Customer = require('../models/Customer');
 const Setting = require('../models/Setting');
 const { generateOrderId } = require('../utils/orderIdGenerator');
 const { sendCustomerOrderConfirmationEmail, sendAdminNewOrderAlertEmail } = require('../config/mailer');
+const { sendOrderNotification } = require('../services/notificationService');
 const { logActivity } = require('../utils/activityLogger');
 
 // Calculate highest matching discount slab from business settings
@@ -239,6 +240,11 @@ const placeOrder = async (req, res, next) => {
     );
     sendAdminNewOrderAlertEmail(order).catch((err) =>
       console.error('Admin email alert trigger failed:', err.message)
+    );
+
+    // 10. Dispatch Instant FCM Push Notification to All Active Admin Devices (Phases 4, 10, 12)
+    sendOrderNotification(order).catch((err) =>
+      console.error('Admin push notification dispatch failed:', err.message)
     );
 
     res.status(201).json({

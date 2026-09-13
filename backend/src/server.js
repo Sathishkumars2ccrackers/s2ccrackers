@@ -21,6 +21,7 @@ const customerRoutes = require('./routes/customerRoutes');
 const activityLogRoutes = require('./routes/activityLogRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const settingRoutes = require('./routes/settingRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health Check API
 app.get('/api/health', (req, res) => {

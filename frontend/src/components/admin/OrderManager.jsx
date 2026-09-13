@@ -62,7 +62,7 @@ const CANCELLATION_REASONS = [
   'Other',
 ];
 
-const OrderManager = () => {
+const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) => {
   const { toastSuccess, toastError, toastWarning } = useToast();
   const { settings } = useSettings();
 
@@ -70,6 +70,7 @@ const OrderManager = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [highlightedOrderId, setHighlightedOrderId] = useState(initialOrderId || null);
 
   // Modal states
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -122,6 +123,27 @@ const OrderManager = () => {
   useEffect(() => {
     fetchOrders();
   }, [search, statusFilter]);
+
+  // Handle deep linking to specific order from push notification
+  useEffect(() => {
+    if (initialOrderId && orders.length > 0) {
+      const match = orders.find(
+        (o) =>
+          o.orderId?.toLowerCase() === initialOrderId.toLowerCase() ||
+          o._id?.toString() === initialOrderId.toString()
+      );
+      if (match) {
+        setHighlightedOrderId(match.orderId);
+        openDetails(match);
+        setTimeout(() => {
+          const el = document.getElementById(`order-row-${match.orderId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 300);
+      }
+    }
+  }, [initialOrderId, orders]);
 
   const openDetails = (order) => {
     setSelectedOrder(order);
@@ -395,8 +417,17 @@ const OrderManager = () => {
                 {orders.map((o) => {
                   const statusClass = STATUS_COLORS[o.status] || 'bg-slate-900 text-slate-300';
                   const isContacted = !!o.whatsappConfirmationSent;
+                  const isHighlighted = highlightedOrderId && (o.orderId === highlightedOrderId || o._id === highlightedOrderId);
                   return (
-                    <tr key={o._id} className="hover:bg-white/5 transition-colors">
+                    <tr
+                      key={o._id}
+                      id={`order-row-${o.orderId}`}
+                      className={`transition-all ${
+                        isHighlighted
+                          ? 'bg-amber-500/15 ring-2 ring-amber-400 shadow-xl shadow-amber-500/20'
+                          : 'hover:bg-white/5'
+                      }`}
+                    >
                       <td className="p-4">
                         <div className="space-y-0.5">
                           <span className="font-mono font-black text-amber-400 text-xs block">{o.orderId}</span>
