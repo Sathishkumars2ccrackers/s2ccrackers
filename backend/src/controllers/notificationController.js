@@ -221,14 +221,23 @@ const getHealthStatus = async (req, res, next) => {
   }
 };
 
-// @desc    Get Public VAPID & Firebase Configuration status
-// @route   GET /api/notifications/config
-// @access  Public
-const getNotificationConfig = async (req, res) => {
+// @desc    Get Detailed Firebase Debug & Diagnostics Information
+// @route   GET /api/notifications/debug
+// @access  Public / Admin
+const { getFirebaseDiagnostics } = require('../config/firebaseAdmin');
+
+const getFirebaseDebug = async (req, res) => {
+  const diag = getFirebaseDiagnostics();
   res.status(200).json({
     success: true,
-    vapidKey: process.env.VAPID_PUBLIC_KEY || process.env.VITE_FIREBASE_VAPID_KEY || '',
-    projectId: process.env.FIREBASE_PROJECT_ID || 's2c-crackers',
+    ...diag,
+    environment: {
+      FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || '(not set)',
+      FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL || '(not set)',
+      FIREBASE_SERVICE_ACCOUNT_PATH: process.env.FIREBASE_SERVICE_ACCOUNT_PATH || '(not set)',
+      GOOGLE_APPLICATION_CREDENTIALS: process.env.GOOGLE_APPLICATION_CREDENTIALS || '(not set)',
+      HAS_INLINE_SERVICE_ACCOUNT_KEY: !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY,
+    },
   });
 };
 
@@ -242,4 +251,5 @@ module.exports = {
   triggerTestNotification,
   getHealthStatus,
   getNotificationConfig,
+  getFirebaseDebug,
 };

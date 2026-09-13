@@ -147,6 +147,7 @@ export const settingService = {
 export const notificationService = {
   getConfig: () => api.get('/notifications/config'),
   getHealth: () => api.get('/notifications/health'),
+  getDebug: () => api.get('/notifications/debug'),
   registerToken: (data) => api.post('/notifications/register-token', data),
   unregisterToken: (token) => api.post('/notifications/unregister-token', { token }),
   getDevices: () => api.get('/notifications/devices'),

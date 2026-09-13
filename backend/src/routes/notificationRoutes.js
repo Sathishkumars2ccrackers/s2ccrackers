@@ -10,11 +10,13 @@ const {
   triggerTestNotification,
   getHealthStatus,
   getNotificationConfig,
+  getFirebaseDebug,
 } = require('../controllers/notificationController');
 const { protectAdmin } = require('../middleware/auth');
 
-// Public config
+// Public config & diagnostics
 router.get('/config', getNotificationConfig);
+router.get('/debug', getFirebaseDebug);
 
 // Protected Admin routes
 router.post('/register-token', protectAdmin, registerToken);

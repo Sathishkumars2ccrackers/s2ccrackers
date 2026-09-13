@@ -48,8 +48,9 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
   const [sendingTest, setSendingTest] = useState(false);
   const [refreshingLogs, setRefreshingLogs] = useState(false);
 
-  // Health Metrics
+  // Health Metrics & Debug
   const [health, setHealth] = useState(null);
+  const [debugInfo, setDebugInfo] = useState(null);
   const [permissionStatus, setPermissionStatus] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
@@ -80,12 +81,18 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
   // Auto-detect current device info
   const deviceInfo = detectDeviceInfo();
 
-  // Fetch Health & Config
+  // Fetch Health, Debug & Config
   const loadHealthData = useCallback(async () => {
     try {
-      const res = await notificationService.getHealth();
-      if (res.data?.success) {
-        setHealth(res.data.health);
+      const [healthRes, debugRes] = await Promise.all([
+        notificationService.getHealth().catch(() => ({ data: { success: false } })),
+        notificationService.getDebug().catch(() => ({ data: { success: false } })),
+      ]);
+      if (healthRes.data?.success) {
+        setHealth(healthRes.data.health);
+      }
+      if (debugRes.data?.success) {
+        setDebugInfo(debugRes.data);
       }
     } catch (err) {
       console.error('Failed to load health metrics:', err);
@@ -461,6 +468,61 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
               </p>
             </div>
           </div>
+
+          {/* Backend Firebase Diagnostics Panel (Task 10) */}
+          {debugInfo && (
+            <div className="p-6 rounded-3xl bg-festival-card border border-festival-border space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-festival-border">
+                <div className="flex items-center gap-2.5">
+                  <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Firebase Admin SDK Diagnostics & Auth</h3>
+                    <p className="text-[11px] text-slate-400">
+                      Live status from <code className="text-amber-400">/api/notifications/debug</code>
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                    debugInfo.firebaseInitialized
+                      ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                      : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                  }`}
+                >
+                  {debugInfo.firebaseInitialized ? '✓ Initialized OK' : '⚠ Failed'}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+                <div className="p-3 rounded-xl bg-festival-dark border border-festival-border">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Project ID</span>
+                  <p className="font-mono font-bold text-amber-300 mt-0.5">
+                    {debugInfo.projectId || 's2c-crackers'}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-festival-dark border border-festival-border">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Service Account Email</span>
+                  <p className="font-mono text-white text-[11px] truncate mt-0.5" title={debugInfo.clientEmail}>
+                    {debugInfo.clientEmail || 'Loaded'}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-festival-dark border border-festival-border">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Credentials Source</span>
+                  <p className="font-mono text-emerald-400 text-[11px] truncate mt-0.5" title={debugInfo.serviceAccountPath}>
+                    {debugInfo.serviceAccountPath || 'JSON Credentials File'}
+                  </p>
+                </div>
+              </div>
+
+              {debugInfo.error && (
+                <div className="p-3.5 rounded-xl bg-rose-950/60 border border-rose-500/50 text-xs text-rose-200">
+                  <strong>Diagnostic Error:</strong> {debugInfo.error}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Current Device Registration Card */}
           <div className="bg-festival-card border-2 border-amber-500/40 p-6 sm:p-8 rounded-3xl space-y-5">
