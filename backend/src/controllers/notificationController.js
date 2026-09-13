@@ -221,6 +221,20 @@ const getHealthStatus = async (req, res, next) => {
   }
 };
 
+// @desc    Get Public VAPID & Firebase Configuration status
+// @route   GET /api/notifications/config
+// @access  Public
+const getNotificationConfig = async (req, res) => {
+  res.status(200).json({
+    success: true,
+    vapidKey:
+      process.env.VAPID_PUBLIC_KEY ||
+      process.env.VITE_FIREBASE_VAPID_KEY ||
+      'BJYYaqCPPT90pNcAEQp9r9rP8H3xZpdofBS7XkLiJBEdJatB2jXNuMpdeB3nHH4Jr1XD6pWEEA_ZKSKJZjcGIl0',
+    projectId: process.env.FIREBASE_PROJECT_ID || 's2c-crackers',
+  });
+};
+
 // @desc    Get Detailed Firebase Debug & Diagnostics Information
 // @route   GET /api/notifications/debug
 // @access  Public / Admin
