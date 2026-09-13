@@ -184,7 +184,18 @@ initializeFirebaseAdmin();
 
 const isFirebaseConfigured = () => diagnostics.firebaseInitialized && !!messagingInstance;
 const getMessaging = () => messagingInstance;
-const getFirebaseDiagnostics = () => ({ ...diagnostics, timestamp: new Date().toISOString() });
+const getFirebaseDiagnostics = () => ({
+  firebaseInitialized: diagnostics.firebaseInitialized,
+  messagingReady: diagnostics.messagingAvailable,
+  projectId: diagnostics.projectId || 's2c-crackers',
+  serviceAccountLoaded: diagnostics.serviceAccountLoaded,
+  simulationMode: !diagnostics.firebaseInitialized,
+  clientEmail: diagnostics.clientEmail,
+  serviceAccountPath: diagnostics.serviceAccountPath,
+  attempts: diagnostics.attempts,
+  error: diagnostics.error,
+  timestamp: new Date().toISOString(),
+});
 
 module.exports = {
   admin,

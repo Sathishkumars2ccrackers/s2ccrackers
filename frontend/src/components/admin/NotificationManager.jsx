@@ -335,9 +335,16 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
             <div>
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <span>Push Notification & PWA Gateway</span>
-                <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
-                  Firebase FCM Active
-                </span>
+                {(debugInfo?.firebaseInitialized ?? health?.firebaseInitialized ?? health?.firebaseConfigured) ? (
+                  <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    Live Firebase Messaging
+                  </span>
+                ) : (
+                  <span className="text-[10px] uppercase font-mono px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                    Firebase Inactive
+                  </span>
+                )}
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 Instant mobile & desktop order alerts with zero SMS / WhatsApp API charges
@@ -410,17 +417,21 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
                 <span className="text-xs font-bold text-slate-400 uppercase">FCM Engine</span>
                 <Radio
                   className={`w-4 h-4 ${
-                    health?.firebaseConfigured ? 'text-emerald-400 animate-pulse' : 'text-amber-400'
+                    (debugInfo?.firebaseInitialized ?? health?.firebaseInitialized ?? health?.firebaseConfigured)
+                      ? 'text-emerald-400 animate-pulse'
+                      : 'text-rose-400'
                   }`}
                 />
               </div>
               <p className="text-lg font-black text-white mt-2">
-                {health?.firebaseConfigured ? 'Configured (Live)' : 'Simulation / Dev Mode'}
+                {(debugInfo?.firebaseInitialized ?? health?.firebaseInitialized ?? health?.firebaseConfigured)
+                  ? 'Live Firebase Messaging'
+                  : 'Firebase Uninitialized'}
               </p>
               <p className="text-[11px] text-slate-400 mt-1">
-                {health?.firebaseConfigured
-                  ? 'Server Service Account Active'
-                  : 'Tokens saved; mock dispatch active'}
+                {(debugInfo?.firebaseInitialized ?? health?.firebaseInitialized ?? health?.firebaseConfigured)
+                  ? 'Firebase Cloud Messaging Active'
+                  : 'No valid Firebase service account JSON found'}
               </p>
             </div>
 
@@ -469,14 +480,14 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
             </div>
           </div>
 
-          {/* Backend Firebase Diagnostics Panel (Task 10) */}
+          {/* Backend Firebase Diagnostics Panel */}
           {debugInfo && (
             <div className="p-6 rounded-3xl bg-festival-card border border-festival-border space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-festival-border">
                 <div className="flex items-center gap-2.5">
                   <ShieldCheck className="w-5 h-5 text-emerald-400" />
                   <div>
-                    <h3 className="text-sm font-bold text-white">Firebase Admin SDK Diagnostics & Auth</h3>
+                    <h3 className="text-sm font-bold text-white">Firebase Cloud Messaging Gateway Diagnostics</h3>
                     <p className="text-[11px] text-slate-400">
                       Live status from <code className="text-amber-400">/api/notifications/debug</code>
                     </p>
@@ -489,11 +500,11 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
                       : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
                   }`}
                 >
-                  {debugInfo.firebaseInitialized ? '✓ Initialized OK' : '⚠ Failed'}
+                  {debugInfo.firebaseInitialized ? '✓ Live Firebase Messaging' : '⚠ Not Initialized'}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                 <div className="p-3 rounded-xl bg-festival-dark border border-festival-border">
                   <span className="text-[10px] font-bold text-slate-400 uppercase block">Project ID</span>
                   <p className="font-mono font-bold text-amber-300 mt-0.5">
@@ -502,16 +513,23 @@ const NotificationManager = ({ onNavigateTab, deferredInstallPrompt, onTriggerIn
                 </div>
 
                 <div className="p-3 rounded-xl bg-festival-dark border border-festival-border">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Service Account Email</span>
-                  <p className="font-mono text-white text-[11px] truncate mt-0.5" title={debugInfo.clientEmail}>
-                    {debugInfo.clientEmail || 'Loaded'}
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">FCM Gateway Status</span>
+                  <p className="font-mono text-emerald-400 font-bold text-[11px] truncate mt-0.5">
+                    {debugInfo.messagingReady ? 'Google FCM v1 Active' : 'Unavailable'}
                   </p>
                 </div>
 
                 <div className="p-3 rounded-xl bg-festival-dark border border-festival-border">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Credentials Source</span>
-                  <p className="font-mono text-emerald-400 text-[11px] truncate mt-0.5" title={debugInfo.serviceAccountPath}>
-                    {debugInfo.serviceAccountPath || 'JSON Credentials File'}
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Simulation Mode</span>
+                  <p className={`font-mono font-bold text-[11px] truncate mt-0.5 ${debugInfo.simulationMode ? 'text-amber-400' : 'text-emerald-400'}`}>
+                    {debugInfo.simulationMode ? 'Active (Simulation)' : 'Disabled (Live Production)'}
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-festival-dark border border-festival-border">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase block">Service Account</span>
+                  <p className="font-mono text-slate-300 text-[11px] truncate mt-0.5" title={debugInfo.clientEmail || debugInfo.serviceAccountPath}>
+                    {debugInfo.serviceAccountLoaded ? (debugInfo.clientEmail ? debugInfo.clientEmail.split('@')[0] : 'Loaded') : 'Not Loaded'}
                   </p>
                 </div>
               </div>

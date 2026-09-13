@@ -56,11 +56,10 @@ const sendPushNotification = async ({
     const tokens = activeDevices.map((d) => d.token);
     const messaging = getMessaging();
 
-    // If Firebase Admin SDK is not yet configured, log to DB and return gracefully (Simulation/Dev mode)
+    // If Firebase Admin SDK is not initialized, record error and return failure
     if (!isFirebaseConfigured() || !messaging) {
-      console.warn(
-        `⚠️ Firebase Admin not configured. Simulated push notification dispatched for [${type}] to ${tokens.length} device(s).`
-      );
+      const errMsg = 'Firebase Admin SDK is not initialized. Cannot dispatch push notifications.';
+      console.warn(`⚠️ [FCM Warning]: ${errMsg}`);
 
       await NotificationLog.create({
         notificationType: type,
@@ -68,22 +67,22 @@ const sendPushNotification = async ({
         body,
         orderId: orderId ? String(orderId) : null,
         deviceCount: tokens.length,
-        successCount: tokens.length,
-        failureCount: 0,
-        deliveryStatus: 'sent',
+        successCount: 0,
+        failureCount: tokens.length,
+        deliveryStatus: 'failed',
         details: activeDevices.map((d) => ({
-          token: d.token.slice(0, 12) + '...',
+          token: d.token.length > 20 ? `${d.token.slice(0, 12)}...${d.token.slice(-6)}` : d.token,
           deviceName: d.deviceName,
-          success: true,
-          messageId: 'mock-simulated-msg-' + Date.now(),
+          success: false,
+          error: errMsg,
         })),
-      }).catch((e) => console.error('Failed to write mock notification log:', e.message));
+      }).catch((e) => console.error('Failed to write notification error log:', e.message));
 
       return {
-        success: true,
-        simulated: true,
+        success: false,
+        deliveryStatus: 'failed',
         deviceCount: tokens.length,
-        message: 'Dispatched in simulation mode (credentials pending).',
+        error: errMsg,
       };
     }
 
@@ -155,10 +154,20 @@ const sendPushNotification = async ({
 
     response.responses.forEach((resp, idx) => {
       const device = activeDevices[idx];
+      const maskedToken = device.token.length > 20
+        ? `${device.token.slice(0, 12)}...${device.token.slice(-6)}`
+        : device.token;
+
       if (resp.success) {
         successCount++;
+        console.log('[FCM Multicast Dispatch Success]', {
+          token: maskedToken,
+          deviceName: device.deviceName,
+          messageId: resp.messageId,
+          status: 'SUCCESS',
+        });
         logDetails.push({
-          token: device.token.slice(0, 12) + '...',
+          token: maskedToken,
           deviceName: device.deviceName,
           success: true,
           messageId: resp.messageId,
@@ -168,8 +177,16 @@ const sendPushNotification = async ({
         const errorCode = resp.error?.code || 'unknown_error';
         const errorMessage = resp.error?.message || 'Push dispatch failed';
 
+        console.error('[FCM Multicast Dispatch Failure]', {
+          token: maskedToken,
+          deviceName: device.deviceName,
+          errorCode,
+          errorMessage,
+          status: 'FAILURE',
+        });
+
         logDetails.push({
-          token: device.token.slice(0, 12) + '...',
+          token: maskedToken,
           deviceName: device.deviceName,
           success: false,
           error: `${errorCode}: ${errorMessage}`,
@@ -216,7 +233,7 @@ const sendPushNotification = async ({
     }).catch((e) => console.error('Failed to create notification log entry:', e.message));
 
     console.log(
-      `📢 Push Notification [${type}] Dispatched -> Success: ${successCount}, Failed: ${failureCount}, Total Devices: ${tokens.length}`
+      `📢 [FCM Delivery Complete] Type: ${type} -> Total: ${tokens.length}, Success: ${successCount}, Failed: ${failureCount}`
     );
 
     // 7. Failsafe retry once on transient total failure
@@ -306,30 +323,26 @@ const sendOrderNotification = async (order) => {
 
 /**
  * Trigger Test Push Notification
+ * Uses direct firebase-admin.messaging().send()
  */
 const sendTestNotification = async (admin, specificToken = null) => {
-  const title = 'Test Notification';
+  const title = '🔔 Test Notification';
   const body = 'S2C Crackers notification system is working correctly.';
+  const messaging = getMessaging();
+
+  if (!isFirebaseConfigured() || !messaging) {
+    throw new Error('Firebase Admin SDK is not initialized. Please ensure valid service account credentials are loaded.');
+  }
 
   if (specificToken) {
-    const messaging = getMessaging();
-    if (!isFirebaseConfigured() || !messaging) {
-      await NotificationLog.create({
-        notificationType: 'TEST_NOTIFICATION',
-        title,
-        body,
-        deviceCount: 1,
-        successCount: 1,
-        deliveryStatus: 'sent',
-        details: [{ token: specificToken.slice(0, 12) + '...', success: true, messageId: 'simulated' }],
-      }).catch(() => {});
+    const maskedToken = specificToken.length > 20
+      ? `${specificToken.slice(0, 12)}...${specificToken.slice(-6)}`
+      : specificToken;
 
-      return {
-        success: true,
-        simulated: true,
-        message: 'Simulated test notification dispatched (Firebase credentials pending).',
-      };
-    }
+    console.log('[FCM Dispatch Test Notification]', {
+      fcmToken: maskedToken,
+      time: new Date().toISOString(),
+    });
 
     const payload = {
       token: specificToken,
@@ -351,27 +364,43 @@ const sendTestNotification = async (admin, specificToken = null) => {
     };
 
     try {
-      const response = await messaging.send(payload);
+      // Real firebase-admin.messaging().send() call
+      const messageId = await messaging.send(payload);
+
+      console.log('[FCM Dispatch Test Notification Success]', {
+        fcmToken: maskedToken,
+        messageId,
+        status: 'SUCCESS',
+      });
+
       await NotificationLog.create({
         notificationType: 'TEST_NOTIFICATION',
         title,
         body,
         deviceCount: 1,
         successCount: 1,
+        failureCount: 0,
         deliveryStatus: 'sent',
-        details: [{ token: specificToken.slice(0, 12) + '...', success: true, messageId: response }],
+        details: [{ token: maskedToken, success: true, messageId }],
       }).catch(() => {});
 
-      return { success: true, messageId: response };
+      return { success: true, messageId, fcmToken: maskedToken };
     } catch (err) {
+      console.error('[FCM Dispatch Test Notification Failure]', {
+        fcmToken: maskedToken,
+        error: err.message,
+        status: 'FAILURE',
+      });
+
       await NotificationLog.create({
         notificationType: 'TEST_NOTIFICATION',
         title,
         body,
         deviceCount: 1,
+        successCount: 0,
         failureCount: 1,
         deliveryStatus: 'failed',
-        details: [{ token: specificToken.slice(0, 12) + '...', success: false, error: err.message }],
+        details: [{ token: maskedToken, success: false, error: err.message }],
       }).catch(() => {});
 
       throw err;
@@ -401,6 +430,9 @@ const getNotificationHealth = async () => {
 
   return {
     firebaseConfigured: isConfig,
+    firebaseInitialized: isConfig,
+    messagingReady: isConfig,
+    simulationMode: !isConfig,
     totalDevices,
     activeDevices,
     totalLogs,

@@ -195,10 +195,11 @@ const triggerTestNotification = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: 'Test push notification sent successfully!',
+      message: 'Test push notification sent successfully via Live Firebase Cloud Messaging!',
       result,
     });
   } catch (error) {
+    console.error('❌ [Test Notification Controller Error]:', error.message);
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to send test push notification.',
@@ -244,7 +245,15 @@ const getFirebaseDebug = async (req, res) => {
   const diag = getFirebaseDiagnostics();
   res.status(200).json({
     success: true,
-    ...diag,
+    firebaseInitialized: Boolean(diag.firebaseInitialized),
+    messagingReady: Boolean(diag.messagingReady),
+    projectId: diag.projectId || 's2c-crackers',
+    serviceAccountLoaded: Boolean(diag.serviceAccountLoaded),
+    simulationMode: Boolean(diag.simulationMode),
+    clientEmail: diag.clientEmail,
+    serviceAccountPath: diag.serviceAccountPath,
+    error: diag.error,
+    timestamp: diag.timestamp,
     environment: {
       FIREBASE_PROJECT_ID: process.env.FIREBASE_PROJECT_ID || '(not set)',
       FIREBASE_CLIENT_EMAIL: process.env.FIREBASE_CLIENT_EMAIL || '(not set)',
