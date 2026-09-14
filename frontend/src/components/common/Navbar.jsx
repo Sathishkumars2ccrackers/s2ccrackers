@@ -49,7 +49,7 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Home', path: '/' },
-    { name: 'All Crackers', path: '/products' },
+    { name: 'All Crackers', path: '/all-crackers' },
     { name: 'Gift Box Combos', path: '/products?category=deluxe-gift-boxes', highlight: true },
     { name: 'Sky Shots', path: '/products?category=multi-shot-sky-shots' },
     { name: 'Track Order', path: '/track-order' },

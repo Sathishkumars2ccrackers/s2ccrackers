@@ -80,7 +80,7 @@ const FeaturedTabs = ({ featured = [], bestSellers = [], allProducts = [] }) => 
         {/* View All Button */}
         <div className="mt-12 text-center">
           <Link
-            to="/products"
+            to="/all-crackers"
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-sm transition-all shadow-xl shadow-amber-950/40 transform hover:scale-105"
           >
             <span>View Complete Crackers Catalog</span>

@@ -56,6 +56,7 @@ const App = () => {
             {/* Public Customer Storefront Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
+            <Route path="/all-crackers" element={<ProductsPage />} />
             <Route path="/product/:slug" element={<ProductDetailPage />} />
             <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
