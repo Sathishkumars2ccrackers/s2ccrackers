@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { productService, inventoryService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatProductCode, sortProductsByCode } from '../../utils/formatters';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ProductImage from '../common/ProductImage';
@@ -56,7 +56,7 @@ const InventoryManager = () => {
         inventoryService.getOverview(),
       ]);
 
-      if (prodRes.data?.products) setProducts(prodRes.data.products);
+      if (prodRes.data?.products) setProducts(sortProductsByCode(prodRes.data.products));
       if (overRes.data?.stats) setOverview(overRes.data.stats);
     } catch (err) {
       toastError('Failed to load inventory');
@@ -184,6 +184,7 @@ const InventoryManager = () => {
             <table className="w-full text-left text-xs">
               <thead className="bg-festival-dark/80 text-slate-400 uppercase font-bold border-b border-festival-border">
                 <tr>
+                  <th className="p-4">Code</th>
                   <th className="p-4">Cracker Item</th>
                   <th className="p-4">Category</th>
                   <th className="p-4 text-right">Price</th>
@@ -194,13 +195,16 @@ const InventoryManager = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-festival-border/50">
-                {products.map((p) => {
+                {sortProductsByCode(products).map((p) => {
                   const isEditing = editingId === p._id;
                   const isOut = p.stockQuantity <= 0;
                   const isLow = p.stockQuantity > 0 && p.stockQuantity <= 10;
 
                   return (
                     <tr key={p._id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-4 font-mono font-bold text-amber-400">
+                        {formatProductCode(p.productCode)}
+                      </td>
                       <td className="p-4">
                         <div className="flex items-center gap-3">
                           <ProductImage

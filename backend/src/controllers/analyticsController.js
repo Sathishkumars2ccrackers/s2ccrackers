@@ -5,6 +5,38 @@ const ActivityLog = require('../models/ActivityLog');
 const { exportToBuffer } = require('../utils/excelEngine');
 const { logActivity } = require('../utils/activityLogger');
 
+const getCodeNumber = (code) => {
+  if (code === undefined || code === null || code === '') return 999999;
+  const clean = String(code).trim().replace(/^#+/, '');
+  const match = clean.match(/\d+/);
+  if (match) {
+    const num = parseInt(match[0], 10);
+    return isNaN(num) ? 999999 : num;
+  }
+  const num = parseInt(clean, 10);
+  return isNaN(num) ? 999999 : num;
+};
+
+const formatProductCode = (code) => {
+  if (code === undefined || code === null || code === '') return '—';
+  const clean = String(code).trim().replace(/^#+/, '');
+  if (!clean) return '—';
+  if (/^\d+$/.test(clean)) {
+    return `#${clean.padStart(2, '0')}`;
+  }
+  return `#${clean}`;
+};
+
+const sortProductsByCode = (products) => {
+  if (!Array.isArray(products)) return [];
+  return [...products].sort((a, b) => {
+    const numA = getCodeNumber(a?.productCode ?? a?.code);
+    const numB = getCodeNumber(b?.productCode ?? b?.code);
+    if (numA !== numB) return numA - numB;
+    return (a?.name || '').localeCompare(b?.name || '');
+  });
+};
+
 // @desc    Get complete dashboard summary widgets & analytics
 // @route   GET /api/analytics/dashboard-summary
 // @access  Private (Admin)
@@ -119,8 +151,10 @@ const exportData = async (req, res, next) => {
       case 'products':
         sheetName = 'Products';
         fileName = `s2c-products-${Date.now()}`;
-        const products = await Product.find().populate('category', 'name').sort({ name: 1 }).lean();
-        exportData = products.map((p) => ({
+        const rawProducts = await Product.find().populate('category', 'name').lean();
+        const sortedProducts = sortProductsByCode(rawProducts);
+        exportData = sortedProducts.map((p) => ({
+          'Code': formatProductCode(p.productCode),
           'Product ID': p._id.toString(),
           'Product Name': p.name,
           'Category': p.category ? p.category.name : 'Uncategorized',
@@ -138,13 +172,15 @@ const exportData = async (req, res, next) => {
       case 'inventory':
         sheetName = 'Inventory';
         fileName = `s2c-inventory-${Date.now()}`;
-        const inventoryProducts = await Product.find().populate('category', 'name').sort({ stockQuantity: 1 }).lean();
-        exportData = inventoryProducts.map((p) => {
+        const rawInventoryProducts = await Product.find().populate('category', 'name').lean();
+        const sortedInventoryProducts = sortProductsByCode(rawInventoryProducts);
+        exportData = sortedInventoryProducts.map((p) => {
           let stockStatus = 'In Stock';
           if (p.stockQuantity <= 0) stockStatus = 'OUT OF STOCK';
           else if (p.stockQuantity <= 10) stockStatus = 'LOW STOCK';
 
           return {
+            'Code': formatProductCode(p.productCode),
             'Product ID': p._id.toString(),
             'Product Name': p.name,
             'Category': p.category ? p.category.name : 'N/A',

@@ -52,6 +52,28 @@ const formatProducts = (list) => {
   return list.map(formatProduct);
 };
 
+const getCodeNumber = (code) => {
+  if (code === undefined || code === null || code === '') return 999999;
+  const clean = String(code).trim().replace(/^#+/, '');
+  const match = clean.match(/\d+/);
+  if (match) {
+    const num = parseInt(match[0], 10);
+    return isNaN(num) ? 999999 : num;
+  }
+  const num = parseInt(clean, 10);
+  return isNaN(num) ? 999999 : num;
+};
+
+const sortProductsByCode = (products) => {
+  if (!Array.isArray(products)) return [];
+  return [...products].sort((a, b) => {
+    const numA = getCodeNumber(a?.productCode ?? a?.code);
+    const numB = getCodeNumber(b?.productCode ?? b?.code);
+    if (numA !== numB) return numA - numB;
+    return (a?.name || '').localeCompare(b?.name || '');
+  });
+};
+
 // Robust helper to resolve category document from slug, ID, or name
 const resolveCategoryDoc = async (rawCategory) => {
   if (!rawCategory || rawCategory === 'all') return null;
@@ -224,12 +246,15 @@ const getProducts = async (req, res, next) => {
 
     console.log(`[Products API] Returned ${products.length} products (Total matches: ${total}) for category="${category || 'all'}", search="${search || ''}"`);
 
+    const formatted = formatProducts(products);
+    const finalProducts = sort === 'code-asc' ? sortProductsByCode(formatted) : formatted;
+
     res.status(200).json({
       success: true,
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
-      products: formatProducts(products),
+      products: finalProducts,
     });
   } catch (error) {
     next(error);
@@ -358,20 +383,24 @@ const getAllProductsAdmin = async (req, res, next) => {
 
     const [products, total] = await Promise.all([
       Product.find(query)
+        .collation({ locale: 'en', numericOrdering: true })
         .populate('category', 'name slug')
-        .sort({ createdAt: -1 })
+        .sort({ productCode: 1, createdAt: 1 })
         .skip(skip)
         .limit(limitNum)
         .lean(),
       Product.countDocuments(query),
     ]);
 
+    const formatted = formatProducts(products);
+    const sorted = sortProductsByCode(formatted);
+
     res.status(200).json({
       success: true,
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
-      products: formatProducts(products),
+      products: sorted,
     });
   } catch (error) {
     next(error);

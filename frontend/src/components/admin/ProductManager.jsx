@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { productService, categoryService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
-import { formatCurrency, formatProductCode } from '../../utils/formatters';
+import { formatCurrency, formatProductCode, sortProductsByCode } from '../../utils/formatters';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ProductImage from '../common/ProductImage';
@@ -117,7 +117,7 @@ const ProductManager = () => {
         limit: 150,
       });
       if (res.data?.success) {
-        setProducts(res.data.products || []);
+        setProducts(sortProductsByCode(res.data.products || []));
       }
     } catch (err) {
       toastError('Failed to load products');
@@ -501,7 +501,7 @@ const ProductManager = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-festival-border/50">
-                {products.map((p) => (
+                {sortProductsByCode(products).map((p) => (
                   <tr key={p._id} className="hover:bg-white/5 transition-colors">
                     <td className="p-3.5 font-mono font-bold text-amber-400">
                       {formatProductCode(p.productCode)}

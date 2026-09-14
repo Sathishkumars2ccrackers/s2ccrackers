@@ -25,7 +25,7 @@ import { productService, categoryService } from '../services/api';
 import ProductListRow from '../components/product/ProductListRow';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useCart } from '../context/CartContext';
-import { formatCurrency, naturalProductCodeSort } from '../utils/formatters';
+import { formatCurrency, formatProductCode, naturalProductCodeSort, sortProductsByCode } from '../utils/formatters';
 
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -111,7 +111,7 @@ const ProductsPage = () => {
         const res = await productService.getProducts(params);
         if (isMounted && res.data?.success) {
           const fetchedItems = res.data.products || [];
-          setAllProducts(fetchedItems);
+          setAllProducts(sortProductsByCode(fetchedItems));
         }
       } catch (err) {
         console.error('[ProductsPage] Failed to fetch products:', err);
@@ -136,7 +136,7 @@ const ProductsPage = () => {
     return counts;
   }, [allProducts]);
 
-  // Filter & Sort Products (Natural Alphanumeric Product Code Sorting by Default)
+  // Filter & Sort Products (Natural Numeric Product Code Sorting by Default and after Filters)
   const filteredAndSortedProducts = useMemo(() => {
     let result = [...allProducts];
 
@@ -157,8 +157,7 @@ const ProductsPage = () => {
     switch (sort) {
       case 'code-asc':
       default:
-        result.sort(naturalProductCodeSort);
-        break;
+        return sortProductsByCode(result);
       case 'price-asc':
         result.sort((a, b) => a.price - b.price);
         break;

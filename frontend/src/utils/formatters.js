@@ -56,23 +56,39 @@ export const formatProductCode = (code) => {
 };
 
 /**
+ * Extract integer number from product code string (e.g. "#01" -> 1, "#63" -> 63, "10" -> 10, "SC-004" -> 4).
+ * Returns 999999 if no number found.
+ */
+export const getCodeNumber = (code) => {
+  if (code === undefined || code === null || code === '') return 999999;
+  const clean = String(code).trim().replace(/^#+/, '');
+  const match = clean.match(/\d+/);
+  if (match) {
+    const num = parseInt(match[0], 10);
+    return isNaN(num) ? 999999 : num;
+  }
+  const num = parseInt(clean, 10);
+  return isNaN(num) ? 999999 : num;
+};
+
+/**
  * Natural numeric sort comparator for product codes (e.g. #01, #02, #09, #10, #63)
  * Guarantees #2 is sorted before #10, and #01 before #02.
  */
 export const naturalProductCodeSort = (a, b) => {
-  const rawA = (a?.productCode ?? a?.code ?? '').toString().trim().replace(/^#+/, '');
-  const rawB = (b?.productCode ?? b?.code ?? '').toString().trim().replace(/^#+/, '');
+  const numA = getCodeNumber(a?.productCode ?? a?.code);
+  const numB = getCodeNumber(b?.productCode ?? b?.code);
 
-  if (!rawA && !rawB) return (a?.name || '').localeCompare(b?.name || '');
-  if (!rawA) return 1;
-  if (!rawB) return -1;
+  if (numA !== numB) return numA - numB;
+  return (a?.name || '').localeCompare(b?.name || '');
+};
 
-  const numA = parseInt(rawA, 10);
-  const numB = parseInt(rawB, 10);
-
-  if (!isNaN(numA) && !isNaN(numB)) {
-    if (numA !== numB) return numA - numB;
-  }
-
-  return rawA.localeCompare(rawB, undefined, { numeric: true, sensitivity: 'base' });
+/**
+ * Single shared product sorting function.
+ * Always sorts products in true ascending numeric order by product code (#01, #02, ... #63).
+ * Falls back to alphabetical name comparison if codes are identical.
+ */
+export const sortProductsByCode = (products) => {
+  if (!Array.isArray(products)) return [];
+  return [...products].sort(naturalProductCodeSort);
 };
