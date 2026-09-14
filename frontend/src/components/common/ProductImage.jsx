@@ -26,7 +26,7 @@ const ProductImage = ({
   src,
   alt = 'S2C Sivakasi Cracker',
   product,
-  className = 'w-full h-full object-cover',
+  className = 'w-full h-full object-contain',
   containerClassName = '',
   aspectRatio = 'aspect-square',
   optimizedWidth,
