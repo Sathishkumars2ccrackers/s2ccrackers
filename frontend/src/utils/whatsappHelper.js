@@ -97,7 +97,7 @@ export const getBestCustomerPhone = (customerDetails) => {
 
 /**
  * Format product list for WhatsApp:
- * • Product Name × Quantity
+ * • Product Name × Quantity (₹Unit Price each = ₹Line Total)
  */
 export const formatProductListForWhatsApp = (items = []) => {
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -105,7 +105,7 @@ export const formatProductListForWhatsApp = (items = []) => {
   }
 
   return items
-    .map((item) => `• ${item.name} × ${item.quantity}`)
+    .map((item) => `• ${item.name} × ${item.quantity} (₹${item.price} each = ₹${item.subtotal || item.price * item.quantity})`)
     .join('\n');
 };
 

@@ -446,6 +446,7 @@ const OrderTrackingPage = () => {
                     >
                       <div className="flex items-center gap-3">
                         <ProductImage
+                          product={item}
                           src={item.image}
                           alt={item.name}
                           optimizedWidth={100}

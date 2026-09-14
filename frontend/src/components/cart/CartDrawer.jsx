@@ -150,6 +150,7 @@ const CartDrawer = () => {
                     >
                       {/* Product Image */}
                       <ProductImage
+                        product={item}
                         src={item.image}
                         alt={item.name}
                         optimizedWidth={160}
@@ -163,12 +164,16 @@ const CartDrawer = () => {
                       {/* Info */}
                       <div className="flex-1 min-w-0">
                         <h4 className="text-white font-bold text-xs leading-snug truncate">{item.name}</h4>
-                        <p className="text-[11px] text-amber-400 font-medium mt-0.5">{item.packSize}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Qty: <strong className="text-white font-bold">{item.quantity}</strong> • {formatCurrency(item.price)} each
+                        </p>
                         <div className="flex items-baseline gap-2 mt-1">
-                          <span className="text-sm font-extrabold text-white">{formatCurrency(item.price)}</span>
+                          <span className="text-xs font-bold text-amber-300">
+                            Subtotal: <strong className="text-sm font-black text-amber-400">{formatCurrency(item.price * item.quantity)}</strong>
+                          </span>
                           {item.originalPrice > item.price && (
                             <span className="text-[10px] text-slate-400 line-through">
-                              {formatCurrency(item.originalPrice)}
+                              {formatCurrency(item.originalPrice * item.quantity)}
                             </span>
                           )}
                         </div>

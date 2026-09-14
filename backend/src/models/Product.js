@@ -143,5 +143,19 @@ productSchema.virtual('inStock').get(function () {
   return this.stockQuantity > 0;
 });
 
+// Canonical single-image virtual getters
+productSchema.virtual('imageUrl').get(function () {
+  return Array.isArray(this.images) && this.images.length > 0 ? this.images[0] : '';
+});
+
+productSchema.virtual('image').get(function () {
+  return Array.isArray(this.images) && this.images.length > 0 ? this.images[0] : '';
+});
+
+// Enable virtuals in toJSON and toObject conversions
+productSchema.set('toJSON', { virtuals: true });
+productSchema.set('toObject', { virtuals: true });
+
 module.exports = mongoose.model('Product', productSchema);
+
 

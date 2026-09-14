@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ZoomIn, Sparkles, RefreshCw } from 'lucide-react';
 import {
+  getProductImage,
+  getProductImages,
   normalizeImageUrl,
   getOptimizedImageUrl,
   FESTIVE_PLACEHOLDER_SVG,
@@ -12,12 +14,13 @@ import { trackImageClick } from '../../utils/imageAnalytics';
 /**
  * Premium, Fault-Tolerant Product Image Component
  * Features:
+ * - Single canonical image resolution via getProductImage
  * - 2-stage auto-retry mechanism on network glitches
  * - Download protection (disabled drag & right click)
  * - Shimmer skeleton loading state
  * - Automatic WebP / AVIF negotiation
  * - Click-to-Zoom Lightbox integration
- * - Analytics tracking
+ * - Analytics tracking & diagnostic logging
  */
 const ProductImage = ({
   src,
@@ -50,15 +53,31 @@ const ProductImage = ({
     // Lightbox provider might be outside
   }
 
-  // Determine initial image source
-  const rawUrl =
-    src ||
-    (product?.images && product.images.length > 0 ? product.images[0] : '') ||
-    '';
+  // Canonical Single Source of Truth Resolution
+  const resolvedImageUrl = getProductImage(product || src, {
+    width: optimizedWidth,
+    height: optimizedHeight,
+    quality: 'auto',
+  });
 
-  const productId = product?._id || product?.id || product?.productCode || 'unknown';
+  const productId = product?._id || product?.id || product?.productId || 'N/A';
   const productName = product?.name || alt || 'Fireworks Item';
   const seoAltText = `${productName} - Authentic Sivakasi Fireworks`;
+
+  // Diagnostic logging for every product render (Task 1 & Task 11)
+  useEffect(() => {
+    if (product || src) {
+      console.log({
+        productId: product?._id || product?.id || product?.productId || 'direct-src',
+        productName,
+        image: product?.image,
+        imageUrl: product?.imageUrl,
+        images: product?.images,
+        imageUrlReceivedFromAPI: product?.images?.[0] || product?.imageUrl || product?.image || (typeof src === 'string' ? src : 'NONE'),
+        finalRenderedImage: resolvedImageUrl,
+      });
+    }
+  }, [product, src, productName, resolvedImageUrl]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -67,25 +86,18 @@ const ProductImage = ({
 
     if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
 
-    if (!rawUrl) {
+    if (!resolvedImageUrl || resolvedImageUrl === FESTIVE_PLACEHOLDER_SVG) {
       setImgSrc(FESTIVE_PLACEHOLDER_SVG);
       setIsLoading(false);
       return;
     }
 
-    const cleanUrl = normalizeImageUrl(rawUrl);
-    const optimized = getOptimizedImageUrl(cleanUrl, {
-      width: optimizedWidth,
-      height: optimizedHeight,
-      quality: 'auto',
-    });
-
-    setImgSrc(optimized);
+    setImgSrc(resolvedImageUrl);
 
     return () => {
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
     };
-  }, [rawUrl, optimizedWidth, optimizedHeight]);
+  }, [resolvedImageUrl]);
 
   const handleImageLoad = () => {
     setIsLoading(false);
@@ -101,10 +113,9 @@ const ProductImage = ({
       const delay = nextRetry === 1 ? 800 : 1500;
 
       retryTimerRef.current = setTimeout(() => {
-        const cleanUrl = normalizeImageUrl(rawUrl);
-        // Append cache-busting timestamp on second retry
-        const separator = cleanUrl.includes('?') ? '&' : '?';
-        const retryUrl = `${cleanUrl}${separator}retry=${Date.now()}`;
+        // Fallback or retry with cache-busting timestamp
+        const separator = resolvedImageUrl.includes('?') ? '&' : '?';
+        const retryUrl = `${resolvedImageUrl}${separator}retry=${Date.now()}`;
         setImgSrc(retryUrl);
       }, delay);
       return;
@@ -116,7 +127,7 @@ const ProductImage = ({
     setImgSrc(FESTIVE_PLACEHOLDER_SVG);
 
     logImageError({
-      url: rawUrl,
+      url: resolvedImageUrl,
       productId,
       productName,
       componentName,
@@ -137,14 +148,11 @@ const ProductImage = ({
     if (enableZoom && openLightboxSafe) {
       e.preventDefault();
       e.stopPropagation();
-      
-      const imagesList =
-        product?.images && product.images.length > 0
-          ? product.images
-          : [rawUrl || FESTIVE_PLACEHOLDER_SVG];
+
+      const galleryImages = getProductImages(product || src);
 
       openLightboxSafe({
-        images: imagesList,
+        images: galleryImages.length > 0 ? galleryImages : [FESTIVE_PLACEHOLDER_SVG],
         startIndex: 0,
         productTitle: productName,
         productCode: product?.productCode || '',

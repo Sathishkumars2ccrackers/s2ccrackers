@@ -19,6 +19,7 @@ import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/formatters';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import { getImageAnalyticsSummary, clearImageAnalytics } from '../../utils/imageAnalytics';
+import { getProductImage, FESTIVE_PLACEHOLDER_SVG } from '../../utils/imageUrlUtils';
 import LoadingSpinner from '../common/LoadingSpinner';
 
 const ReportsManager = () => {
@@ -79,13 +80,13 @@ const ReportsManager = () => {
       const brokenList = [];
 
       products.forEach((p) => {
-        const imgs = p.images || [];
-        if (imgs.length === 0 || !imgs[0] || !imgs[0].trim()) {
+        const canonicalUrl = getProductImage(p);
+        if (!canonicalUrl || canonicalUrl === FESTIVE_PLACEHOLDER_SVG) {
           missing++;
-          brokenList.push({ id: p._id, name: p.name, reason: 'Missing Image' });
+          brokenList.push({ id: p._id, name: p.name, reason: 'Missing / Placeholder Image' });
         } else {
           try {
-            const parsed = new URL(imgs[0]);
+            const parsed = new URL(canonicalUrl);
             if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
               valid++;
             } else {

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
+import { getProductImage } from '../utils/imageUrlUtils';
 
 const CartContext = createContext(null);
 
@@ -11,7 +12,14 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState(() => {
     try {
       const saved = localStorage.getItem(CART_STORAGE_KEY);
-      return saved ? JSON.parse(saved) : [];
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      return Array.isArray(parsed)
+        ? parsed.map((item) => ({
+            ...item,
+            image: getProductImage(item.image || item),
+          }))
+        : [];
     } catch {
       return [];
     }
@@ -32,7 +40,7 @@ export const CartProvider = ({ children }) => {
 
     setCartItems((prevItems) => {
       const existingIndex = prevItems.findIndex((item) => item.productId === product._id);
-      const productImg = product.images && product.images.length > 0 ? product.images[0] : '';
+      const productImg = getProductImage(product);
 
       if (existingIndex > -1) {
         const currentQty = prevItems[existingIndex].quantity;

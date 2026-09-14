@@ -227,6 +227,84 @@ export const preloadImages = (urls = []) => {
 };
 
 /**
+ * Canonical Product Image Resolver
+ * Guarantees that every single component across the entire application resolves
+ * the exact same canonical image URL for a given product or cart item.
+ * 
+ * Strict Canonical Priority:
+ * 1. product.images[0] (Canonical Schema field)
+ * 2. product.imageUrl (Legacy / Alias field)
+ * 3. product.image (Cart / Flattened field)
+ * 4. Raw URL string if passed directly
+ * 5. Fallback: FESTIVE_PLACEHOLDER_SVG
+ * 
+ * @param {object|string} product - Product object, cart item, or direct URL string
+ * @param {object} [options] - Optional transformation options (width, height, crop, quality, cacheBust)
+ * @returns {string} Fully resolved, optimized canonical image URL
+ */
+export const getProductImage = (product, options = {}) => {
+  if (!product) return FESTIVE_PLACEHOLDER_SVG;
+
+  let rawUrl = '';
+
+  if (typeof product === 'string') {
+    rawUrl = product.trim();
+  } else if (typeof product === 'object') {
+    if (Array.isArray(product.images) && product.images.length > 0 && typeof product.images[0] === 'string' && product.images[0].trim()) {
+      rawUrl = product.images[0].trim();
+    } else if (typeof product.imageUrl === 'string' && product.imageUrl.trim()) {
+      rawUrl = product.imageUrl.trim();
+    } else if (typeof product.image === 'string' && product.image.trim()) {
+      rawUrl = product.image.trim();
+    } else if (typeof product.images === 'string' && product.images.trim()) {
+      rawUrl = product.images.trim();
+    }
+  }
+
+  const normalized = normalizeImageUrl(rawUrl);
+
+  if (!normalized || normalized === FESTIVE_PLACEHOLDER_SVG) {
+    return FESTIVE_PLACEHOLDER_SVG;
+  }
+
+  // Apply optimizations if specified
+  let finalUrl = normalized;
+  if (options.width || options.height || options.quality || options.crop) {
+    finalUrl = getOptimizedImageUrl(normalized, options);
+  }
+
+  // Cache-busting support (?v=<version>) to prevent stale caches
+  if (options.cacheBust) {
+    const version = typeof options.cacheBust === 'string' || typeof options.cacheBust === 'number'
+      ? options.cacheBust
+      : product?.updatedAt || Date.now();
+    const separator = finalUrl.includes('?') ? '&' : '?';
+    finalUrl = `${finalUrl}${separator}v=${encodeURIComponent(version)}`;
+  }
+
+  return finalUrl;
+};
+
+/**
+ * Canonical Gallery Images Resolver
+ * Returns an array of valid image URLs for galleries / Lightbox
+ * @param {object} product
+ * @returns {string[]}
+ */
+export const getProductImages = (product) => {
+  if (!product) return [];
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    const valid = product.images
+      .filter((u) => typeof u === 'string' && u.trim())
+      .map(normalizeImageUrl)
+      .filter((u) => u && u !== FESTIVE_PLACEHOLDER_SVG);
+    if (valid.length > 0) return valid;
+  }
+  const single = getProductImage(product);
+  return single && single !== FESTIVE_PLACEHOLDER_SVG ? [single] : [];
+};
+
+/**
  * Diagnostic logger for product image errors
  */
 export const logImageError = ({ url, productId, productName, componentName, error }) => {
@@ -244,3 +322,4 @@ export const logImageError = ({ url, productId, productName, componentName, erro
   // Track in client analytics for admin broken image reports
   trackBrokenImageError({ productId, productName, url, error });
 };
+

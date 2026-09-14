@@ -21,7 +21,35 @@ const CATEGORY_ALIAS_MAP = {
   'digital-wala': ['digital-wala', 'digital wala'],
   'childrens-color-match-box': ['childrens-color-match-box', 'children-color-match-box', "children's color match box", 'color-match-box'],
   'childrens-gun': ['childrens-gun', 'children-gun', "children's gun", 'children gun'],
-  'wala': ['wala', 'walas'],
+};
+
+// Canonical product output formatter ensuring images, imageUrl, and image are 100% consistent
+const formatProduct = (p) => {
+  if (!p) return p;
+  const raw = p.toObject ? p.toObject({ virtuals: true }) : { ...p };
+  const imgs = Array.isArray(raw.images)
+    ? raw.images.filter((img) => typeof img === 'string' && img.trim().length > 0)
+    : (typeof raw.images === 'string' && raw.images.trim() ? [raw.images.trim()] : []);
+
+  const primaryImg = imgs.length > 0
+    ? imgs[0]
+    : (typeof raw.imageUrl === 'string' && raw.imageUrl.trim()
+        ? raw.imageUrl.trim()
+        : (typeof raw.image === 'string' && raw.image.trim() ? raw.image.trim() : ''));
+
+  const finalImages = imgs.length > 0 ? imgs : (primaryImg ? [primaryImg] : []);
+
+  return {
+    ...raw,
+    images: finalImages,
+    imageUrl: primaryImg,
+    image: primaryImg,
+  };
+};
+
+const formatProducts = (list) => {
+  if (!Array.isArray(list)) return [];
+  return list.map(formatProduct);
 };
 
 // Robust helper to resolve category document from slug, ID, or name
@@ -200,7 +228,7 @@ const getProducts = async (req, res, next) => {
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
-      products,
+      products: formatProducts(products),
     });
   } catch (error) {
     next(error);
@@ -257,8 +285,8 @@ const getProductByIdentifier = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      product,
-      relatedProducts,
+      product: formatProduct(product),
+      relatedProducts: formatProducts(relatedProducts),
     });
   } catch (error) {
     next(error);
@@ -278,9 +306,9 @@ const getFeaturedShowcase = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      featured,
-      bestSellers,
-      deals,
+      featured: formatProducts(featured),
+      bestSellers: formatProducts(bestSellers),
+      deals: formatProducts(deals),
     });
   } catch (error) {
     next(error);
@@ -342,7 +370,7 @@ const getAllProductsAdmin = async (req, res, next) => {
       total,
       page: pageNum,
       totalPages: Math.ceil(total / limitNum),
-      products,
+      products: formatProducts(products),
     });
   } catch (error) {
     next(error);
@@ -503,7 +531,7 @@ const createProduct = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message: 'Product created successfully',
-      product: populatedProduct,
+      product: formatProduct(populatedProduct),
     });
   } catch (error) {
     next(error);
@@ -657,7 +685,7 @@ const updateProduct = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: 'Product updated successfully',
-      product: updatedProduct,
+      product: formatProduct(updatedProduct),
     });
   } catch (error) {
     next(error);

@@ -446,6 +446,7 @@ const CheckoutPage = () => {
                   <div key={item.productId} className="flex items-center justify-between gap-3 pb-2 border-b border-festival-border/50">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <ProductImage
+                        product={item}
                         src={item.image}
                         alt={item.name}
                         optimizedWidth={100}

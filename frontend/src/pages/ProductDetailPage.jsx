@@ -22,6 +22,7 @@ import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { useLightbox } from '../context/LightboxContext';
 import { formatCurrency } from '../utils/formatters';
+import { getProductImages, getProductImage } from '../utils/imageUrlUtils';
 import ProductCard from '../components/product/ProductCard';
 import ProductImage from '../components/common/ProductImage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -80,10 +81,7 @@ const ProductDetailPage = () => {
 
   const handleOpenLightbox = (index = selectedImageIndex) => {
     if (!product) return;
-    const galleryImages =
-      product.images && product.images.length > 0
-        ? product.images
-        : [];
+    const galleryImages = getProductImages(product);
 
     openLightbox({
       images: galleryImages,
@@ -126,9 +124,7 @@ const ProductDetailPage = () => {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0;
 
-  const images = product.images && product.images.length > 0
-    ? product.images
-    : [];
+  const images = getProductImages(product);
 
   return (
     <div className="min-h-screen bg-festival-dark py-8 px-4 sm:px-6 lg:px-8">

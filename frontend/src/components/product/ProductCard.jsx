@@ -1,15 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Sparkles, Check, Package, ZoomIn } from 'lucide-react';
+import { ShoppingBag, Sparkles, Check, Package, ZoomIn, Plus, Minus } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useLightbox } from '../../context/LightboxContext';
 import { formatCurrency } from '../../utils/formatters';
 import ProductImage from '../common/ProductImage';
+import { getProductImages } from '../../utils/imageUrlUtils';
 
 const ProductCard = ({ product }) => {
   const { addToCart, cartItems } = useCart();
   const { openLightbox } = useLightbox();
+  const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   if (!product) return null;
 
@@ -18,11 +20,35 @@ const ProductCard = ({ product }) => {
   const isOutOfStock = product.stockQuantity <= 0;
   const isLowStock = product.stockQuantity > 0 && product.stockQuantity <= 10;
 
+  const handleDecreaseQty = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedQuantity((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleIncreaseQty = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedQuantity((prev) => Math.min(product.stockQuantity || 999, prev + 1));
+  };
+
+  const handleQtyInputChange = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const val = parseInt(e.target.value, 10);
+    if (isNaN(val) || val < 1) {
+      setSelectedQuantity(1);
+    } else {
+      setSelectedQuantity(Math.min(product.stockQuantity || 999, val));
+    }
+  };
+
   const handleAdd = (e) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isOutOfStock) {
-      addToCart(product, 1, false);
+      addToCart(product, selectedQuantity, false);
+      setSelectedQuantity(1);
     }
   };
 
@@ -30,10 +56,7 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     
-    const productImages =
-      product.images && product.images.length > 0
-        ? product.images
-        : [];
+    const productImages = getProductImages(product);
 
     openLightbox({
       images: productImages,
@@ -174,11 +197,47 @@ const ProductCard = ({ product }) => {
             </div>
           </div>
 
+          {/* Quantity Selector Row (Only when in stock) */}
+          {!isOutOfStock && (
+            <div className="flex items-center justify-between gap-2 pt-1">
+              <span className="text-[11px] font-bold text-slate-300">Quantity:</span>
+              <div className="flex items-center bg-festival-dark border border-festival-border rounded-xl p-0.5 backdrop-blur-sm">
+                <button
+                  type="button"
+                  onClick={handleDecreaseQty}
+                  disabled={selectedQuantity <= 1}
+                  title="Decrease quantity"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+                <input
+                  type="number"
+                  min="1"
+                  max={product.stockQuantity}
+                  value={selectedQuantity}
+                  onChange={handleQtyInputChange}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-10 sm:w-12 text-center text-xs font-black text-amber-400 bg-transparent focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <button
+                  type="button"
+                  onClick={handleIncreaseQty}
+                  disabled={selectedQuantity >= product.stockQuantity}
+                  title="Increase quantity"
+                  className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Add to Cart Button */}
           <button
             onClick={handleAdd}
             disabled={isOutOfStock}
-            className={`w-full py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md ${
+            className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md ${
               isOutOfStock
                 ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                 : inCartQty > 0
@@ -191,12 +250,12 @@ const ProductCard = ({ product }) => {
             ) : inCartQty > 0 ? (
               <>
                 <Check className="w-3.5 h-3.5" />
-                <span>In Cart ({inCartQty}) • Add More</span>
+                <span>Add ({selectedQuantity}) More • In Cart ({inCartQty})</span>
               </>
             ) : (
               <>
                 <ShoppingBag className="w-3.5 h-3.5" />
-                <span>Add to Cart</span>
+                <span>Add {selectedQuantity > 1 ? `(${selectedQuantity}) ` : ''}to Cart • {formatCurrency(product.price * selectedQuantity)}</span>
               </>
             )}
           </button>

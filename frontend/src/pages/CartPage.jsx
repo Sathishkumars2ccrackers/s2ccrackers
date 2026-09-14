@@ -126,6 +126,7 @@ const CartPage = () => {
               >
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                   <ProductImage
+                    product={item}
                     src={item.image}
                     alt={item.name}
                     optimizedWidth={200}
@@ -137,12 +138,16 @@ const CartPage = () => {
                   />
                   <div>
                     <h3 className="text-sm font-bold text-white">{item.name}</h3>
-                    <p className="text-xs text-amber-400 font-medium">{item.packSize}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Qty: <strong className="text-white font-bold">{item.quantity}</strong> • {formatCurrency(item.price)} each {item.packSize ? `(${item.packSize})` : ''}
+                    </p>
                     <div className="flex items-baseline gap-2 mt-1">
-                      <span className="text-sm font-black text-white">{formatCurrency(item.price)}</span>
+                      <span className="text-xs font-bold text-amber-300">
+                        Subtotal: <strong className="text-sm font-black text-amber-400">{formatCurrency(item.price * item.quantity)}</strong>
+                      </span>
                       {item.originalPrice > item.price && (
                         <span className="text-xs text-slate-400 line-through">
-                          {formatCurrency(item.originalPrice)}
+                          {formatCurrency(item.originalPrice * item.quantity)}
                         </span>
                       )}
                     </div>
