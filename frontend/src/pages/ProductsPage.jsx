@@ -158,8 +158,8 @@ const ProductsPage = () => {
   return (
     <div className="min-h-screen bg-festival-dark text-slate-100 pb-16">
       {/* 1. Page Title Header Strip (Compact) */}
-      <div className="bg-gradient-to-b from-festival-card/80 to-transparent border-b border-festival-border/50 pt-4 pb-3 px-3 sm:px-6 lg:px-8">
-        <div className="max-w-[1700px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="bg-gradient-to-b from-festival-card/80 to-transparent border-b border-festival-border/50 pt-4 pb-3 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1600px] mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-1.5 text-amber-400 text-[11px] font-black uppercase tracking-wider">
               <Sparkles className="w-3.5 h-3.5" />
@@ -180,7 +180,7 @@ const ProductsPage = () => {
 
       {/* 2. STICKY TOP FILTER & CATEGORY BAR */}
       <div className="sticky top-0 z-30 bg-festival-dark/95 backdrop-blur-md border-b border-festival-border/80 shadow-xl transition-all">
-        <div className="max-w-[1700px] mx-auto px-2 sm:px-4 lg:px-6 py-2.5 space-y-2">
+        <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 space-y-2">
           {/* Top Controls Row */}
           <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
             {/* Search Input */}
@@ -347,8 +347,8 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {/* 3. HIGH-DENSITY CONTINUOUS PRODUCT GRID */}
-      <main className="max-w-[1700px] mx-auto px-2 sm:px-4 lg:px-6 pt-4">
+      {/* 3. REFINED CONTINUOUS PRODUCT GRID (Max 6 per row on Desktop, 5 on Laptop, 3-4 on Tablet, 2 on Mobile) */}
+      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {loading ? (
           <div className="py-24 flex justify-center">
             <LoadingSpinner text="Loading Sivakasi fireworks catalog..." />
@@ -379,10 +379,10 @@ const ProductsPage = () => {
                 Mobile: 2 cols
                 Tablet: 3-4 cols
                 Laptop: 5 cols
-                Desktop: 6 cols
-                Wide Desktop: 7 cols
+                Desktop (≥1280px): 6 cols max (No 7 cols!)
+                Gap: 16px - 20px (gap-3.5 sm:gap-4 md:gap-4.5 lg:gap-5)
             */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2 sm:gap-3 md:gap-3.5 lg:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3.5 sm:gap-4 md:gap-4.5 lg:gap-5">
               {products.map((product) => (
                 <ProductCard key={product._id} product={product} />
               ))}

@@ -76,16 +76,16 @@ const ProductCard = memo(({ product }) => {
       transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       className="group relative bg-festival-card border border-festival-border hover:border-amber-500/50 rounded-xl overflow-hidden shadow-md hover:shadow-xl hover:shadow-amber-950/20 flex flex-col justify-between transition-all duration-200"
     >
-      {/* 1. Top Image & Badge Strip */}
+      {/* 1. Top Image & Badge Strip (Spacious ~10-15% larger image view) */}
       <div
         onClick={handleImageClick}
-        className="relative aspect-square w-full bg-slate-950/70 p-2 overflow-hidden cursor-zoom-in group/img flex items-center justify-center border-b border-festival-border/50"
+        className="relative aspect-square w-full bg-slate-950/70 p-2.5 sm:p-3 overflow-hidden cursor-zoom-in group/img flex items-center justify-center border-b border-festival-border/50"
         title="Click to view full size & zoom"
       >
         <ProductImage
           product={product}
           alt={product.name}
-          optimizedWidth={360}
+          optimizedWidth={450}
           componentName="ProductCard"
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           enableZoom={false}
@@ -93,16 +93,16 @@ const ProductCard = memo(({ product }) => {
 
         {/* Hover Zoom Overlay Pill */}
         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
-          <span className="bg-black/85 text-amber-300 font-bold text-[10px] px-2 py-1 rounded-full border border-amber-500/50 backdrop-blur-md shadow-md flex items-center gap-1">
+          <span className="bg-black/85 text-amber-300 font-bold text-[10px] px-2.5 py-1 rounded-full border border-amber-500/50 backdrop-blur-md shadow-md flex items-center gap-1">
             <ZoomIn className="w-3 h-3 text-amber-400" />
             <span>Zoom</span>
           </span>
         </div>
 
         {/* Floating Top Left Badges: Discount & Top Pick */}
-        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10 pointer-events-none">
+        <div className="absolute top-2 left-2 flex flex-col gap-1 z-10 pointer-events-none">
           {product.discountPercentage > 0 && (
-            <span className="shimmer-badge text-slate-950 font-black text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded shadow">
+            <span className="shimmer-badge text-slate-950 font-black text-[9px] sm:text-[10px] px-2 py-0.5 rounded shadow">
               {Math.round(product.discountPercentage)}% OFF
             </span>
           )}
@@ -116,7 +116,7 @@ const ProductCard = memo(({ product }) => {
 
         {/* Top Right Product Code Badge */}
         {product.productCode && (
-          <div className="absolute top-1.5 right-1.5 z-10 pointer-events-none">
+          <div className="absolute top-2 right-2 z-10 pointer-events-none">
             <span className="bg-black/85 text-amber-300 font-mono font-bold text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded border border-amber-500/30 backdrop-blur-sm shadow">
               #{product.productCode}
             </span>
@@ -125,12 +125,12 @@ const ProductCard = memo(({ product }) => {
 
         {/* Bottom Floating Category Tag */}
         {product.category?.name && (
-          <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between gap-1 z-10 pointer-events-none">
-            <span className="bg-festival-dark/90 text-amber-300/90 text-[9px] font-semibold px-1.5 py-0.5 rounded border border-amber-500/20 backdrop-blur-sm truncate max-w-[120px]">
+          <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between gap-1 z-10 pointer-events-none">
+            <span className="bg-festival-dark/95 text-amber-300/90 text-[9px] sm:text-[10px] font-semibold px-2 py-0.5 rounded border border-amber-500/20 backdrop-blur-sm truncate max-w-[130px]">
               {product.category.name}
             </span>
             {product.brand && (
-              <span className="bg-red-950/80 text-red-200 text-[8px] font-bold px-1 py-0.5 rounded border border-red-500/20">
+              <span className="bg-red-950/90 text-red-200 text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded border border-red-500/20">
                 {product.brand}
               </span>
             )}
@@ -139,17 +139,17 @@ const ProductCard = memo(({ product }) => {
       </div>
 
       {/* 2. Card Body Info */}
-      <div className="p-2 sm:p-2.5 flex-1 flex flex-col justify-between space-y-1.5">
+      <div className="p-2.5 sm:p-3 flex-1 flex flex-col justify-between space-y-2">
         <div>
-          {/* Product Name */}
+          {/* Product Name: 2 lines max with clean line clamp and comfortable typography */}
           <Link to={productDetailPath} title={product.name}>
-            <h3 className="text-xs sm:text-[13px] font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-tight min-h-[2rem]">
+            <h3 className="text-xs sm:text-[13px] font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug min-h-[2.25rem]">
               {product.name}
             </h3>
           </Link>
 
           {/* Pack Size / Pieces */}
-          <div className="flex items-center gap-1.5 mt-1 text-[10px] text-slate-400">
+          <div className="flex items-center gap-1.5 mt-1.5 text-[10px] sm:text-[11px] text-slate-400">
             {product.piecesPerPack ? (
               <span className="inline-flex items-center gap-1 font-medium text-slate-300 bg-festival-dark/90 px-1.5 py-0.5 rounded border border-festival-border/80">
                 <Package className="w-2.5 h-2.5 text-amber-400" />
@@ -164,14 +164,14 @@ const ProductCard = memo(({ product }) => {
         </div>
 
         {/* Price & Stock Status Strip */}
-        <div className="pt-1.5 border-t border-festival-border/50 space-y-1.5">
+        <div className="pt-2 border-t border-festival-border/50 space-y-2">
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-baseline gap-1.5 flex-wrap">
               <span className="text-sm sm:text-base font-black text-amber-400">
                 {formatCurrency(product.price)}
               </span>
               {product.originalPrice > product.price && (
-                <span className="text-[10px] text-slate-500 line-through font-medium">
+                <span className="text-[10px] sm:text-xs text-slate-500 line-through font-medium">
                   {formatCurrency(product.originalPrice)}
                 </span>
               )}
@@ -198,14 +198,14 @@ const ProductCard = memo(({ product }) => {
           {/* 3. Quantity Selector: [-] 1 [+] */}
           {!isOutOfStock && (
             <div className="flex items-center justify-between gap-1 pt-0.5">
-              <span className="text-[10px] font-bold text-slate-400">Qty:</span>
+              <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">Quantity:</span>
               <div className="flex items-center bg-festival-dark border border-festival-border rounded-lg p-0.5">
                 <button
                   type="button"
                   onClick={handleDecreaseQty}
                   disabled={selectedQuantity <= 1}
                   title="Decrease quantity"
-                  className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+                  className="w-6 h-6 sm:w-6.5 sm:h-6.5 flex items-center justify-center rounded text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
                 >
                   <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 </button>
@@ -223,7 +223,7 @@ const ProductCard = memo(({ product }) => {
                   onClick={handleIncreaseQty}
                   disabled={selectedQuantity >= product.stockQuantity}
                   title="Increase quantity"
-                  className="w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center rounded text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
+                  className="w-6 h-6 sm:w-6.5 sm:h-6.5 flex items-center justify-center rounded text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer"
                 >
                   <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                 </button>
@@ -235,7 +235,7 @@ const ProductCard = memo(({ product }) => {
           <button
             onClick={handleAdd}
             disabled={isOutOfStock}
-            className={`w-full py-1.5 sm:py-2 px-2 rounded-lg font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all shadow-sm cursor-pointer ${
+            className={`w-full py-2 px-2.5 rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-sm cursor-pointer ${
               isOutOfStock
                 ? 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
                 : inCartQty > 0
@@ -247,12 +247,12 @@ const ProductCard = memo(({ product }) => {
               <span>Out of Stock</span>
             ) : inCartQty > 0 ? (
               <>
-                <Check className="w-3 h-3" />
+                <Check className="w-3.5 h-3.5" />
                 <span className="truncate">Add +{selectedQuantity} • ({inCartQty} in Cart)</span>
               </>
             ) : (
               <>
-                <ShoppingBag className="w-3 h-3" />
+                <ShoppingBag className="w-3.5 h-3.5" />
                 <span className="truncate">Add to Cart</span>
               </>
             )}
