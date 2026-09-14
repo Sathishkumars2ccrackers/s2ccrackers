@@ -116,9 +116,9 @@ export const getOptimizedImageUrl = (url, options = {}) => {
       if (uploadIndex !== -1) {
         const { width, height, crop = 'fill', quality = 'auto' } = options;
         
-        // f_auto:best instructs Cloudinary CDN to serve AVIF to browsers that support it,
-        // then WebP, and fall back to JPG/PNG.
-        const transforms = ['f_auto:best', `q_${quality}`];
+        // f_auto instructs Cloudinary CDN to serve the best modern format supported
+        // (AVIF, WebP, etc.), and fall back to JPG/PNG.
+        const transforms = ['f_auto', `q_${quality}`];
 
         if (width) transforms.push(`w_${width}`);
         if (height) transforms.push(`h_${height}`);
@@ -178,13 +178,13 @@ export const getHighResImageUrl = (url) => {
     try {
       const uploadIndex = normalized.indexOf('/upload/');
       if (uploadIndex !== -1) {
-        // Keep auto format and highest quality for zoom
+        // Keep auto format (f_auto) and high quality (q_auto:best) for zoom
         const prefix = normalized.substring(0, uploadIndex + 8);
         const rest = normalized.substring(uploadIndex + 8);
         
         // Strip previous small size transformations
         const cleanRest = rest.replace(/^(w_\d+,|h_\d+,|c_[a-z]+,|q_[a-z0-9:]+,|f_[a-z0-9:]+,)+/, '');
-        return `${prefix}f_auto:best,q_auto:best/${cleanRest}`;
+        return `${prefix}f_auto,q_auto:best/${cleanRest}`;
       }
     } catch {
       return normalized;

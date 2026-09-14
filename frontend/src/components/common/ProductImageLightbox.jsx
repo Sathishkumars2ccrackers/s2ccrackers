@@ -50,16 +50,20 @@ const ProductImageLightbox = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [swipeDirection, setSwipeDirection] = useState(0); // -1 for left, 1 for right
 
+  const currentRawUrl = images && images.length > 0 ? images[currentIndex] : '';
+  const highResUrl = getHighResImageUrl(currentRawUrl);
+  const productId = product?._id || product?.id || productCode || 'lightbox-item';
+
+  // 3-Tier Image Source state: HighRes -> Original -> SVG Placeholder
+  const [currentImgSrc, setCurrentImgSrc] = useState(highResUrl || currentRawUrl || FESTIVE_PLACEHOLDER_SVG);
+  const [fallbackTier, setFallbackTier] = useState(1); // 1 = HighRes, 2 = Original, 3 = Placeholder
+
   // Touch tracking for pinch-to-zoom & swipe
   const touchStartDist = useRef(null);
   const initialTouchZoom = useRef(1);
   const touchStartPos = useRef({ x: 0, y: 0, time: 0 });
   const containerRef = useRef(null);
   const imageContainerRef = useRef(null);
-
-  const currentRawUrl = images && images.length > 0 ? images[currentIndex] : '';
-  const highResUrl = getHighResImageUrl(currentRawUrl);
-  const productId = product?._id || product?.id || productCode || 'lightbox-item';
 
   // Reset zoom & pan when image changes or modal opens
   const resetTransform = useCallback(() => {
@@ -74,9 +78,30 @@ const ProductImageLightbox = () => {
       resetTransform();
       setImageLoaded(false);
       setImageFailed(false);
+      setFallbackTier(1);
+
+      const raw = images && images.length > 0 ? images[currentIndex] : '';
+      const high = getHighResImageUrl(raw);
+      const initialSrc = high || raw || FESTIVE_PLACEHOLDER_SVG;
+      setCurrentImgSrc(initialSrc);
+
+      // Diagnostic Logging
+      console.log("LIGHTBOX IMAGE", {
+        productId,
+        productName: productTitle,
+        currentIndex,
+        imageUrl: raw,
+        highResUrl: high,
+      });
+
+      console.log("[Lightbox URL Pipeline]", {
+        "Original URL": raw,
+        "Generated URL": high,
+      });
+
       trackLightboxOpen({ productId, productName: productTitle });
     }
-  }, [isOpen, currentIndex, resetTransform, productId, productTitle]);
+  }, [isOpen, currentIndex, images, resetTransform, productId, productTitle]);
 
   // Track Fullscreen changes
   useEffect(() => {
@@ -431,10 +456,10 @@ const ProductImageLightbox = () => {
               transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
               transformOrigin: 'center center',
             }}
-            className="max-w-[90vw] max-h-[75vh] flex items-center justify-center pointer-events-auto"
+            className="w-full h-full max-w-[90vw] max-h-[75vh] flex items-center justify-center pointer-events-auto"
           >
             {/* Shimmer Loader */}
-            {!imageLoaded && !imageFailed && (
+            {!imageLoaded && (
               <div className="w-72 h-72 sm:w-96 sm:h-96 rounded-2xl bg-festival-card border border-festival-border flex flex-col items-center justify-center animate-pulse">
                 <div className="w-10 h-10 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center animate-spin">
                   <Sparkles className="w-5 h-5 text-amber-400" />
@@ -446,26 +471,48 @@ const ProductImageLightbox = () => {
             )}
 
             <img
-              src={imageFailed ? FESTIVE_PLACEHOLDER_SVG : highResUrl}
+              src={currentImgSrc}
               alt={`${productTitle} - High Resolution View`}
               draggable={false}
               onContextMenu={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
-              onLoad={() => setImageLoaded(true)}
-              onError={() => {
-                setImageFailed(true);
+              onLoad={() => {
                 setImageLoaded(true);
-                logImageError({
-                  url: highResUrl,
-                  productName: productTitle,
-                  componentName: 'ProductImageLightbox',
-                  error: new Error('Failed to load high-res image in lightbox'),
-                });
+                console.log("Lightbox image loaded", currentImgSrc);
               }}
-              className={`max-w-[90vw] max-h-[72vh] sm:max-h-[75vh] object-contain rounded-2xl shadow-2xl transition-opacity duration-300 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
+              onError={() => {
+                console.error("Lightbox image failed", currentImgSrc);
+                if (fallbackTier === 1 && currentRawUrl && currentRawUrl !== currentImgSrc) {
+                  console.warn("[Lightbox Fallback] High-res image failed. Falling back to original URL:", currentRawUrl);
+                  setFallbackTier(2);
+                  setCurrentImgSrc(currentRawUrl);
+                } else if (fallbackTier <= 2 && currentImgSrc !== FESTIVE_PLACEHOLDER_SVG) {
+                  console.warn("[Lightbox Fallback] Original image URL failed. Falling back to Festive SVG Placeholder.");
+                  setFallbackTier(3);
+                  setCurrentImgSrc(FESTIVE_PLACEHOLDER_SVG);
+                  setImageLoaded(true);
+                  setImageFailed(true);
+                  logImageError({
+                    url: currentRawUrl || highResUrl,
+                    productId,
+                    productName: productTitle,
+                    componentName: 'ProductImageLightbox',
+                    error: new Error('Failed to load image in lightbox after fallback'),
+                  });
+                } else {
+                  setImageLoaded(true);
+                  setImageFailed(true);
+                }
+              }}
+              className={`max-w-[90vw] max-h-[72vh] sm:max-h-[75vh] w-auto h-auto object-contain rounded-2xl shadow-2xl transition-opacity duration-300 ${
+                imageLoaded ? 'opacity-100' : 'opacity-0 absolute'
               }`}
-              style={{ userSelect: 'none', WebkitUserDrag: 'none' }}
+              style={{
+                userSelect: 'none',
+                WebkitUserDrag: 'none',
+                display: 'block',
+                visibility: 'visible',
+              }}
             />
           </motion.div>
 
