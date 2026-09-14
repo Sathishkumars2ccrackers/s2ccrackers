@@ -5,6 +5,7 @@ import { ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, Sparkles,
 import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
+import ProductImage from '../common/ProductImage';
 
 const CartDrawer = () => {
   const navigate = useNavigate();
@@ -148,10 +149,15 @@ const CartDrawer = () => {
                       className="p-3.5 rounded-2xl bg-festival-dark/80 border border-festival-border flex gap-3.5 items-center group"
                     >
                       {/* Product Image */}
-                      <img
-                        src={item.image || 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=200'}
+                      <ProductImage
+                        src={item.image}
                         alt={item.name}
-                        className="w-16 h-16 rounded-xl object-cover border border-amber-500/20 flex-shrink-0"
+                        optimizedWidth={160}
+                        optimizedHeight={160}
+                        componentName="CartDrawer"
+                        enableZoom={true}
+                        containerClassName="w-16 h-16 rounded-xl border border-amber-500/20 flex-shrink-0"
+                        className="w-full h-full object-cover"
                       />
 
                       {/* Info */}

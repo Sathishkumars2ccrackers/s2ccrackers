@@ -1,12 +1,15 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShoppingBag, Sparkles, Check, Package, Tag } from 'lucide-react';
+import { ShoppingBag, Sparkles, Check, Package, ZoomIn } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import { useLightbox } from '../../context/LightboxContext';
 import { formatCurrency } from '../../utils/formatters';
+import ProductImage from '../common/ProductImage';
 
 const ProductCard = ({ product }) => {
   const { addToCart, cartItems } = useCart();
+  const { openLightbox } = useLightbox();
 
   if (!product) return null;
 
@@ -14,7 +17,6 @@ const ProductCard = ({ product }) => {
   const inCartQty = currentCartItem ? currentCartItem.quantity : 0;
   const isOutOfStock = product.stockQuantity <= 0;
   const isLowStock = product.stockQuantity > 0 && product.stockQuantity <= 10;
-  const inStock = product.stockQuantity > 10;
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -24,10 +26,26 @@ const ProductCard = ({ product }) => {
     }
   };
 
-  const imageSrc =
-    product.images && product.images.length > 0
-      ? product.images[0]
-      : 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=500';
+  const handleImageClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const productImages =
+      product.images && product.images.length > 0
+        ? product.images
+        : [];
+
+    openLightbox({
+      images: productImages,
+      startIndex: 0,
+      productTitle: product.name,
+      productCode: product.productCode || '',
+      category: product.category?.name || product.category || '',
+      product,
+    });
+  };
+
+  const productDetailPath = `/product/${product.slug || product._id}`;
 
   return (
     <motion.div
@@ -36,15 +54,27 @@ const ProductCard = ({ product }) => {
       className="group relative bg-festival-card border border-festival-border hover:border-amber-500/50 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl hover:shadow-amber-950/30 flex flex-col justify-between transition-all duration-300"
     >
       {/* Top Image & Badge Strip */}
-      <div className="relative aspect-square w-full bg-festival-dark overflow-hidden">
-        <Link to={`/products/${product.slug || product._id}`}>
-          <img
-            src={imageSrc}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
-          />
-        </Link>
+      <div
+        onClick={handleImageClick}
+        className="relative aspect-square w-full bg-festival-dark overflow-hidden cursor-zoom-in group/img"
+        title="Click to view full size & zoom"
+      >
+        <ProductImage
+          product={product}
+          alt={product.name}
+          optimizedWidth={500}
+          componentName="ProductCard"
+          className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
+          enableZoom={false} // Handled by outer container click
+        />
+
+        {/* Hover Zoom Overlay Chip */}
+        <div className="absolute inset-0 bg-black/25 opacity-0 group-hover/img:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+          <span className="bg-black/80 text-amber-300 font-extrabold text-[11px] px-3 py-1.5 rounded-full border border-amber-500/50 backdrop-blur-md shadow-xl flex items-center gap-1.5 transform translate-y-2 group-hover/img:translate-y-0 transition-transform duration-300">
+            <ZoomIn className="w-3.5 h-3.5 text-amber-400" />
+            <span>Click to Zoom</span>
+          </span>
+        </div>
 
         {/* Floating Badges (Discount & Top Pick) */}
         <div className="absolute top-2.5 left-2.5 flex flex-col gap-1.5 z-10 pointer-events-none">
@@ -92,7 +122,7 @@ const ProductCard = ({ product }) => {
       {/* Card Info Body */}
       <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
         <div>
-          <Link to={`/products/${product.slug || product._id}`}>
+          <Link to={productDetailPath}>
             <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors line-clamp-2 leading-snug">
               {product.name}
             </h3>

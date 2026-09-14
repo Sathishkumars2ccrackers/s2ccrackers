@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext.jsx';
 import { AuthProvider } from './context/AuthContext.jsx';
 import { SettingsProvider } from './context/SettingsContext.jsx';
 import { CartProvider } from './context/CartContext.jsx';
+import { LightboxProvider } from './context/LightboxContext.jsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <AuthProvider>
           <SettingsProvider>
             <CartProvider>
-              <App />
+              <LightboxProvider>
+                <App />
+              </LightboxProvider>
             </CartProvider>
           </SettingsProvider>
         </AuthProvider>

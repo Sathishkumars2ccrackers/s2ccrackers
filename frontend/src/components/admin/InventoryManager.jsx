@@ -19,6 +19,7 @@ import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/formatters';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
+import ProductImage from '../common/ProductImage';
 
 const InventoryManager = () => {
   const { toastSuccess, toastError } = useToast();
@@ -202,10 +203,15 @@ const InventoryManager = () => {
                     <tr key={p._id} className="hover:bg-white/5 transition-colors">
                       <td className="p-4">
                         <div className="flex items-center gap-3">
-                          <img
-                            src={p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100'}
+                          <ProductImage
+                            product={p}
                             alt={p.name}
-                            className="w-10 h-10 rounded-xl object-cover border border-amber-500/20"
+                            optimizedWidth={100}
+                            optimizedHeight={100}
+                            componentName="AdminInventoryManager"
+                            enableZoom={true}
+                            containerClassName="w-10 h-10 rounded-xl border border-amber-500/20 flex-shrink-0"
+                            className="w-full h-full object-cover rounded-xl"
                           />
                           <div>
                             <p className="font-bold text-white leading-snug">{p.name}</p>

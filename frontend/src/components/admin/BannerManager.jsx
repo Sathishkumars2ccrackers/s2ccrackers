@@ -4,6 +4,7 @@ import { Image, Plus, Trash2, Edit2, X, Eye, EyeOff, Sparkles, ExternalLink } fr
 import { bannerService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import LoadingSpinner from '../common/LoadingSpinner';
+import ProductImage from '../common/ProductImage';
 
 const BannerManager = () => {
   const { toastSuccess, toastError, toastWarning } = useToast();
@@ -159,7 +160,16 @@ const BannerManager = () => {
               className="rounded-3xl bg-festival-card border border-festival-border overflow-hidden shadow-xl flex flex-col justify-between"
             >
               <div className="relative aspect-video w-full bg-festival-dark">
-                <img src={b.imageUrl} alt={b.title} className="w-full h-full object-cover" />
+                <ProductImage
+                  src={b.imageUrl}
+                  alt={b.title}
+                  aspectRatio="aspect-video"
+                  optimizedWidth={600}
+                  optimizedHeight={338}
+                  componentName="AdminBannerManager"
+                  enableZoom={true}
+                  className="w-full h-full object-cover"
+                />
                 <div className="absolute top-3 left-3">
                   <span className="bg-red-600 text-white font-black text-[10px] px-2.5 py-0.5 rounded-full shadow">
                     {b.badge}

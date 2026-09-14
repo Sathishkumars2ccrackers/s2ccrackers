@@ -7,7 +7,7 @@ import FireworksCanvas from '../common/FireworksCanvas';
 
 const DEFAULT_SLIDES = [
   {
-    title: 'Authentic Sivakasi Crackers Online',
+    title: 'S2C Crackers - Authentic Sivakasi Fireworks Online',
     subtitle: 'Direct from Factory • 100% Genuine Fireworks • Up to 80% Festival Discount',
     badge: 'DIWALI & FESTIVAL MEGA SALE 2026',
     discountTag: 'Flat 80% OFF Sivakasi Wholesale Prices',
@@ -102,7 +102,9 @@ const HeroSlider = ({ banners = [] }) => {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-lg"
           >
-            {slide.title}
+            {slide.title?.toLowerCase().includes('s2c crackers')
+              ? slide.title
+              : `S2C Crackers - ${slide.title}`}
           </motion.h1>
 
           {/* Subtitle */}

@@ -27,6 +27,7 @@ import { useToast } from '../../context/ToastContext';
 import { formatCurrency } from '../../utils/formatters';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
+import ProductImage from '../common/ProductImage';
 
 const COMMON_BRANDS = ['NACHIYAR', 'Brothers', 'SURYA', 'Sree Balaji'];
 
@@ -507,10 +508,15 @@ const ProductManager = () => {
                     </td>
                     <td className="p-3.5">
                       <div className="flex items-center gap-3">
-                        <img
-                          src={p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100'}
+                        <ProductImage
+                          product={p}
                           alt={p.name}
-                          className="w-9 h-9 rounded-xl object-cover border border-amber-500/20 flex-shrink-0"
+                          optimizedWidth={100}
+                          optimizedHeight={100}
+                          componentName="AdminProductManager"
+                          enableZoom={true}
+                          containerClassName="w-9 h-9 rounded-xl border border-amber-500/20 flex-shrink-0"
+                          className="w-full h-full object-cover"
                         />
                         <div>
                           <p className="font-bold text-white leading-snug">{p.name}</p>
@@ -794,7 +800,16 @@ const ProductManager = () => {
                     <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                       {existingImages.map((imgUrl, idx) => (
                         <div key={idx} className="relative group rounded-xl overflow-hidden aspect-square border border-festival-border bg-festival-card">
-                          <img src={imgUrl} alt={`Product ${idx + 1}`} className="w-full h-full object-cover" />
+                          <ProductImage
+                            src={imgUrl}
+                            alt={`Product ${idx + 1}`}
+                            optimizedWidth={200}
+                            optimizedHeight={200}
+                            componentName="AdminProductEditGallery"
+                            enableZoom={true}
+                            containerClassName="w-full h-full"
+                            className="w-full h-full object-cover"
+                          />
                           <button
                             type="button"
                             onClick={() => handleRemoveExistingImage(idx)}

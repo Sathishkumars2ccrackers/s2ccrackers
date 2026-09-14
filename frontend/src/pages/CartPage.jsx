@@ -5,6 +5,7 @@ import { ShoppingBag, ArrowRight, Trash2, Plus, Minus, ShieldCheck, Sparkles, Ar
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { formatCurrency } from '../utils/formatters';
+import ProductImage from '../components/common/ProductImage';
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -124,10 +125,15 @@ const CartPage = () => {
                 className="p-4 sm:p-5 rounded-2xl bg-festival-card border border-festival-border flex flex-col sm:flex-row items-center gap-4 justify-between"
               >
                 <div className="flex items-center gap-4 w-full sm:w-auto">
-                  <img
-                    src={item.image || 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=200'}
+                  <ProductImage
+                    src={item.image}
                     alt={item.name}
-                    className="w-20 h-20 rounded-xl object-cover border border-amber-500/20 flex-shrink-0"
+                    optimizedWidth={200}
+                    optimizedHeight={200}
+                    componentName="CartPage"
+                    enableZoom={true}
+                    containerClassName="w-20 h-20 rounded-xl border border-amber-500/20 flex-shrink-0"
+                    className="w-full h-full object-cover"
                   />
                   <div>
                     <h3 className="text-sm font-bold text-white">{item.name}</h3>

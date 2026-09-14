@@ -15,12 +15,15 @@ import {
   Volume2,
   Clock,
   Award,
+  ZoomIn,
 } from 'lucide-react';
 import { productService } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
+import { useLightbox } from '../context/LightboxContext';
 import { formatCurrency } from '../utils/formatters';
 import ProductCard from '../components/product/ProductCard';
+import ProductImage from '../components/common/ProductImage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 
 const ProductDetailPage = () => {
@@ -28,6 +31,7 @@ const ProductDetailPage = () => {
   const navigate = useNavigate();
   const { addToCart, openCart } = useCart();
   const { deliveryMessage } = useSettings();
+  const { openLightbox } = useLightbox();
 
   const [product, setProduct] = useState(null);
   const [relatedProducts, setRelatedProducts] = useState([]);
@@ -74,6 +78,23 @@ const ProductDetailPage = () => {
     }
   };
 
+  const handleOpenLightbox = (index = selectedImageIndex) => {
+    if (!product) return;
+    const galleryImages =
+      product.images && product.images.length > 0
+        ? product.images
+        : [];
+
+    openLightbox({
+      images: galleryImages,
+      startIndex: index,
+      productTitle: product.name,
+      productCode: product.productCode || '',
+      category: product.category?.name || product.category || '',
+      product,
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center bg-festival-dark">
@@ -107,7 +128,7 @@ const ProductDetailPage = () => {
 
   const images = product.images && product.images.length > 0
     ? product.images
-    : ['https://images.unsplash.com/photo-1514565131-fce0801e5785?w=600'];
+    : [];
 
   return (
     <div className="min-h-screen bg-festival-dark py-8 px-4 sm:px-6 lg:px-8">
@@ -136,16 +157,31 @@ const ProductDetailPage = () => {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative aspect-square rounded-2xl overflow-hidden bg-festival-dark border border-festival-border"
+              onClick={() => handleOpenLightbox(selectedImageIndex)}
+              className="group relative aspect-square rounded-2xl overflow-hidden bg-festival-dark border border-festival-border hover:border-amber-500/50 cursor-zoom-in transition-all duration-300 shadow-xl"
+              title="Click image to enlarge & zoom"
             >
-              <img
-                src={images[selectedImageIndex]}
+              <ProductImage
+                src={images[selectedImageIndex] || ''}
+                product={product}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                optimizedWidth={800}
+                optimizedHeight={800}
+                componentName="ProductDetailPage"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                enableZoom={false}
               />
 
+              {/* Click to Enlarge Badge */}
+              <div className="absolute bottom-3 right-3 z-10 pointer-events-none">
+                <span className="bg-black/85 text-amber-300 font-bold text-xs px-3 py-1.5 rounded-full border border-amber-500/40 backdrop-blur-md shadow-xl flex items-center gap-1.5 group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors">
+                  <ZoomIn className="w-3.5 h-3.5" />
+                  <span>Click image to enlarge</span>
+                </span>
+              </div>
+
               {/* Badges */}
-              <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+              <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 pointer-events-none">
                 {product.isFeatured && (
                   <span className="px-2.5 py-1 rounded-full bg-red-600 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md">
                     <Sparkles className="w-3 h-3 fill-white" />
@@ -160,7 +196,7 @@ const ProductDetailPage = () => {
               </div>
 
               {isOutOfStock && (
-                <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center">
+                <div className="absolute inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-20 pointer-events-none">
                   <span className="px-4 py-2 bg-rose-600 text-white font-black text-xs uppercase tracking-widest rounded-xl">
                     Sold Out
                   </span>
@@ -170,18 +206,27 @@ const ProductDetailPage = () => {
 
             {/* Thumbnail Carousel */}
             {images.length > 1 && (
-              <div className="flex gap-3 overflow-x-auto pb-2">
+              <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImageIndex(idx)}
+                    onDoubleClick={() => handleOpenLightbox(idx)}
+                    title={`View Image ${idx + 1}`}
                     className={`relative w-16 h-16 rounded-xl overflow-hidden border-2 flex-shrink-0 transition-all ${
                       selectedImageIndex === idx
-                        ? 'border-amber-400 ring-2 ring-amber-400/30'
+                        ? 'border-amber-400 ring-2 ring-amber-400/40 scale-105'
                         : 'border-festival-border opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={img} alt="" className="w-full h-full object-cover" />
+                    <ProductImage
+                      src={img}
+                      alt={`${product.name} ${idx + 1}`}
+                      optimizedWidth={150}
+                      optimizedHeight={150}
+                      componentName="ProductDetailThumbnail"
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>

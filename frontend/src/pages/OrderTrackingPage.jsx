@@ -20,6 +20,7 @@ import {
 import { orderService } from '../services/api';
 import { formatCurrency, formatDate } from '../utils/formatters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import ProductImage from '../components/common/ProductImage';
 
 const STEPS = [
   { id: 'Pending', label: 'Order Placed', icon: Clock, desc: 'Received at Sivakasi factory' },
@@ -444,17 +445,16 @@ const OrderTrackingPage = () => {
                       className="flex items-center justify-between text-xs pb-2.5 border-b border-festival-border/40"
                     >
                       <div className="flex items-center gap-3">
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="w-10 h-10 object-cover rounded-lg border border-festival-border"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-lg bg-festival-dark flex items-center justify-center text-slate-500 border border-festival-border">
-                            <Package className="w-5 h-5" />
-                          </div>
-                        )}
+                        <ProductImage
+                          src={item.image}
+                          alt={item.name}
+                          optimizedWidth={100}
+                          optimizedHeight={100}
+                          componentName="OrderTrackingPage"
+                          enableZoom={true}
+                          containerClassName="w-10 h-10 rounded-lg flex-shrink-0 border border-festival-border"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
                         <div>
                           <p className="font-bold text-white">{item.name}</p>
                           <p className="text-[10px] text-slate-400">

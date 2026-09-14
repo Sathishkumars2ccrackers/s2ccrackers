@@ -6,6 +6,7 @@ import CartDrawer from './components/cart/CartDrawer';
 import FloatingCartBar from './components/cart/FloatingCartBar';
 import WhatsAppFloatingButton from './components/common/WhatsAppFloatingButton';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import ProductImageLightbox from './components/common/ProductImageLightbox';
 
 // Customer Storefront Pages (Lazy Loaded for fast initial load)
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -35,6 +36,9 @@ const App = () => {
 
   return (
     <div className="min-h-screen bg-festival-dark text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+      {/* Global Product Image Lightbox & Zoom Viewer */}
+      <ProductImageLightbox />
+
       {/* Customer Storefront Shell */}
       {!isAdminRoute && (
         <>
@@ -53,6 +57,7 @@ const App = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:slug" element={<ProductDetailPage />} />
+            <Route path="/products/:slug" element={<ProductDetailPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />

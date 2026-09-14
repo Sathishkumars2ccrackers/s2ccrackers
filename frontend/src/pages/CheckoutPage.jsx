@@ -20,6 +20,7 @@ import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { orderService } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
+import ProductImage from '../components/common/ProductImage';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -444,10 +445,15 @@ const CheckoutPage = () => {
                 {cartItems.map((item) => (
                   <div key={item.productId} className="flex items-center justify-between gap-3 pb-2 border-b border-festival-border/50">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <img
-                        src={item.image || 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=100'}
+                      <ProductImage
+                        src={item.image}
                         alt={item.name}
-                        className="w-10 h-10 rounded-lg object-cover flex-shrink-0"
+                        optimizedWidth={100}
+                        optimizedHeight={100}
+                        componentName="CheckoutPage"
+                        enableZoom={true}
+                        containerClassName="w-10 h-10 rounded-lg flex-shrink-0"
+                        className="w-full h-full object-cover rounded-lg"
                       />
                       <div className="truncate">
                         <p className="font-bold text-white truncate">{item.name}</p>
