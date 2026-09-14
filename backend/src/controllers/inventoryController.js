@@ -7,15 +7,14 @@ const { logActivity } = require('../utils/activityLogger');
 const getInventoryOverview = async (req, res, next) => {
   try {
     const [totalProducts, outOfStockCount, lowStockCount, inStockCount] = await Promise.all([
-      Product.countDocuments({ isActive: true }),
-      Product.countDocuments({ isActive: true, stockQuantity: { $lte: 0 } }),
-      Product.countDocuments({ isActive: true, stockQuantity: { $gt: 0, $lte: 10 } }),
-      Product.countDocuments({ isActive: true, stockQuantity: { $gt: 10 } }),
+      Product.countDocuments(),
+      Product.countDocuments({ stockQuantity: { $lte: 0 } }),
+      Product.countDocuments({ stockQuantity: { $gt: 0, $lte: 10 } }),
+      Product.countDocuments({ stockQuantity: { $gt: 10 } }),
     ]);
 
     // Fetch low and out of stock products for fast dashboard widgets
     const urgentRestockList = await Product.find({
-      isActive: true,
       stockQuantity: { $lte: 10 },
     })
       .populate('category', 'name')

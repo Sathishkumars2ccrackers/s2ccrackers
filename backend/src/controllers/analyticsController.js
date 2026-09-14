@@ -63,15 +63,15 @@ const getDashboardSummary = async (req, res, next) => {
       bestSellingProducts,
       recentLogs,
     ] = await Promise.all([
-      Product.countDocuments({ isActive: true }),
+      Product.countDocuments(),
       Order.countDocuments(),
       Order.countDocuments({ status: 'Pending' }),
       Order.countDocuments({ status: 'Confirmed' }),
       Order.countDocuments({ status: 'Shipped' }),
       Order.countDocuments({ status: 'Delivered' }),
       Order.countDocuments({ status: 'Cancelled' }),
-      Product.countDocuments({ isActive: true, stockQuantity: { $gt: 0, $lte: 10 } }),
-      Product.countDocuments({ isActive: true, stockQuantity: { $lte: 0 } }),
+      Product.countDocuments({ stockQuantity: { $gt: 0, $lte: 10 } }),
+      Product.countDocuments({ stockQuantity: { $lte: 0 } }),
       Order.aggregate([
         { $match: { status: { $ne: 'Cancelled' } } },
         { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } },

@@ -230,7 +230,7 @@ const getProducts = async (req, res, next) => {
     }
 
     const pageNum = parseInt(page, 10) || 1;
-    const limitNum = parseInt(limit, 10) || 24;
+    const limitNum = parseInt(limit, 10) || 1000;
     const skip = (pageNum - 1) * limitNum;
 
     const [products, total] = await Promise.all([
@@ -378,7 +378,7 @@ const getAllProductsAdmin = async (req, res, next) => {
     }
 
     const pageNum = parseInt(page, 10) || 1;
-    const limitNum = parseInt(limit, 10) || 100;
+    const limitNum = parseInt(limit, 10) || 1000;
     const skip = (pageNum - 1) * limitNum;
 
     const [products, total] = await Promise.all([
