@@ -25,19 +25,7 @@ import { productService, categoryService } from '../services/api';
 import ProductListRow from '../components/product/ProductListRow';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useCart } from '../context/CartContext';
-import { formatCurrency } from '../utils/formatters';
-
-// Natural Alphanumeric Sort Comparator for Product Codes (e.g. SC-001, SC-2, SC-10, 1, 2, 10)
-export const naturalProductCodeSort = (a, b) => {
-  const codeA = (a.productCode || a.code || '').toString().trim();
-  const codeB = (b.productCode || b.code || '').toString().trim();
-
-  if (!codeA && !codeB) return (a.name || '').localeCompare(b.name || '');
-  if (!codeA) return 1;
-  if (!codeB) return -1;
-
-  return codeA.localeCompare(codeB, undefined, { numeric: true, sensitivity: 'base' });
-};
+import { formatCurrency, naturalProductCodeSort } from '../utils/formatters';
 
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -257,7 +245,7 @@ const ProductsPage = () => {
                 type="text"
                 value={search}
                 onChange={(e) => updateFilters({ search: e.target.value })}
-                placeholder="Search cracker name, code (e.g. SC-004), category..."
+                placeholder="Search cracker name, code (e.g. #01, #04), category..."
                 className="w-full bg-festival-card border border-festival-border rounded-xl pl-8 pr-7 py-2 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 transition-all"
               />
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -279,7 +267,7 @@ const ProductsPage = () => {
                 onChange={(e) => updateFilters({ sort: e.target.value })}
                 className="bg-festival-card border border-festival-border rounded-xl pl-3 pr-7 py-2 text-xs font-bold text-white focus:outline-none focus:border-amber-500 appearance-none cursor-pointer hover:border-amber-500/40 transition-colors"
               >
-                <option value="code-asc">Code (SC-001, SC-002...)</option>
+                <option value="code-asc">Code (#01, #02, #03...)</option>
                 <option value="price-asc">Price: Low to High</option>
                 <option value="price-desc">Price: High to Low</option>
                 <option value="name-asc">Name: A to Z</option>
@@ -479,7 +467,7 @@ const ProductsPage = () => {
             {/* Continuous Scroll Footer Note */}
             <div className="py-6 px-4 bg-slate-950/60 border-t border-festival-border/60 text-center space-y-2">
               <p className="text-xs text-slate-400 font-medium">
-                ✓ Showing all <strong className="text-amber-400">{filteredAndSortedProducts.length}</strong> items sorted by catalog product code (#SC-001, #SC-002...)
+                ✓ Showing all <strong className="text-amber-400">{filteredAndSortedProducts.length}</strong> items sorted by product code (#01, #02, #03...)
               </p>
               <button
                 onClick={scrollToTop}

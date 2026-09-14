@@ -213,6 +213,7 @@ const getProducts = async (req, res, next) => {
 
     const [products, total] = await Promise.all([
       Product.find(query)
+        .collation({ locale: 'en', numericOrdering: true })
         .populate('category', 'name slug icon')
         .sort(sortOption)
         .skip(skip)

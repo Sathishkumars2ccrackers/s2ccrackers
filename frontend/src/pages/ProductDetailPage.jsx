@@ -21,7 +21,7 @@ import { productService } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { useLightbox } from '../context/LightboxContext';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatProductCode } from '../utils/formatters';
 import { getProductImages, getProductImage } from '../utils/imageUrlUtils';
 import ProductCard from '../components/product/ProductCard';
 import ProductImage from '../components/common/ProductImage';
@@ -233,10 +233,15 @@ const ProductDetailPage = () => {
           <div className="lg:col-span-7 space-y-6">
             {/* Header / Category & Brand */}
             <div className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-bold uppercase">
                   {product.category?.name || 'Sivakasi Fireworks'}
                 </span>
+                {product.productCode && (
+                  <span className="px-2.5 py-0.5 rounded-md bg-slate-900 border border-amber-500/30 text-amber-300 font-mono font-bold text-xs">
+                    {formatProductCode(product.productCode)}
+                  </span>
+                )}
                 {product.brand && (
                   <span className="text-xs text-slate-400 font-semibold">
                     Brand: <strong className="text-slate-200">{product.brand}</strong>

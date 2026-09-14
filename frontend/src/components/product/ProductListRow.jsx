@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Sparkles, Check, Package, ZoomIn, Plus, Minus, Tag } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useLightbox } from '../../context/LightboxContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatProductCode } from '../../utils/formatters';
 import ProductImage from '../common/ProductImage';
 import { getProductImages } from '../../utils/imageUrlUtils';
 
@@ -152,7 +152,7 @@ const ProductListRow = memo(({ product, index }) => {
         {/* Col 3: Product Code (1 Col) */}
         <div className="col-span-1 text-center">
           <span className="inline-block bg-slate-950 border border-amber-500/30 text-amber-300 font-mono font-bold text-xs px-2 py-1 rounded-md shadow-sm">
-            #{product.productCode || '—'}
+            {formatProductCode(product.productCode)}
           </span>
         </div>
 
@@ -276,7 +276,7 @@ const ProductListRow = memo(({ product, index }) => {
               enableZoom={false}
             />
             <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 bg-slate-950 border border-amber-500/40 text-amber-300 font-mono font-bold text-[9px] px-1.5 rounded shadow">
-              #{product.productCode || '—'}
+              {formatProductCode(product.productCode)}
             </span>
           </div>
 

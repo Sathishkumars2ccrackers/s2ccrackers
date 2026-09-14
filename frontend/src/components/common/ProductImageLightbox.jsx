@@ -19,6 +19,7 @@ import {
   logImageError,
 } from '../../utils/imageUrlUtils';
 import { trackZoomUsage, trackLightboxOpen } from '../../utils/imageAnalytics';
+import { formatProductCode } from '../../utils/formatters';
 import { Link } from 'react-router-dom';
 
 const MIN_ZOOM = 1;
@@ -332,7 +333,7 @@ const ProductImageLightbox = () => {
           <div className="flex items-center gap-2.5 min-w-0">
             {productCode && (
               <span className="bg-amber-500/20 text-amber-300 font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-amber-500/40">
-                #{productCode}
+                {formatProductCode(productCode)}
               </span>
             )}
             <div className="truncate">

@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 import { productService, categoryService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatProductCode } from '../../utils/formatters';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ProductImage from '../common/ProductImage';
@@ -504,7 +504,7 @@ const ProductManager = () => {
                 {products.map((p) => (
                   <tr key={p._id} className="hover:bg-white/5 transition-colors">
                     <td className="p-3.5 font-mono font-bold text-amber-400">
-                      #{p.productCode || '—'}
+                      {formatProductCode(p.productCode)}
                     </td>
                     <td className="p-3.5">
                       <div className="flex items-center gap-3">

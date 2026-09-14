@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ShoppingBag, Sparkles, Check, Package, ZoomIn, Plus, Minus } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useLightbox } from '../../context/LightboxContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatProductCode } from '../../utils/formatters';
 import ProductImage from '../common/ProductImage';
 import { getProductImages } from '../../utils/imageUrlUtils';
 
@@ -118,7 +118,7 @@ const ProductCard = memo(({ product }) => {
         {product.productCode && (
           <div className="absolute top-2 right-2 z-10 pointer-events-none">
             <span className="bg-black/85 text-amber-300 font-mono font-bold text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded border border-amber-500/30 backdrop-blur-sm shadow">
-              #{product.productCode}
+              {formatProductCode(product.productCode)}
             </span>
           </div>
         )}
