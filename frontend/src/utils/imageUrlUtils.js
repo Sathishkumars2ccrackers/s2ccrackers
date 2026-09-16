@@ -128,20 +128,23 @@ export const getOptimizedImageUrl = (url, options = {}) => {
       if (uploadIndex !== -1) {
         const width = options.width || 300;
         const quality = options.quality || 'auto';
-        const crop = options.crop || 'fill';
         
-        // Build transformation string: f_auto,q_auto,w_300,c_fill
+        // Strict Cloudinary optimization: f_auto,q_auto,w_300 (plus crop/height if specified)
         const transforms = ['f_auto', `q_${quality}`];
         if (width) transforms.push(`w_${width}`);
         if (options.height) transforms.push(`h_${options.height}`);
-        if (width || options.height) transforms.push(`c_${crop}`);
+        if (options.crop) {
+          transforms.push(`c_${options.crop}`);
+        } else if (options.height) {
+          transforms.push('c_fill');
+        }
 
         const transformString = transforms.join(',');
         const prefix = normalized.substring(0, uploadIndex + 8);
         let rest = normalized.substring(uploadIndex + 8);
 
-        // Strip any previous transformation segments if present (e.g. f_auto,q_auto.../v1234/...)
-        rest = rest.replace(/^(?:[a-z]_[a-z0-9:_-]+,?)+\//i, '');
+        // Strip any previous transformation segments if present (e.g. f_auto,q_auto.../ or w_500,c_scale/)
+        rest = rest.replace(/^(?:(?:[a-z]{1,2}_[a-zA-Z0-9:._-]+,?)+\/)+/i, '');
 
         return `${prefix}${transformString}/${rest}`;
       }
@@ -192,7 +195,7 @@ export const getHighResImageUrl = (url) => {
         let rest = normalized.substring(uploadIndex + 8);
         
         // Strip previous small size transformations
-        rest = rest.replace(/^(?:[a-z]_[a-z0-9:_-]+,?)+\//i, '');
+        rest = rest.replace(/^(?:(?:[a-z]{1,2}_[a-zA-Z0-9:._-]+,?)+\/)+/i, '');
         return `${prefix}f_auto,q_auto:best/${rest}`;
       }
     } catch {

@@ -3,8 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Trophy, Gift, Zap, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import ProductCard from '../product/ProductCard';
+import ProductCardSkeleton from '../product/ProductCardSkeleton';
 
-const FeaturedTabs = ({ featured = [], bestSellers = [], allProducts = [] }) => {
+const FeaturedTabs = ({ featured = [], bestSellers = [], allProducts = [], loading = false }) => {
   const [activeTab, setActiveTab] = useState('featured');
 
   const tabs = [
@@ -62,20 +63,28 @@ const FeaturedTabs = ({ featured = [], bestSellers = [], allProducts = [] }) => 
         </div>
 
         {/* Products Grid */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-          >
-            {displayProducts.slice(0, 8).map((product, index) => (
-              <ProductCard key={product._id} product={product} index={index} />
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <ProductCardSkeleton key={`home-skel-${idx}`} />
             ))}
-          </motion.div>
-        </AnimatePresence>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            >
+              {displayProducts.slice(0, 8).map((product, index) => (
+                <ProductCard key={product._id} product={product} index={index} />
+              ))}
+            </motion.div>
+          </AnimatePresence>
+        )}
 
         {/* View All Button */}
         <div className="mt-12 text-center">

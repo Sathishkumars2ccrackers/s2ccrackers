@@ -66,7 +66,7 @@ const OptimizedImage = ({
   const productName = product?.name || alt || 'Fireworks Item';
   const seoAltText = `${productName} - Authentic Sivakasi Fireworks`;
 
-  // 1. Intersection Observer: trigger image loading when within 200px of viewport
+  // 1. Intersection Observer: trigger image loading when within 120px of viewport
   useEffect(() => {
     if (priority || isInView) return;
 
@@ -85,7 +85,7 @@ const OptimizedImage = ({
         });
       },
       {
-        rootMargin: '200px 0px', // Pre-load 200px before appearing in view
+        rootMargin: '120px 0px', // Just-in-time pre-loading before scrolling into view
         threshold: 0.01,
       }
     );

@@ -2,11 +2,9 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
-import CartDrawer from './components/cart/CartDrawer';
-import FloatingCartBar from './components/cart/FloatingCartBar';
-import WhatsAppFloatingButton from './components/common/WhatsAppFloatingButton';
-import LoadingSpinner from './components/common/LoadingSpinner';
-import ProductImageLightbox from './components/common/ProductImageLightbox';
+// Global modals lazy loaded on demand
+const CartDrawer = lazy(() => import('./components/cart/CartDrawer'));
+const ProductImageLightbox = lazy(() => import('./components/common/ProductImageLightbox'));
 
 // Customer Storefront Pages (Lazy Loaded for fast initial load)
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -53,14 +51,18 @@ const App = () => {
       {/* Auto Scroll To Top Controller */}
       <ScrollToTop />
 
-      {/* Global Product Image Lightbox & Zoom Viewer */}
-      <ProductImageLightbox />
+      {/* Global Product Image Lightbox & Zoom Viewer (Lazy Loaded) */}
+      <Suspense fallback={null}>
+        <ProductImageLightbox />
+      </Suspense>
 
       {/* Customer Storefront Shell */}
       {!isAdminRoute && (
         <>
           <Navbar />
-          <CartDrawer />
+          <Suspense fallback={null}>
+            <CartDrawer />
+          </Suspense>
           <FloatingCartBar />
           <WhatsAppFloatingButton />
         </>

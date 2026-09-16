@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { productService, categoryService } from '../services/api';
 import ProductListRow from '../components/product/ProductListRow';
+import ProductRowSkeleton from '../components/product/ProductRowSkeleton';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useCart } from '../context/CartContext';
 import { formatCurrency, formatProductCode, naturalProductCodeSort, sortProductsByCode } from '../utils/formatters';
@@ -87,6 +88,9 @@ const isSameCategory = (catA, catB) => {
   return false;
 };
 
+const INITIAL_PAGE_SIZE = 20;
+const PAGE_INCREMENT = 20;
+
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { totalItemsCount, cartSubtotal, openCart } = useCart();
@@ -97,6 +101,8 @@ const ProductsPage = () => {
   const [loading, setLoading] = useState(true);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_PAGE_SIZE);
+  const loadMoreTriggerRef = React.useRef(null);
 
   // Filters state from URL query
   const search = searchParams.get('search') || '';
@@ -273,13 +279,46 @@ const ProductsPage = () => {
     return result;
   }, [masterProducts, category, search, brand, minPrice, maxPrice, inStock, sort]);
 
-  // Auto-scroll to top of product list whenever category, search, or filters change
+  // Sliced products for initial 20-item fast render and progressive scroll hydration
+  const displayedProducts = useMemo(() => {
+    return filteredAndSortedProducts.slice(0, visibleCount);
+  }, [filteredAndSortedProducts, visibleCount]);
+
+  // Auto-scroll to top of product list and reset visible count whenever category, search, or filters change
   useEffect(() => {
+    setVisibleCount(INITIAL_PAGE_SIZE);
     window.scrollTo({
       top: 0,
       behavior: 'smooth',
     });
   }, [category, search, brand, minPrice, maxPrice, inStock, sort]);
+
+  // Infinite / Incremental Scroll Observer: Load next 20 products as user scrolls near bottom
+  useEffect(() => {
+    if (visibleCount >= filteredAndSortedProducts.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((prev) => Math.min(prev + PAGE_INCREMENT, filteredAndSortedProducts.length));
+        }
+      },
+      {
+        rootMargin: '300px 0px', // Trigger smoothly before hitting bottom
+        threshold: 0.01,
+      }
+    );
+
+    const target = loadMoreTriggerRef.current;
+    if (target) {
+      observer.observe(target);
+    }
+
+    return () => {
+      if (target) observer.unobserve(target);
+      observer.disconnect();
+    };
+  }, [visibleCount, filteredAndSortedProducts.length]);
 
   // Clean route transition when selecting category: resets searches, stock, and brand filters
   const handleCategorySelect = (categorySlug) => {
@@ -548,8 +587,24 @@ const ProductsPage = () => {
       {/* 3. SCROLLABLE PRODUCT LIST CONTAINER (.catalog-products-container) */}
       <main className="catalog-products-container max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4">
         {loading ? (
-          <div className="py-24 flex justify-center">
-            <LoadingSpinner text="Loading Sivakasi fireworks price list..." />
+          <div className="bg-festival-card/60 border border-festival-border rounded-2xl overflow-hidden shadow-2xl">
+            {/* Desktop Table-Style Header Bar */}
+            <div className="hidden md:grid md:grid-cols-12 gap-3 py-3 px-4 bg-slate-950/80 border-b border-festival-border text-[11px] font-black text-amber-400 uppercase tracking-wider">
+              <div className="col-span-1 text-center">Image</div>
+              <div className="col-span-4">Product Name & Category</div>
+              <div className="col-span-1 text-center">Code</div>
+              <div className="col-span-1 text-center">Pack Size</div>
+              <div className="col-span-2 text-right pr-2">Rate (₹)</div>
+              <div className="col-span-2 text-center">Quantity</div>
+              <div className="col-span-1 text-right">Subtotal</div>
+            </div>
+
+            {/* Shimmering Skeleton Rows for Instant Perceived Load */}
+            <div className="divide-y divide-festival-border/40">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductRowSkeleton key={`catalog-skel-${i}`} index={i} />
+              ))}
+            </div>
           </div>
         ) : filteredAndSortedProducts.length === 0 ? (
           <div className="text-center py-16 px-4 bg-festival-card/40 border border-festival-border rounded-2xl max-w-xl mx-auto space-y-3">
@@ -584,17 +639,44 @@ const ProductsPage = () => {
               <div className="col-span-1 text-right">Subtotal</div>
             </div>
 
-            {/* List Rows */}
+            {/* List Rows - Initially 20 items, expanding on scroll */}
             <div className="divide-y divide-festival-border/40">
-              {filteredAndSortedProducts.map((product, index) => (
+              {displayedProducts.map((product, index) => (
                 <ProductListRow key={product._id} product={product} index={index} />
               ))}
             </div>
 
+            {/* Progressive Scroll Loading Sentinel */}
+            {visibleCount < filteredAndSortedProducts.length && (
+              <div
+                ref={loadMoreTriggerRef}
+                className="py-5 px-4 bg-slate-950/40 border-t border-festival-border/40 text-center space-y-2.5"
+              >
+                <div className="flex items-center justify-center gap-2 text-xs text-amber-400 font-bold">
+                  <div className="w-3.5 h-3.5 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                  <span>
+                    Loading more crackers ({displayedProducts.length} of {filteredAndSortedProducts.length})...
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setVisibleCount((prev) =>
+                      Math.min(prev + PAGE_INCREMENT, filteredAndSortedProducts.length)
+                    )
+                  }
+                  className="px-4 py-1.5 rounded-xl bg-festival-card hover:bg-festival-cardHover border border-amber-500/30 text-amber-300 text-xs font-bold transition-all shadow cursor-pointer"
+                >
+                  Load Next 20 Items ({filteredAndSortedProducts.length - visibleCount} remaining)
+                </button>
+              </div>
+            )}
+
             {/* Continuous Scroll Footer Note */}
             <div className="py-6 px-4 bg-slate-950/60 border-t border-festival-border/60 text-center space-y-2">
               <p className="text-xs text-slate-400 font-medium">
-                ✓ Showing all <strong className="text-amber-400">{filteredAndSortedProducts.length}</strong> items sorted by product code (#01, #02, #03...)
+                ✓ Showing <strong className="text-amber-400">{displayedProducts.length}</strong> of{' '}
+                <strong className="text-amber-400">{filteredAndSortedProducts.length}</strong> items sorted by product code (#01, #02, #03...)
               </p>
               <button
                 onClick={scrollToTop}

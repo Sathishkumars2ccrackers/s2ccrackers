@@ -48,24 +48,17 @@ const HomePage = () => {
     fetchHomeData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-festival-dark">
-        <LoadingSpinner text="Connecting to Sivakasi Fireworks Factory..." />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-festival-dark">
-      {/* 1. Mega Festive Hero Slider with Fireworks Canvas Background */}
+      {/* 1. Mega Festive Hero Slider with Fireworks Canvas Background (Renders immediately) */}
       <HeroSlider banners={banners} />
 
-      {/* 2. Tabbed Cracker Showcase: Featured / Best Sellers / Gift Boxes */}
+      {/* 2. Tabbed Cracker Showcase: Featured / Best Sellers / Gift Boxes with Skeleton support */}
       <FeaturedTabs
         featured={featuredProducts}
         bestSellers={bestSellers}
         allProducts={[...featuredProducts, ...bestSellers]}
+        loading={loading}
       />
 
       {/* 3. Safety Guidelines & Precautions Section */}

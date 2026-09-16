@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   Flame,
   Gift,
+  Check,
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';

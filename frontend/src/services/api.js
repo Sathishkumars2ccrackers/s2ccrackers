@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { fetchWithCache, invalidateCatalogCache } from '../utils/apiCache';
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -33,7 +34,7 @@ api.interceptors.response.use(
   }
 );
 
-// === API SERVICE METHODS ===
+// === API SERVICE METHODS WITH CLIENT CACHE LAYER ===
 
 // 1. Admin Auth Services
 export const authService = {
@@ -42,40 +43,98 @@ export const authService = {
   updatePassword: (data) => api.put('/auth/update-password', data),
 };
 
-// 2. Category Services
+// 2. Category Services (Cached for 15 mins)
 export const categoryService = {
-  getCategories: () => api.get('/categories'),
+  getCategories: () =>
+    fetchWithCache('categories_public', () => api.get('/categories'), { ttl: 15 * 60 * 1000 }),
   getAllAdmin: () => api.get('/categories/admin/all'),
-  create: (data) => api.post('/categories', data),
-  update: (id, data) => api.put(`/categories/${id}`, data),
-  delete: (id) => api.delete(`/categories/${id}`),
+  create: async (data) => {
+    const res = await api.post('/categories', data);
+    invalidateCatalogCache('categories');
+    invalidateCatalogCache('products');
+    return res;
+  },
+  update: async (id, data) => {
+    const res = await api.put(`/categories/${id}`, data);
+    invalidateCatalogCache('categories');
+    invalidateCatalogCache('products');
+    return res;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/categories/${id}`);
+    invalidateCatalogCache('categories');
+    invalidateCatalogCache('products');
+    return res;
+  },
 };
 
-// 3. Product Services
+// 3. Product Services (Cached for 5-15 mins)
 export const productService = {
-  getProducts: (params) => api.get('/products', { params }),
-  getBrands: () => api.get('/products/meta/brands'),
-  getProductByIdentifier: (identifier) => api.get(`/products/${identifier}`),
-  getFeaturedShowcase: () => api.get('/products/featured/showcase'),
+  getProducts: (params) => {
+    // Generate unique key for query params
+    const cacheKey = `products_${JSON.stringify(params || {})}`;
+    return fetchWithCache(cacheKey, () => api.get('/products', { params }), { ttl: 5 * 60 * 1000 });
+  },
+  getBrands: () =>
+    fetchWithCache('brands_public', () => api.get('/products/meta/brands'), { ttl: 15 * 60 * 1000 }),
+  getProductByIdentifier: (identifier) =>
+    fetchWithCache(`product_${identifier}`, () => api.get(`/products/${identifier}`), { ttl: 5 * 60 * 1000 }),
+  getFeaturedShowcase: () =>
+    fetchWithCache('featured_showcase', () => api.get('/products/featured/showcase'), { ttl: 5 * 60 * 1000 }),
   getAllAdmin: (params) => api.get('/products/admin/all', { params }),
   checkDuplicate: (data) => api.post('/products/admin/check-duplicate', data),
-  create: (formData) =>
-    api.post('/products/admin', formData, {
+  create: async (formData) => {
+    const res = await api.post('/products/admin', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  update: (id, formData) =>
-    api.put(`/products/admin/${id}`, formData, {
+    });
+    invalidateCatalogCache('products');
+    invalidateCatalogCache('featured_showcase');
+    return res;
+  },
+  update: async (id, formData) => {
+    const res = await api.put(`/products/admin/${id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  delete: (id) => api.delete(`/products/admin/${id}`),
-  toggleStatus: (id) => api.patch(`/products/admin/${id}/toggle-status`),
-  toggleFeatured: (id) => api.patch(`/products/admin/${id}/toggle-featured`),
-  bulkUpdateStock: (updates) => api.post('/products/admin/bulk-stock-update', { updates }),
-  bulkUpdatePrice: (data) => api.post('/products/admin/bulk-price-update', data),
-  importBulk: (formData) =>
-    api.post('/products/admin/import', formData, {
+    });
+    invalidateCatalogCache('products');
+    invalidateCatalogCache('featured_showcase');
+    return res;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/products/admin/${id}`);
+    invalidateCatalogCache('products');
+    invalidateCatalogCache('featured_showcase');
+    return res;
+  },
+  toggleStatus: async (id) => {
+    const res = await api.patch(`/products/admin/${id}/toggle-status`);
+    invalidateCatalogCache('products');
+    invalidateCatalogCache('featured_showcase');
+    return res;
+  },
+  toggleFeatured: async (id) => {
+    const res = await api.patch(`/products/admin/${id}/toggle-featured`);
+    invalidateCatalogCache('products');
+    invalidateCatalogCache('featured_showcase');
+    return res;
+  },
+  bulkUpdateStock: async (updates) => {
+    const res = await api.post('/products/admin/bulk-stock-update', { updates });
+    invalidateCatalogCache('products');
+    return res;
+  },
+  bulkUpdatePrice: async (data) => {
+    const res = await api.post('/products/admin/bulk-price-update', data);
+    invalidateCatalogCache('products');
+    return res;
+  },
+  importBulk: async (formData) => {
+    const res = await api.post('/products/admin/import', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }),
+    });
+    invalidateCatalogCache('products');
+    invalidateCatalogCache('categories');
+    return res;
+  },
 };
 
 // 4. Order Services
@@ -92,23 +151,37 @@ export const orderService = {
 // 6. Inventory Services
 export const inventoryService = {
   getOverview: () => api.get('/inventory/overview'),
-  adjustStock: (id, stockQuantity, reason) =>
-    api.patch(`/inventory/adjust/${id}`, { stockQuantity, reason }),
+  adjustStock: async (id, stockQuantity, reason) => {
+    const res = await api.patch(`/inventory/adjust/${id}`, { stockQuantity, reason });
+    invalidateCatalogCache('products');
+    return res;
+  },
 };
 
-// 7. Banner Services
+// 7. Banner Services (Cached for 10 mins)
 export const bannerService = {
-  getActive: () => api.get('/banners'),
+  getActive: () =>
+    fetchWithCache('banners_active', () => api.get('/banners'), { ttl: 10 * 60 * 1000 }),
   getAllAdmin: () => api.get('/banners/admin/all'),
-  create: (formData) =>
-    api.post('/banners/admin', formData, {
+  create: async (formData) => {
+    const res = await api.post('/banners/admin', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  update: (id, formData) =>
-    api.put(`/banners/admin/${id}`, formData, {
+    });
+    invalidateCatalogCache('banners');
+    return res;
+  },
+  update: async (id, formData) => {
+    const res = await api.put(`/banners/admin/${id}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-    }),
-  delete: (id) => api.delete(`/banners/admin/${id}`),
+    });
+    invalidateCatalogCache('banners');
+    return res;
+  },
+  delete: async (id) => {
+    const res = await api.delete(`/banners/admin/${id}`);
+    invalidateCatalogCache('banners');
+    return res;
+  },
 };
 
 // 8. Customer Services (Admin Directory)
@@ -131,15 +204,25 @@ export const analyticsService = {
     api.get('/analytics/export', { params: { type, format }, responseType: 'blob' }),
 };
 
-// 11. Setting Services
+// 11. Setting Services (Cached for 10 mins)
 export const settingService = {
   getSettings: () => api.get('/settings'),
-  getPublicSettings: () => api.get('/settings/public'),
+  getPublicSettings: () =>
+    fetchWithCache('settings_public', () => api.get('/settings/public'), { ttl: 10 * 60 * 1000 }),
   getAdminSettings: () => api.get('/settings/admin'),
-  updateSettings: (data) => api.put('/settings/admin', data),
+  updateSettings: async (data) => {
+    const res = await api.put('/settings/admin', data);
+    invalidateCatalogCache('settings');
+    return res;
+  },
   getBackupUrl: () => `${API_BASE}/settings/admin/backup`,
-  getPublic: () => api.get('/settings/public'),
-  updateAdmin: (data) => api.put('/settings/admin', data),
+  getPublic: () =>
+    fetchWithCache('settings_public', () => api.get('/settings/public'), { ttl: 10 * 60 * 1000 }),
+  updateAdmin: async (data) => {
+    const res = await api.put('/settings/admin', data);
+    invalidateCatalogCache('settings');
+    return res;
+  },
   downloadBackup: () => api.get('/settings/admin/backup', { responseType: 'json' }),
 };
 
@@ -157,4 +240,6 @@ export const notificationService = {
   sendTest: (token) => api.post('/notifications/test', { token }),
 };
 
+export { invalidateCatalogCache };
 export default api;
+
