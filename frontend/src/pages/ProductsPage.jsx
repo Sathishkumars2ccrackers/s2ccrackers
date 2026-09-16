@@ -178,6 +178,14 @@ const ProductsPage = () => {
     return result;
   }, [allProducts, search, sort]);
 
+  // Auto-scroll to top of product list whenever category, search, or filters change
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }, [category, search, brand, minPrice, maxPrice, inStock]);
+
   const updateFilters = (newParams) => {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.delete('page');
@@ -189,11 +197,19 @@ const ProductsPage = () => {
         nextParams.set(key, value);
       }
     });
-    setSearchParams(nextParams, { preventScrollReset: true });
+    setSearchParams(nextParams);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   };
 
   const clearAllFilters = () => {
-    setSearchParams(new URLSearchParams(), { preventScrollReset: true });
+    setSearchParams(new URLSearchParams());
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
   };
 
   const activeFilterCount = [

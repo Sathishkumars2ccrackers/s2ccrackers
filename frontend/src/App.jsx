@@ -30,12 +30,29 @@ const PageFallback = () => (
   </div>
 );
 
+// Auto ScrollToTop on Route & Search Navigation
+const ScrollToTop = () => {
+  const { pathname, search } = useLocation();
+
+  React.useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }, [pathname, search]);
+
+  return null;
+};
+
 const App = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
     <div className="min-h-screen bg-festival-dark text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+      {/* Auto Scroll To Top Controller */}
+      <ScrollToTop />
+
       {/* Global Product Image Lightbox & Zoom Viewer */}
       <ProductImageLightbox />
 
