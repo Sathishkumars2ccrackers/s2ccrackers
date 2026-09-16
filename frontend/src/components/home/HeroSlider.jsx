@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, ArrowRight, ShieldCheck, Truck, ChevronLeft, ChevronRight, Gift, Flame } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import FireworksCanvas from '../common/FireworksCanvas';
+import { getOptimizedImageUrl } from '../../utils/imageUrlUtils';
 
 const DEFAULT_SLIDES = [
   {
@@ -71,7 +72,7 @@ const HeroSlider = ({ banners = [] }) => {
             transition={{ duration: 1 }}
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: `url(${slide.imageUrl || slide.bgImage || DEFAULT_SLIDES[0].bgImage})`,
+              backgroundImage: `url(${getOptimizedImageUrl(slide.imageUrl || slide.bgImage || DEFAULT_SLIDES[0].bgImage, { width: 1200, quality: 'auto' })})`,
             }}
           />
         </AnimatePresence>

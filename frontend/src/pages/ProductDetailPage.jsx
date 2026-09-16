@@ -163,6 +163,7 @@ const ProductDetailPage = () => {
                 alt={product.name}
                 optimizedWidth={800}
                 optimizedHeight={800}
+                priority={true}
                 componentName="ProductDetailPage"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 enableZoom={false}

@@ -8,13 +8,14 @@ import { formatCurrency, formatProductCode } from '../../utils/formatters';
 import ProductImage from '../common/ProductImage';
 import { getProductImages } from '../../utils/imageUrlUtils';
 
-const ProductCard = memo(({ product }) => {
+const ProductCard = memo(({ product, index, priority = false }) => {
   const { addToCart, cartItems } = useCart();
   const { openLightbox } = useLightbox();
   const [selectedQuantity, setSelectedQuantity] = useState(1);
 
   if (!product) return null;
 
+  const isPriority = priority || (typeof index === 'number' && index < 2);
   const currentCartItem = cartItems.find((item) => item.productId === product._id);
   const inCartQty = currentCartItem ? currentCartItem.quantity : 0;
   const isOutOfStock = product.stockQuantity <= 0;
@@ -85,7 +86,8 @@ const ProductCard = memo(({ product }) => {
         <ProductImage
           product={product}
           alt={product.name}
-          optimizedWidth={450}
+          optimizedWidth={350}
+          priority={isPriority}
           componentName="ProductCard"
           className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           enableZoom={false}

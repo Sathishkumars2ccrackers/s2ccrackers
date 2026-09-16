@@ -102,6 +102,18 @@ export const normalizeImageUrl = (url) => {
  * @param {string} [options.quality='auto'] - Cloudinary quality mode
  * @returns {string} Optimized URL
  */
+/**
+ * Optimizes a Cloudinary image URL with auto format (AVIF/WebP), auto quality, and responsive width.
+ * Preserves other remote URLs cleanly without breaking them.
+ * 
+ * @param {string} url - Original image URL
+ * @param {object} options - Optimization options
+ * @param {number} [options.width=300] - Target width in px (default: 300)
+ * @param {number} [options.height] - Target height in px
+ * @param {string} [options.crop='fill'] - Cloudinary crop mode (fill, scale, limit, pad)
+ * @param {string} [options.quality='auto'] - Cloudinary quality mode
+ * @returns {string} Optimized URL
+ */
 export const getOptimizedImageUrl = (url, options = {}) => {
   const normalized = normalizeImageUrl(url);
 
@@ -114,25 +126,22 @@ export const getOptimizedImageUrl = (url, options = {}) => {
     try {
       const uploadIndex = normalized.indexOf('/upload/');
       if (uploadIndex !== -1) {
-        const { width, height, crop = 'fill', quality = 'auto' } = options;
+        const width = options.width || 300;
+        const quality = options.quality || 'auto';
+        const crop = options.crop || 'fill';
         
-        // f_auto instructs Cloudinary CDN to serve the best modern format supported
-        // (AVIF, WebP, etc.), and fall back to JPG/PNG.
+        // Build transformation string: f_auto,q_auto,w_300,c_fill
         const transforms = ['f_auto', `q_${quality}`];
-
         if (width) transforms.push(`w_${width}`);
-        if (height) transforms.push(`h_${height}`);
-        if (width || height) transforms.push(`c_${crop}`);
+        if (options.height) transforms.push(`h_${options.height}`);
+        if (width || options.height) transforms.push(`c_${crop}`);
 
         const transformString = transforms.join(',');
-        
         const prefix = normalized.substring(0, uploadIndex + 8);
-        const rest = normalized.substring(uploadIndex + 8);
+        let rest = normalized.substring(uploadIndex + 8);
 
-        // If rest already has custom transformation parameters
-        if (rest.startsWith('f_auto') || rest.startsWith('w_') || rest.startsWith('c_')) {
-          return normalized;
-        }
+        // Strip any previous transformation segments if present (e.g. f_auto,q_auto.../v1234/...)
+        rest = rest.replace(/^(?:[a-z]_[a-z0-9:_-]+,?)+\//i, '');
 
         return `${prefix}${transformString}/${rest}`;
       }
@@ -141,11 +150,11 @@ export const getOptimizedImageUrl = (url, options = {}) => {
     }
   }
 
-  // For Unsplash images, optimize width and format
+  // For Unsplash images, optimize width, format, and quality
   if (normalized.includes('images.unsplash.com')) {
     try {
       const urlObj = new URL(normalized);
-      if (options.width) urlObj.searchParams.set('w', options.width.toString());
+      urlObj.searchParams.set('w', (options.width || 300).toString());
       if (options.height) urlObj.searchParams.set('h', options.height.toString());
       urlObj.searchParams.set('auto', 'format');
       urlObj.searchParams.set('fit', 'crop');
@@ -180,11 +189,11 @@ export const getHighResImageUrl = (url) => {
       if (uploadIndex !== -1) {
         // Keep auto format (f_auto) and high quality (q_auto:best) for zoom
         const prefix = normalized.substring(0, uploadIndex + 8);
-        const rest = normalized.substring(uploadIndex + 8);
+        let rest = normalized.substring(uploadIndex + 8);
         
         // Strip previous small size transformations
-        const cleanRest = rest.replace(/^(w_\d+,|h_\d+,|c_[a-z]+,|q_[a-z0-9:]+,|f_[a-z0-9:]+,)+/, '');
-        return `${prefix}f_auto,q_auto:best/${cleanRest}`;
+        rest = rest.replace(/^(?:[a-z]_[a-z0-9:_-]+,?)+\//i, '');
+        return `${prefix}f_auto,q_auto:best/${rest}`;
       }
     } catch {
       return normalized;
@@ -218,12 +227,12 @@ export const preloadImage = (url) => {
 };
 
 /**
- * Preload multiple image URLs
+ * Preload multiple image URLs (limited to critical above-the-fold images only)
  * @param {string[]} urls
  */
 export const preloadImages = (urls = []) => {
   if (!Array.isArray(urls)) return;
-  urls.filter(Boolean).forEach(preloadImage);
+  urls.slice(0, 2).filter(Boolean).forEach(preloadImage);
 };
 
 /**
@@ -267,11 +276,13 @@ export const getProductImage = (product, options = {}) => {
     return FESTIVE_PLACEHOLDER_SVG;
   }
 
-  // Apply optimizations if specified
-  let finalUrl = normalized;
-  if (options.width || options.height || options.quality || options.crop) {
-    finalUrl = getOptimizedImageUrl(normalized, options);
-  }
+  // Apply optimizations with default width of 300px for Cloudinary & Unsplash
+  const finalUrl = getOptimizedImageUrl(normalized, {
+    width: options.width || 300,
+    height: options.height,
+    crop: options.crop || 'fill',
+    quality: options.quality || 'auto',
+  });
 
   // Cache-busting support (?v=<version>) to prevent stale caches
   if (options.cacheBust) {
@@ -279,7 +290,7 @@ export const getProductImage = (product, options = {}) => {
       ? options.cacheBust
       : product?.updatedAt || Date.now();
     const separator = finalUrl.includes('?') ? '&' : '?';
-    finalUrl = `${finalUrl}${separator}v=${encodeURIComponent(version)}`;
+    return `${finalUrl}${separator}v=${encodeURIComponent(version)}`;
   }
 
   return finalUrl;

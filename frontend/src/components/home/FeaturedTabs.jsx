@@ -71,8 +71,8 @@ const FeaturedTabs = ({ featured = [], bestSellers = [], allProducts = [] }) => 
             transition={{ duration: 0.3 }}
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
           >
-            {displayProducts.slice(0, 8).map((product) => (
-              <ProductCard key={product._id} product={product} />
+            {displayProducts.slice(0, 8).map((product, index) => (
+              <ProductCard key={product._id} product={product} index={index} />
             ))}
           </motion.div>
         </AnimatePresence>

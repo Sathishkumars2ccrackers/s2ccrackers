@@ -99,6 +99,7 @@ const ProductListRow = memo(({ product, index }) => {
               product={product}
               alt={product.name}
               optimizedWidth={160}
+              priority={index < 3}
               componentName="ProductListRow"
               className="w-full h-full object-contain"
               enableZoom={false}
@@ -271,6 +272,7 @@ const ProductListRow = memo(({ product, index }) => {
               product={product}
               alt={product.name}
               optimizedWidth={140}
+              priority={index < 3}
               componentName="ProductListRowMobile"
               className="w-full h-full object-contain"
               enableZoom={false}

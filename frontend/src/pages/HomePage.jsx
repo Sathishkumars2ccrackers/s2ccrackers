@@ -34,14 +34,10 @@ const HomePage = () => {
           setBanners(activeBanners);
         }
 
-        // Preload hero banner and top product images for instant perceived performance
-        const imagesToPreload = [
-          activeBanners[0]?.imageUrl,
-          ...featured.slice(0, 4).map((p) => p.images?.[0]),
-          ...topSellers.slice(0, 4).map((p) => p.images?.[0]),
-        ].filter(Boolean);
-
-        preloadImages(imagesToPreload);
+        // Only preload critical above-the-fold hero banner (LCP)
+        if (activeBanners[0]?.imageUrl) {
+          preloadImages([activeBanners[0].imageUrl]);
+        }
       } catch (err) {
         console.error('Failed to load homepage data:', err);
       } finally {
