@@ -76,6 +76,59 @@
   box-shadow: 0 0 15px -3px rgba(245, 158, 11, 0.25);
 }
 
+/* Sticky Catalog Controls Bar */
+:root {
+  --navbar-height: 98px;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --navbar-height: 84px;
+  }
+}
+
+.catalog-controls-sticky {
+  position: sticky;
+  top: var(--navbar-height, 98px);
+  z-index: 35;
+  background: rgba(13, 8, 20, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(55, 34, 84, 0.85);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7), 0 1px 0 0 rgba(245, 158, 11, 0.15);
+  transition: top 0.2s ease, box-shadow 0.2s ease;
+}
+
+.catalog-products-container {
+  position: relative;
+  width: 100%;
+}
+
+/* Horizontal scrolling category chips with hidden scrollbar or clean thin scrollbar */
+.chips-scroll-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(245, 158, 11, 0.3) transparent;
+}
+
+.chips-scroll-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.chips-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chips-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(245, 158, 11, 0.25);
+  border-radius: 9999px;
+}
+
+.chips-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(245, 158, 11, 0.6);
+}
+
 /* Print Invoice Styles */
 @media print {
   body {
@@ -95,3 +148,4 @@
     color: #000000 !important;
   }
 }
+

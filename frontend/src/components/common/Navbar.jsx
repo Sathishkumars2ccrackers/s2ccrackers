@@ -26,6 +26,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const headerRef = React.useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,6 +35,32 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Dynamically update --navbar-height CSS variable for seamless sticky catalog controls
+  useEffect(() => {
+    const updateHeight = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.offsetHeight;
+        document.documentElement.style.setProperty('--navbar-height', `${height}px`);
+      }
+    };
+
+    updateHeight();
+
+    let resizeObserver;
+    if (typeof ResizeObserver !== 'undefined' && headerRef.current) {
+      resizeObserver = new ResizeObserver(() => {
+        updateHeight();
+      });
+      resizeObserver.observe(headerRef.current);
+    }
+
+    window.addEventListener('resize', updateHeight);
+    return () => {
+      if (resizeObserver) resizeObserver.disconnect();
+      window.removeEventListener('resize', updateHeight);
+    };
+  }, [isScrolled, isMobileMenuOpen]);
 
   // Close mobile menu on route changes
   useEffect(() => {
@@ -58,7 +85,7 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full transition-all duration-300">
+    <header ref={headerRef} className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* Top Festival Marquee Bar */}
       <div className="bg-gradient-to-r from-red-950 via-amber-950 to-orange-950 border-b border-amber-500/20 text-xs py-1.5 px-4 text-amber-200">
         <div className="max-w-7xl mx-auto flex items-center justify-between">

@@ -189,11 +189,11 @@ const ProductsPage = () => {
         nextParams.set(key, value);
       }
     });
-    setSearchParams(nextParams);
+    setSearchParams(nextParams, { preventScrollReset: true });
   };
 
   const clearAllFilters = () => {
-    setSearchParams(new URLSearchParams());
+    setSearchParams(new URLSearchParams(), { preventScrollReset: true });
   };
 
   const activeFilterCount = [
@@ -212,7 +212,7 @@ const ProductsPage = () => {
 
   return (
     <div className="min-h-screen bg-festival-dark text-slate-100 pb-28">
-      {/* 1. Page Title Header Strip */}
+      {/* 1. Page Title Header Strip (Scrolls away at top) */}
       <div className="bg-gradient-to-b from-festival-card/90 to-transparent border-b border-festival-border/50 pt-5 pb-4 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
@@ -233,19 +233,19 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {/* 2. STICKY TOP FILTER & CATEGORY TABS BAR */}
-      <div className="sticky top-0 z-30 bg-festival-dark/95 backdrop-blur-md border-b border-festival-border/80 shadow-xl transition-all">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 space-y-2">
-          {/* Top Search & Filter Controls */}
-          <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-            {/* Search Input: Matches Name, Product Code, Category */}
-            <div className="relative flex-1 min-w-[200px]">
+      {/* 2. DEDICATED STICKY CATALOG CONTROLS WRAPPER (.catalog-controls-sticky) */}
+      <div className="catalog-controls-sticky">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2 sm:py-2.5 space-y-2">
+          {/* Top Search & Filter Controls: Search Bar, Code/Sort Dropdown, In-Stock, Filter Drawer Button */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap sm:flex-nowrap">
+            {/* 1. Search Bar */}
+            <div className="relative flex-1 min-w-[140px] sm:min-w-[200px]">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => updateFilters({ search: e.target.value })}
-                placeholder="Search cracker name, code (e.g. #01, #04), category..."
-                className="w-full bg-festival-card border border-festival-border rounded-xl pl-8 pr-7 py-2 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 transition-all"
+                placeholder="Search cracker name, code (e.g. #01, #04)..."
+                className="w-full bg-festival-card border border-festival-border rounded-xl pl-8 pr-7 py-1.5 sm:py-2 text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500/40 transition-all"
               />
               <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               {search && (
@@ -259,12 +259,13 @@ const ProductsPage = () => {
               )}
             </div>
 
-            {/* Sort Dropdown: Code Ascending default */}
-            <div className="relative">
+            {/* 2. Product Code / Sort Dropdown */}
+            <div className="relative flex-shrink-0">
               <select
                 value={sort}
                 onChange={(e) => updateFilters({ sort: e.target.value })}
-                className="bg-festival-card border border-festival-border rounded-xl pl-3 pr-7 py-2 text-xs font-bold text-white focus:outline-none focus:border-amber-500 appearance-none cursor-pointer hover:border-amber-500/40 transition-colors"
+                className="bg-festival-card border border-festival-border rounded-xl pl-2.5 sm:pl-3 pr-6 sm:pr-7 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white focus:outline-none focus:border-amber-500 appearance-none cursor-pointer hover:border-amber-500/40 transition-colors"
+                title="Filter / Sort by Product Code or Price"
               >
                 <option value="code-asc">Code (#01, #02, #03...)</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -273,33 +274,36 @@ const ProductsPage = () => {
                 <option value="bestseller">Best Selling</option>
                 <option value="featured">Featured / Popular</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
 
-            {/* Quick In-Stock Toggle */}
+            {/* 3. Quick In-Stock Filter Toggle (Visible on both Mobile & Desktop) */}
             <button
               onClick={() => updateFilters({ inStock: !inStock })}
-              className={`hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
                 inStock
-                  ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300 shadow-sm'
+                  ? 'bg-emerald-600/30 border-emerald-500 text-emerald-300 shadow-sm ring-1 ring-emerald-500/40'
                   : 'bg-festival-card border-festival-border text-slate-300 hover:text-white hover:border-amber-500/40'
               }`}
+              title="Toggle In Stock Only"
             >
-              <Check className={`w-3.5 h-3.5 ${inStock ? 'opacity-100' : 'opacity-40'}`} />
-              <span>In Stock</span>
+              <Check className={`w-3.5 h-3.5 ${inStock ? 'opacity-100 text-emerald-400' : 'opacity-40'}`} />
+              <span className="hidden xs:inline">In Stock</span>
+              <span className="xs:hidden">Stock</span>
             </button>
 
-            {/* Filter Drawer Trigger */}
+            {/* 4. Filter Drawer Trigger Button */}
             <button
               onClick={() => setIsFilterDrawerOpen(true)}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              className={`flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold border transition-all cursor-pointer flex-shrink-0 ${
                 activeFilterCount > 0
-                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md'
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 shadow-md font-extrabold'
                   : 'bg-festival-card border-festival-border text-amber-400 hover:bg-white/5 hover:border-amber-500/40'
               }`}
+              title="Open Advanced Filters"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
-              <span>Filters</span>
+              <span className="hidden sm:inline">Filters</span>
               {activeFilterCount > 0 && (
                 <span className="w-4 h-4 rounded-full bg-slate-950 text-amber-300 text-[10px] font-black flex items-center justify-center">
                   {activeFilterCount}
@@ -308,11 +312,11 @@ const ProductsPage = () => {
             </button>
           </div>
 
-          {/* Category Tabs Strip with Product Counts */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-amber-500/30">
+          {/* 5. Horizontally Scrollable Category Chips / Tabs with Product Counts */}
+          <div className="chips-scroll-container flex items-center gap-1.5 pb-1">
             <button
               onClick={() => updateFilters({ category: 'all' })}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0 ${
                 category === 'all'
                   ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-md'
                   : 'bg-festival-card text-slate-300 hover:text-white border border-festival-border/80 hover:border-amber-500/40'
@@ -332,7 +336,7 @@ const ProductsPage = () => {
                 <button
                   key={cat._id}
                   onClick={() => updateFilters({ category: cat.slug || cat._id })}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0 ${
                     active
                       ? 'bg-amber-500 text-slate-950 font-black shadow-md'
                       : 'bg-festival-card text-slate-300 hover:text-white border border-festival-border/80 hover:border-amber-500/40'
@@ -353,54 +357,54 @@ const ProductsPage = () => {
             })}
           </div>
 
-          {/* Active Filter Tags */}
+          {/* 6. Active Filter Badges & 7. Clear All Button */}
           {hasActiveFilters && (
             <div className="flex items-center gap-1.5 overflow-x-auto pt-1 text-[11px] border-t border-festival-border/40">
-              <span className="text-slate-400 font-bold flex items-center gap-1">
+              <span className="text-slate-400 font-bold flex items-center gap-1 flex-shrink-0">
                 <Tag className="w-3 h-3 text-amber-400" />
                 Active:
               </span>
 
               {search && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
                   "{search}"
-                  <button onClick={() => updateFilters({ search: '' })} className="hover:text-white">
+                  <button onClick={() => updateFilters({ search: '' })} className="hover:text-white" title="Remove search filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
               )}
 
               {category && category !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
                   Category: {category}
-                  <button onClick={() => updateFilters({ category: 'all' })} className="hover:text-white">
+                  <button onClick={() => updateFilters({ category: 'all' })} className="hover:text-white" title="Remove category filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
               )}
 
               {brand && brand !== 'all' && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
                   Brand: {brand}
-                  <button onClick={() => updateFilters({ brand: 'all' })} className="hover:text-white">
+                  <button onClick={() => updateFilters({ brand: 'all' })} className="hover:text-white" title="Remove brand filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
               )}
 
               {(minPrice || maxPrice) && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
                   ₹{minPrice || 0} - ₹{maxPrice || '∞'}
-                  <button onClick={() => updateFilters({ minPrice: '', maxPrice: '' })} className="hover:text-white">
+                  <button onClick={() => updateFilters({ minPrice: '', maxPrice: '' })} className="hover:text-white" title="Remove price filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
               )}
 
               {inStock && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-semibold">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-semibold flex-shrink-0">
                   In Stock
-                  <button onClick={() => updateFilters({ inStock: false })} className="hover:text-white">
+                  <button onClick={() => updateFilters({ inStock: false })} className="hover:text-white" title="Remove in-stock filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -408,7 +412,7 @@ const ProductsPage = () => {
 
               <button
                 onClick={clearAllFilters}
-                className="text-amber-400 hover:text-amber-300 font-bold underline ml-1 cursor-pointer whitespace-nowrap"
+                className="text-amber-400 hover:text-amber-300 font-bold underline ml-1 cursor-pointer whitespace-nowrap flex-shrink-0"
               >
                 Clear All
               </button>
@@ -417,8 +421,8 @@ const ProductsPage = () => {
         </div>
       </div>
 
-      {/* 3. WHOLESALE HORIZONTAL PRODUCT LIST CATALOG */}
-      <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4">
+      {/* 3. SCROLLABLE PRODUCT LIST CONTAINER (.catalog-products-container) */}
+      <main className="catalog-products-container max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 pt-4">
         {loading ? (
           <div className="py-24 flex justify-center">
             <LoadingSpinner text="Loading Sivakasi fireworks price list..." />
