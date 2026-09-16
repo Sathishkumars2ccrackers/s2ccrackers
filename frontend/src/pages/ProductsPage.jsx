@@ -27,11 +27,71 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import { useCart } from '../context/CartContext';
 import { formatCurrency, formatProductCode, naturalProductCodeSort, sortProductsByCode } from '../utils/formatters';
 
+// Canonical Category Alias Map for fault-tolerant fuzzy resolution
+const CATEGORY_ALIAS_MAP = {
+  'sparklers': ['sparklers', 'sparkler'],
+  'ground-chakkars': ['ground-chakkars', 'ground-chakkar', 'groundchakkars', 'groundchakkar', 'ground chakkars', 'ground chakkar'],
+  'flower-pots': ['flower-pots', 'flower-pot', 'flowerpots', 'flowerpot', 'flower pots', 'flower pot'],
+  'rockets-missiles': ['rockets-missiles', 'rockets', 'rocket', 'missiles', 'missile', 'rockets-and-missiles', 'rockets & missiles', 'rockets missiles'],
+  'multi-shot-sky-shots': ['multi-shot-sky-shots', 'sky-shots', 'skyshots', 'ariel-fancy-shots', 'ariel fancy shots', 'fancy-shots', 'fancy shots', 'multishot-sky-shots', 'multi shot sky shots', 'sky shots'],
+  'sound-crackers': ['sound-crackers', 'sound-cracker', 'soundcrackers', 'soundcracker', 'sound crackers', 'sound cracker'],
+  'kids-special': ['kids-special', 'kids-novelties', 'kids special', 'kids novelties', 'kidsspecial', 'kidsnovelties', 'kids'],
+  'deluxe-gift-boxes': ['deluxe-gift-boxes', 'gift-boxes', 'gift-box', 'giftboxes', 'giftbox', 'deluxe gift boxes', 'gift boxes', 'gift box', 'family-gift-boxes'],
+  'bijili-crackers': ['bijili-crackers', 'bijili-cracker', 'bijili crackers', 'bijili'],
+  'bombs': ['bombs', 'bomb'],
+  'twinkling-star': ['twinkling-star', 'twinkling-stars', 'twinkling star'],
+  'digital-wala': ['digital-wala', 'digital wala'],
+  'childrens-color-match-box': ['childrens-color-match-box', 'children-color-match-box', "children's color match box", 'color-match-box'],
+  'childrens-gun': ['childrens-gun', 'children-gun', "children's gun", 'children gun'],
+};
+
+const normalizeCategoryKey = (key) =>
+  (key || '')
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[\s_]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '');
+
+const isSameCategory = (catA, catB) => {
+  if (!catA || !catB) return false;
+  if (catA === catB) return true;
+
+  const idA = typeof catA === 'object' ? (catA._id || '') : (typeof catA === 'string' && catA.match(/^[0-9a-fA-F]{24}$/) ? catA : '');
+  const idB = typeof catB === 'object' ? (catB._id || '') : (typeof catB === 'string' && catB.match(/^[0-9a-fA-F]{24}$/) ? catB : '');
+  if (idA && idB && idA === idB) return true;
+
+  const rawKeyA = typeof catA === 'object' ? (catA.slug || catA.name || '') : catA;
+  const rawKeyB = typeof catB === 'object' ? (catB.slug || catB.name || '') : catB;
+
+  const normA = normalizeCategoryKey(rawKeyA);
+  const normB = normalizeCategoryKey(rawKeyB);
+
+  if (normA && normB && normA === normB) return true;
+
+  for (const [canonical, aliases] of Object.entries(CATEGORY_ALIAS_MAP)) {
+    const canonicalNorm = normalizeCategoryKey(canonical);
+    const allNorms = [canonicalNorm, ...aliases.map(normalizeCategoryKey)];
+    if (allNorms.includes(normA) && allNorms.includes(normB)) {
+      return true;
+    }
+  }
+
+  if (typeof catA === 'object' && catA.name && typeof catB === 'string') {
+    if (normalizeCategoryKey(catA.name) === normB) return true;
+  }
+  if (typeof catB === 'object' && catB.name && typeof catA === 'string') {
+    if (normalizeCategoryKey(catB.name) === normA) return true;
+  }
+
+  return false;
+};
+
 const ProductsPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { totalItemsCount, cartSubtotal, openCart } = useCart();
 
-  const [allProducts, setAllProducts] = useState([]);
+  const [masterProducts, setMasterProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,68 +139,84 @@ const ProductsPage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Helper to determine if a category is active
-  const isCategoryActive = (cat) => {
-    if (!category || category === 'all') return false;
-    const cleanActive = decodeURIComponent(category).trim().toLowerCase();
-    return (
-      cat.slug?.toLowerCase() === cleanActive ||
-      cat.name?.toLowerCase() === cleanActive ||
-      cat._id === category
-    );
-  };
-
-  // Fetch all products matching current query params
+  // Load Master Products Catalog on mount
   useEffect(() => {
     let isMounted = true;
     const fetchCatalog = async () => {
       setLoading(true);
       try {
-        const params = {
-          search: search || undefined,
-          category: category !== 'all' ? category : undefined,
-          brand: brand !== 'all' ? brand : undefined,
-          minPrice: minPrice || undefined,
-          maxPrice: maxPrice || undefined,
-          inStock: inStock ? true : undefined,
-          sort: 'code-asc', // Fetch by code order
+        const res = await productService.getProducts({
+          sort: 'code-asc',
           page: 1,
-          limit: 1000, // Load all wholesale products for smooth continuous list
-        };
-
-        const res = await productService.getProducts(params);
+          limit: 1000,
+        });
         if (isMounted && res.data?.success) {
           const fetchedItems = res.data.products || [];
-          setAllProducts(sortProductsByCode(fetchedItems));
+          setMasterProducts(sortProductsByCode(fetchedItems));
         }
       } catch (err) {
-        console.error('[ProductsPage] Failed to fetch products:', err);
+        console.error('[ProductsPage] Failed to fetch master product catalog:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
     };
 
     fetchCatalog();
-  }, [search, category, brand, minPrice, maxPrice, inStock]);
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
-  // Compute category item counts dynamically from loaded products
+  // Helper to determine if a category chip is active
+  const isCategoryActive = (cat) => {
+    if (!category || category === 'all') return false;
+    return isSameCategory(cat, category);
+  };
+
+  // Dynamic Category Item Counts calculated across master inventory
   const categoryCounts = useMemo(() => {
     const counts = {};
-    allProducts.forEach((p) => {
-      const catSlug = p.category?.slug || p.category?._id || 'other';
-      counts[catSlug] = (counts[catSlug] || 0) + 1;
-      if (p.category?.name) {
-        counts[p.category.name.toLowerCase()] = (counts[p.category.name.toLowerCase()] || 0) + 1;
-      }
+    categories.forEach((cat) => {
+      const matchCount = masterProducts.filter((p) => isSameCategory(p.category, cat)).length;
+      if (cat.slug) counts[cat.slug] = matchCount;
+      if (cat._id) counts[cat._id] = matchCount;
+      if (cat.name) counts[cat.name.toLowerCase()] = matchCount;
     });
     return counts;
-  }, [allProducts]);
+  }, [masterProducts, categories]);
+
+  // Current active category object
+  const currentCategoryObj = useMemo(() => {
+    if (!category || category === 'all') return null;
+    return categories.find((cat) => isSameCategory(cat, category)) || null;
+  }, [categories, category]);
+
+  // Dynamic Catalog Title
+  const catalogTitle = useMemo(() => {
+    if (currentCategoryObj?.name) {
+      return `${currentCategoryObj.name} Wholesale Catalog`;
+    }
+    if (category && category !== 'all') {
+      const decoded = decodeURIComponent(category).replace(/-/g, ' ');
+      const formatted = decoded
+        .split(' ')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+      return `${formatted} Wholesale Catalog`;
+    }
+    return 'All Crackers Wholesale Catalog';
+  }, [currentCategoryObj, category]);
 
   // Filter & Sort Products (Natural Numeric Product Code Sorting by Default and after Filters)
   const filteredAndSortedProducts = useMemo(() => {
-    let result = [...allProducts];
+    let result = [...masterProducts];
 
-    // Search filter matching Name, Product Code, and Category
+    // 1. Category filter
+    if (category && category !== 'all') {
+      result = result.filter((p) => isSameCategory(p.category, category));
+    }
+
+    // 2. Search filter (Name, Product Code, Regional Name, Category, Brand)
     if (search && search.trim()) {
       const q = search.trim().toLowerCase();
       result = result.filter((p) => {
@@ -153,7 +229,26 @@ const ProductsPage = () => {
       });
     }
 
-    // Sort
+    // 3. Brand filter
+    if (brand && brand !== 'all') {
+      const bLower = brand.toLowerCase().trim();
+      result = result.filter((p) => (p.brand || '').toLowerCase().trim() === bLower);
+    }
+
+    // 4. Price range filter
+    if (minPrice !== undefined && minPrice !== '') {
+      result = result.filter((p) => p.price >= Number(minPrice));
+    }
+    if (maxPrice !== undefined && maxPrice !== '') {
+      result = result.filter((p) => p.price <= Number(maxPrice));
+    }
+
+    // 5. In-stock filter
+    if (inStock) {
+      result = result.filter((p) => (p.stockQuantity ?? 1) > 0);
+    }
+
+    // 6. Sort
     switch (sort) {
       case 'code-asc':
       default:
@@ -176,7 +271,7 @@ const ProductsPage = () => {
     }
 
     return result;
-  }, [allProducts, search, sort]);
+  }, [masterProducts, category, search, brand, minPrice, maxPrice, inStock, sort]);
 
   // Auto-scroll to top of product list whenever category, search, or filters change
   useEffect(() => {
@@ -184,7 +279,20 @@ const ProductsPage = () => {
       top: 0,
       behavior: 'smooth',
     });
-  }, [category, search, brand, minPrice, maxPrice, inStock]);
+  }, [category, search, brand, minPrice, maxPrice, inStock, sort]);
+
+  // Clean route transition when selecting category: resets searches, stock, and brand filters
+  const handleCategorySelect = (categorySlug) => {
+    if (!categorySlug || categorySlug === 'all') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: categorySlug });
+    }
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
 
   const updateFilters = (newParams) => {
     const nextParams = new URLSearchParams(searchParams);
@@ -237,9 +345,9 @@ const ProductsPage = () => {
               <span>Sivakasi Direct Factory Wholesale Price List 2026</span>
             </div>
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight flex items-baseline gap-2">
-              All Crackers Wholesale Catalog
+              {catalogTitle}
               <span className="text-xs sm:text-sm font-bold text-amber-400/90 font-mono">
-                ({filteredAndSortedProducts.length} Products)
+                ({filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'Product' : 'Products'})
               </span>
             </h1>
           </div>
@@ -331,27 +439,27 @@ const ProductsPage = () => {
           {/* 5. Horizontally Scrollable Category Chips / Tabs with Product Counts */}
           <div className="chips-scroll-container flex items-center gap-1.5 pb-1">
             <button
-              onClick={() => updateFilters({ category: 'all' })}
+              onClick={() => handleCategorySelect('all')}
               className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0 ${
-                category === 'all'
+                !category || category === 'all'
                   ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-md'
                   : 'bg-festival-card text-slate-300 hover:text-white border border-festival-border/80 hover:border-amber-500/40'
               }`}
             >
               <span>All Crackers</span>
               <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/40 font-mono">
-                {allProducts.length}
+                {masterProducts.length}
               </span>
             </button>
 
             {categories.map((cat) => {
               const active = isCategoryActive(cat);
-              const count = categoryCounts[cat.slug] || categoryCounts[cat.name?.toLowerCase()] || categoryCounts[cat._id] || 0;
+              const count = categoryCounts[cat.slug] ?? categoryCounts[cat._id] ?? categoryCounts[cat.name?.toLowerCase()] ?? 0;
 
               return (
                 <button
-                  key={cat._id}
-                  onClick={() => updateFilters({ category: cat.slug || cat._id })}
+                  key={cat._id || cat.slug}
+                  onClick={() => handleCategorySelect(cat.slug || cat._id)}
                   className={`px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 flex-shrink-0 ${
                     active
                       ? 'bg-amber-500 text-slate-950 font-black shadow-md'
@@ -384,7 +492,7 @@ const ProductsPage = () => {
               {search && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
                   "{search}"
-                  <button onClick={() => updateFilters({ search: '' })} className="hover:text-white" title="Remove search filter">
+                  <button onClick={() => updateFilters({ search: '' })} className="hover:text-white cursor-pointer" title="Remove search filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -392,8 +500,8 @@ const ProductsPage = () => {
 
               {category && category !== 'all' && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
-                  Category: {category}
-                  <button onClick={() => updateFilters({ category: 'all' })} className="hover:text-white" title="Remove category filter">
+                  Category: {currentCategoryObj?.name || category}
+                  <button onClick={() => handleCategorySelect('all')} className="hover:text-white cursor-pointer" title="Remove category filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -402,7 +510,7 @@ const ProductsPage = () => {
               {brand && brand !== 'all' && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
                   Brand: {brand}
-                  <button onClick={() => updateFilters({ brand: 'all' })} className="hover:text-white" title="Remove brand filter">
+                  <button onClick={() => updateFilters({ brand: 'all' })} className="hover:text-white cursor-pointer" title="Remove brand filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -411,7 +519,7 @@ const ProductsPage = () => {
               {(minPrice || maxPrice) && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-festival-card border border-amber-500/40 text-amber-300 font-semibold flex-shrink-0">
                   ₹{minPrice || 0} - ₹{maxPrice || '∞'}
-                  <button onClick={() => updateFilters({ minPrice: '', maxPrice: '' })} className="hover:text-white" title="Remove price filter">
+                  <button onClick={() => updateFilters({ minPrice: '', maxPrice: '' })} className="hover:text-white cursor-pointer" title="Remove price filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -420,7 +528,7 @@ const ProductsPage = () => {
               {inStock && (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-semibold flex-shrink-0">
                   In Stock
-                  <button onClick={() => updateFilters({ inStock: false })} className="hover:text-white" title="Remove in-stock filter">
+                  <button onClick={() => updateFilters({ inStock: false })} className="hover:text-white cursor-pointer" title="Remove in-stock filter">
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -664,24 +772,36 @@ const ProductsPage = () => {
                   </h4>
                   <div className="space-y-1 text-xs max-h-48 overflow-y-auto pr-1">
                     <button
-                      onClick={() => updateFilters({ category: 'all' })}
+                      onClick={() => {
+                        handleCategorySelect('all');
+                        setIsFilterDrawerOpen(false);
+                      }}
                       className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
-                        category === 'all' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300 hover:bg-white/5'
+                        !category || category === 'all' ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300 hover:bg-white/5'
                       }`}
                     >
-                      All Categories
+                      All Categories ({masterProducts.length})
                     </button>
                     {categories.map((cat) => {
                       const active = isCategoryActive(cat);
+                      const count = categoryCounts[cat.slug] ?? categoryCounts[cat._id] ?? categoryCounts[cat.name?.toLowerCase()] ?? 0;
                       return (
                         <button
-                          key={cat._id}
-                          onClick={() => updateFilters({ category: cat.slug || cat._id })}
-                          className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors truncate cursor-pointer ${
+                          key={cat._id || cat.slug}
+                          onClick={() => {
+                            handleCategorySelect(cat.slug || cat._id);
+                            setIsFilterDrawerOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-1.5 rounded-lg font-medium transition-colors truncate cursor-pointer flex items-center justify-between gap-2 ${
                             active ? 'bg-amber-500 text-slate-950 font-bold' : 'text-slate-300 hover:bg-white/5'
                           }`}
                         >
-                          {cat.name}
+                          <span className="truncate">{cat.name}</span>
+                          {count > 0 && (
+                            <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${active ? 'bg-slate-950/30 text-slate-950' : 'bg-festival-dark text-amber-300/80'}`}>
+                              {count}
+                            </span>
+                          )}
                         </button>
                       );
                     })}

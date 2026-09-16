@@ -74,6 +74,40 @@ const Navbar = () => {
     }
   };
 
+  const isLinkActive = (link) => {
+    const currentPath = location.pathname;
+    const currentParams = new URLSearchParams(location.search);
+    const currentCategory = (currentParams.get('category') || '').toLowerCase().trim();
+
+    if (link.path === '/') {
+      return currentPath === '/' && !location.search;
+    }
+
+    if (link.path.includes('category=deluxe-gift-boxes')) {
+      return (
+        (currentPath === '/products' || currentPath === '/all-crackers') &&
+        (currentCategory === 'deluxe-gift-boxes' || currentCategory === 'gift-boxes' || currentCategory === 'gift-box' || currentCategory === 'giftbox' || currentCategory === 'family-gift-boxes')
+      );
+    }
+
+    if (link.path.includes('category=multi-shot-sky-shots')) {
+      return (
+        (currentPath === '/products' || currentPath === '/all-crackers') &&
+        (currentCategory === 'multi-shot-sky-shots' || currentCategory === 'sky-shots' || currentCategory === 'skyshots')
+      );
+    }
+
+    if (link.path === '/all-crackers' || link.path === '/products') {
+      // Active when on products or all-crackers AND NO specific category (or category is 'all')
+      return (
+        (currentPath === '/all-crackers' || currentPath === '/products') &&
+        (!currentCategory || currentCategory === 'all')
+      );
+    }
+
+    return currentPath === link.path;
+  };
+
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'All Crackers', path: '/all-crackers' },
@@ -198,20 +232,20 @@ const Navbar = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
             <ul className="flex items-center space-x-6 text-sm font-medium">
               {navLinks.map((link) => {
-                const isActive = location.pathname === link.path;
+                const isActive = isLinkActive(link);
                 return (
                   <li key={link.name}>
                     <Link
                       to={link.path}
-                      className={`transition-colors py-1 flex items-center gap-1.5 ${
+                      className={`transition-all py-1 flex items-center gap-1.5 ${
                         isActive
-                          ? 'text-amber-400 font-bold border-b-2 border-amber-400'
+                          ? 'text-amber-400 font-extrabold border-b-2 border-amber-400 shadow-sm'
                           : link.highlight
                           ? 'text-amber-300 font-bold hover:text-amber-200'
                           : 'text-slate-300 hover:text-white'
                       }`}
                     >
-                      {link.highlight && <Gift className="w-3.5 h-3.5 text-amber-400 animate-pulse" />}
+                      {link.highlight && <Gift className={`w-3.5 h-3.5 ${isActive ? 'text-amber-400' : 'text-amber-400'} animate-pulse`} />}
                       {link.name}
                     </Link>
                   </li>
@@ -252,16 +286,29 @@ const Navbar = () => {
 
             {/* Navigation Links */}
             <ul className="space-y-1 pt-2 border-t border-festival-border/50 text-sm font-medium">
-              {navLinks.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.path}
-                    className="block px-3 py-2 rounded-lg text-slate-200 hover:bg-white/10 hover:text-amber-400 transition-colors"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
+              {navLinks.map((link) => {
+                const isActive = isLinkActive(link);
+                return (
+                  <li key={link.name}>
+                    <Link
+                      to={link.path}
+                      className={`flex items-center justify-between px-3 py-2.5 rounded-xl transition-all ${
+                        isActive
+                          ? 'bg-amber-500 text-slate-950 font-black shadow-md'
+                          : link.highlight
+                          ? 'text-amber-300 font-bold hover:bg-white/10 hover:text-amber-200'
+                          : 'text-slate-200 hover:bg-white/10 hover:text-amber-400'
+                      }`}
+                    >
+                      <span className="flex items-center gap-2">
+                        {link.highlight && <Gift className={`w-4 h-4 ${isActive ? 'text-slate-950' : 'text-amber-400'}`} />}
+                        {link.name}
+                      </span>
+                      {isActive && <Check className="w-4 h-4 text-slate-950 stroke-[3]" />}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </motion.div>
         )}

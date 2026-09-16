@@ -152,7 +152,7 @@ const HeroSlider = ({ banners = [] }) => {
             </Link>
 
             <Link
-              to={slide.secondaryLinkUrl || '/products?category=gift-boxes'}
+              to={slide.secondaryLinkUrl || '/products?category=deluxe-gift-boxes'}
               className="px-6 py-4 rounded-full bg-festival-card/90 hover:bg-festival-cardHover text-white font-bold text-sm sm:text-base border border-amber-500/30 hover:border-amber-400 transition-all flex items-center gap-2 backdrop-blur-md"
             >
               <Gift className="w-4 h-4 text-amber-400" />
