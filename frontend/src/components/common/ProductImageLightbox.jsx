@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
+  ArrowLeft,
   ZoomIn,
   ZoomOut,
   RotateCcw,
@@ -86,20 +87,6 @@ const ProductImageLightbox = () => {
       const initialSrc = high || raw || FESTIVE_PLACEHOLDER_SVG;
       setCurrentImgSrc(initialSrc);
 
-      // Diagnostic Logging
-      console.log("LIGHTBOX IMAGE", {
-        productId,
-        productName: productTitle,
-        currentIndex,
-        imageUrl: raw,
-        highResUrl: high,
-      });
-
-      console.log("[Lightbox URL Pipeline]", {
-        "Original URL": raw,
-        "Generated URL": high,
-      });
-
       trackLightboxOpen({ productId, productName: productTitle });
     }
   }, [isOpen, currentIndex, images, resetTransform, productId, productTitle]);
@@ -165,7 +152,7 @@ const ProductImageLightbox = () => {
     [zoom, handleResetZoom, productId, productTitle]
   );
 
-  // Keyboard Navigation & Shortcuts
+  // Keyboard Navigation & Shortcuts (ESC key to close)
   useEffect(() => {
     if (!isOpen) return;
 
@@ -248,9 +235,9 @@ const ProductImageLightbox = () => {
       touchStartPos.current = {
         x: e.touches[0].clientX - pan.x,
         y: e.touches[0].clientY - pan.y,
+        time: Date.now(),
         startX: e.touches[0].clientX,
         startY: e.touches[0].clientY,
-        time: Date.now(),
       };
       if (zoom > 1) {
         setIsDragging(true);
@@ -259,16 +246,13 @@ const ProductImageLightbox = () => {
   };
 
   const handleTouchMove = (e) => {
-    if (e.touches.length === 2 && touchStartDist.current) {
-      e.preventDefault();
-      const currentDist = getTouchDistance(e.touches);
-      const scale = currentDist / touchStartDist.current;
+    if (e.touches.length === 2 && touchStartDist.current !== null) {
+      const dist = getTouchDistance(e.touches);
+      const scale = dist / touchStartDist.current;
       const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, +(initialTouchZoom.current * scale).toFixed(2)));
       setZoom(newZoom);
-      if (newZoom === 1) setPan({ x: 0, y: 0 });
-    } else if (e.touches.length === 1 && isDragging && zoom > 1) {
-      e.preventDefault();
-      const maxPan = 350 * (zoom - 1);
+    } else if (e.touches.length === 1 && zoom > 1 && isDragging) {
+      const maxPan = 400 * (zoom - 1);
       const nextX = Math.max(-maxPan, Math.min(maxPan, e.touches[0].clientX - touchStartPos.current.x));
       const nextY = Math.max(-maxPan, Math.min(maxPan, e.touches[0].clientY - touchStartPos.current.y));
       setPan({ x: nextX, y: nextY });
@@ -276,27 +260,43 @@ const ProductImageLightbox = () => {
   };
 
   const handleTouchEnd = (e) => {
-    touchStartDist.current = null;
-    setIsDragging(false);
+    if (e.touches.length === 0) {
+      touchStartDist.current = null;
+      setIsDragging(false);
 
-    // Native Touch Swipe left / right when at 1x zoom on mobile
-    if (zoom === 1 && e.changedTouches && e.changedTouches.length === 1) {
-      const deltaX = e.changedTouches[0].clientX - touchStartPos.current.startX;
-      const deltaY = e.changedTouches[0].clientY - touchStartPos.current.startY;
-      const deltaTime = Date.now() - touchStartPos.current.time;
+      // Detect quick horizontal swipe gesture when not zoomed in
+      if (zoom === 1 && touchStartPos.current?.startX !== undefined) {
+        const deltaX = (e.changedTouches[0]?.clientX || 0) - touchStartPos.current.startX;
+        const deltaY = (e.changedTouches[0]?.clientY || 0) - touchStartPos.current.startY;
+        const deltaTime = Date.now() - touchStartPos.current.time;
 
-      // Detect horizontal swipe with minimum speed/distance
-      if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4 && deltaTime < 500) {
-        if (deltaX < 0) {
-          // Swipe Left -> Next Image
-          setSwipeDirection(-1);
-          nextImage();
-        } else {
-          // Swipe Right -> Previous Image
-          setSwipeDirection(1);
-          prevImage();
+        if (Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY) * 1.5 && deltaTime < 400) {
+          if (deltaX < 0) {
+            setSwipeDirection(-1);
+            nextImage();
+          } else {
+            setSwipeDirection(1);
+            prevImage();
+          }
         }
       }
+    }
+  };
+
+  // Image Click Toggle: Clicking image toggles zoom or closes preview
+  const handleImageClick = (e) => {
+    e.stopPropagation();
+    if (zoom === 1) {
+      closeLightbox();
+    } else {
+      handleResetZoom();
+    }
+  };
+
+  // Click Outside to Close: Triggered when clicking viewport background outside image
+  const handleViewportBackgroundClick = (e) => {
+    if (e.target === imageContainerRef.current || e.target.classList?.contains('lightbox-backdrop-area')) {
+      closeLightbox();
     }
   };
 
@@ -308,55 +308,69 @@ const ProductImageLightbox = () => {
         ref={containerRef}
         role="dialog"
         aria-modal="true"
-        aria-label={`Image viewer for ${productTitle}`}
-        onContextMenu={(e) => e.preventDefault()} // Download protection: Block right click
-        onDragStart={(e) => e.preventDefault()} // Download protection: Block dragging
-        className="fixed inset-0 z-50 flex flex-col justify-between select-none bg-black/95"
+        aria-label={`Image preview for ${productTitle}`}
+        onContextMenu={(e) => e.preventDefault()} // Download protection
+        onDragStart={(e) => e.preventDefault()}
+        className="fixed inset-0 z-[1100] flex flex-col justify-between select-none bg-black/95 text-white font-sans"
         style={{ userSelect: 'none', WebkitUserDrag: 'none' }}
       >
-        {/* Backdrop overlay */}
+        {/* 1. Backdrop Overlay (Click Outside to Close) */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           onClick={closeLightbox}
-          className="fixed inset-0 bg-black/92 backdrop-blur-md z-0"
+          className="fixed inset-0 bg-black/92 backdrop-blur-md z-0 cursor-pointer"
         />
 
-        {/* 1. Header Toolbar */}
+        {/* 2. Top Header Toolbar */}
         <motion.header
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-20 flex items-center justify-between p-3 sm:p-5 bg-gradient-to-b from-black/85 via-black/50 to-transparent gap-3"
+          className="relative z-20 flex items-center justify-between p-3 sm:p-5 bg-gradient-to-b from-black/95 via-black/80 to-transparent gap-3 border-b border-white/10"
         >
-          {/* Left: Product Information */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            {productCode && (
-              <span className="bg-amber-500/20 text-amber-300 font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-amber-500/40">
-                {formatProductCode(productCode)}
-              </span>
-            )}
-            <div className="truncate">
-              <h2 className="text-sm sm:text-base font-bold text-white truncate drop-shadow-md">
-                {productTitle}
-              </h2>
-              {category && (
-                <p className="text-[11px] text-amber-400 font-medium truncate">
-                  {category}
-                </p>
+          {/* Left: Prominent Back to Products Button & Product Information */}
+          <div className="flex items-center gap-3 min-w-0">
+            {/* 2. Back Button: "← Back to Products" */}
+            <button
+              onClick={closeLightbox}
+              aria-label="Back to products"
+              className="flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-festival-card hover:bg-amber-500 hover:text-slate-950 text-amber-300 border border-amber-500/40 text-xs sm:text-sm font-bold shadow-lg transition-all duration-200 cursor-pointer min-h-[44px] min-w-[44px] flex-shrink-0"
+              title="Back to products (ESC)"
+            >
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Back to Products</span>
+            </button>
+
+            {/* Product Title & Code Badge */}
+            <div className="hidden md:flex items-center gap-2 min-w-0">
+              {productCode && (
+                <span className="bg-amber-500/20 text-amber-300 font-mono font-bold text-xs px-2.5 py-1 rounded-lg border border-amber-500/40 flex-shrink-0">
+                  {formatProductCode(productCode)}
+                </span>
               )}
+              <div className="truncate">
+                <h2 className="text-sm font-bold text-white truncate max-w-sm drop-shadow-md">
+                  {productTitle}
+                </h2>
+                {category && (
+                  <p className="text-[11px] text-amber-400 font-medium truncate">
+                    {category}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Right: Controls (Zoom, Fullscreen & Close) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          {/* Right: Controls & Prominent Close Button */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             {/* Zoom Controls */}
-            <div className="flex items-center bg-festival-card/80 border border-festival-border rounded-xl p-0.5 backdrop-blur-md">
+            <div className="hidden sm:flex items-center bg-festival-card/90 border border-festival-border rounded-xl p-0.5 backdrop-blur-md">
               <button
                 onClick={handleZoomOut}
                 disabled={zoom <= MIN_ZOOM}
                 title="Zoom Out (-)"
-                className="p-1.5 sm:p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all"
+                className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
@@ -364,7 +378,7 @@ const ProductImageLightbox = () => {
               <button
                 onClick={handleResetZoom}
                 title="Reset Zoom (0)"
-                className="px-2 py-1 text-xs font-bold text-amber-400 hover:text-amber-300 hover:bg-white/5 rounded-md min-w-[50px] text-center"
+                className="px-2 py-1 text-xs font-bold text-amber-400 hover:text-amber-300 hover:bg-white/5 rounded-md min-w-[48px] text-center cursor-pointer"
               >
                 {Math.round(zoom * 100)}%
               </button>
@@ -373,18 +387,18 @@ const ProductImageLightbox = () => {
                 onClick={handleZoomIn}
                 disabled={zoom >= MAX_ZOOM}
                 title="Zoom In (+)"
-                className="p-1.5 sm:p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all"
+                className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-all min-h-[36px] min-w-[36px] flex items-center justify-center cursor-pointer"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Reset Button */}
+            {/* Reset Button when zoomed */}
             {zoom > 1 && (
               <button
                 onClick={handleResetZoom}
                 title="Reset View"
-                className="hidden sm:flex items-center gap-1 px-3 py-2 rounded-xl bg-festival-card border border-festival-border text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all"
+                className="hidden sm:flex items-center gap-1 px-3 py-2 rounded-xl bg-festival-card border border-festival-border text-xs font-bold text-slate-300 hover:text-white hover:bg-white/10 transition-all cursor-pointer min-h-[44px]"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset</span>
@@ -395,25 +409,28 @@ const ProductImageLightbox = () => {
             <button
               onClick={toggleFullscreen}
               title={isFullscreen ? 'Exit Fullscreen (F)' : 'Fullscreen (F)'}
-              className="p-2 sm:p-2.5 rounded-xl bg-festival-card/80 hover:bg-white/10 border border-festival-border text-slate-200 hover:text-white transition-all shadow"
+              className="hidden sm:flex items-center justify-center p-2.5 rounded-xl bg-festival-card/80 hover:bg-white/10 border border-festival-border text-slate-200 hover:text-white transition-all shadow min-h-[44px] min-w-[44px] cursor-pointer"
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
 
-            {/* Close Button */}
+            {/* 1. Prominent High-Contrast Close Button: "X Close" */}
             <button
               onClick={closeLightbox}
-              title="Close (ESC)"
-              className="p-2 sm:p-2.5 rounded-xl bg-red-600/85 hover:bg-red-600 text-white font-bold transition-all shadow-lg hover:scale-105"
+              aria-label="Close image preview"
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-red-600 to-rose-700 hover:from-red-500 hover:to-rose-600 text-white font-black text-xs sm:text-sm shadow-xl shadow-red-950/80 border border-red-400/50 hover:scale-105 active:scale-95 transition-all cursor-pointer min-h-[44px] min-w-[44px]"
+              title="Close image preview (ESC)"
             >
               <X className="w-5 h-5" />
+              <span>Close</span>
             </button>
           </div>
         </motion.header>
 
-        {/* 2. Main Viewport & Interactive Image */}
+        {/* 3. Main Viewport & Interactive Image (Click outside to close) */}
         <div
           ref={imageContainerRef}
+          onClick={handleViewportBackgroundClick}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -423,12 +440,12 @@ const ProductImageLightbox = () => {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onDoubleClick={handleToggleZoom}
-          className={`relative z-10 flex-1 flex items-center justify-center overflow-hidden p-2 sm:p-6 ${
+          className={`lightbox-backdrop-area relative z-10 flex-1 flex items-center justify-center overflow-hidden p-2 sm:p-6 cursor-pointer ${
             zoom > 1
               ? isDragging
                 ? 'cursor-grabbing'
                 : 'cursor-grab'
-              : 'cursor-zoom-in'
+              : ''
           }`}
         >
           {/* Previous Image Trigger */}
@@ -439,8 +456,9 @@ const ProductImageLightbox = () => {
                 setSwipeDirection(1);
                 prevImage();
               }}
+              aria-label="Previous image"
               title="Previous Image (Left Arrow / Swipe Right)"
-              className="absolute left-2 sm:left-6 z-30 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-amber-500 hover:text-slate-950 text-white border border-white/20 backdrop-blur-md transition-all shadow-xl hover:scale-110"
+              className="absolute left-2 sm:left-6 z-30 p-3 rounded-full bg-black/70 hover:bg-amber-500 hover:text-slate-950 text-white border border-white/30 backdrop-blur-md transition-all shadow-2xl hover:scale-110 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
@@ -466,29 +484,28 @@ const ProductImageLightbox = () => {
                   <Sparkles className="w-5 h-5 text-amber-400" />
                 </div>
                 <span className="text-xs text-amber-400/90 font-bold mt-3">
-                  Loading high resolution fireworks...
+                  Loading high resolution cracker preview...
                 </span>
               </div>
             )}
 
+            {/* Main Product Image (Click to close when not zoomed) */}
             <img
               src={currentImgSrc}
               alt={`${productTitle} - High Resolution View`}
+              onClick={handleImageClick}
               draggable={false}
+              decoding="async"
               onContextMenu={(e) => e.preventDefault()}
               onDragStart={(e) => e.preventDefault()}
               onLoad={() => {
                 setImageLoaded(true);
-                console.log("Lightbox image loaded", currentImgSrc);
               }}
               onError={() => {
-                console.error("Lightbox image failed", currentImgSrc);
                 if (fallbackTier === 1 && currentRawUrl && currentRawUrl !== currentImgSrc) {
-                  console.warn("[Lightbox Fallback] High-res image failed. Falling back to original URL:", currentRawUrl);
                   setFallbackTier(2);
                   setCurrentImgSrc(currentRawUrl);
                 } else if (fallbackTier <= 2 && currentImgSrc !== FESTIVE_PLACEHOLDER_SVG) {
-                  console.warn("[Lightbox Fallback] Original image URL failed. Falling back to Festive SVG Placeholder.");
                   setFallbackTier(3);
                   setCurrentImgSrc(FESTIVE_PLACEHOLDER_SVG);
                   setImageLoaded(true);
@@ -505,9 +522,10 @@ const ProductImageLightbox = () => {
                   setImageFailed(true);
                 }
               }}
-              className={`max-w-[90vw] max-h-[72vh] sm:max-h-[75vh] w-auto h-auto object-contain rounded-2xl shadow-2xl transition-opacity duration-300 ${
+              className={`max-w-[90vw] max-h-[70vh] sm:max-h-[75vh] w-auto h-auto object-contain rounded-2xl shadow-2xl transition-opacity duration-300 cursor-pointer ${
                 imageLoaded ? 'opacity-100' : 'opacity-0 absolute'
               }`}
+              title="Click image to close preview • Double-click to zoom"
               style={{
                 userSelect: 'none',
                 WebkitUserDrag: 'none',
@@ -525,19 +543,20 @@ const ProductImageLightbox = () => {
                 setSwipeDirection(-1);
                 nextImage();
               }}
+              aria-label="Next image"
               title="Next Image (Right Arrow / Swipe Left)"
-              className="absolute right-2 sm:right-6 z-30 p-2.5 sm:p-3 rounded-full bg-black/60 hover:bg-amber-500 hover:text-slate-950 text-white border border-white/20 backdrop-blur-md transition-all shadow-xl hover:scale-110"
+              className="absolute right-2 sm:right-6 z-30 p-3 rounded-full bg-black/70 hover:bg-amber-500 hover:text-slate-950 text-white border border-white/30 backdrop-blur-md transition-all shadow-2xl hover:scale-110 min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
           )}
         </div>
 
-        {/* 3. Footer Toolbar & Gallery Thumbnails */}
+        {/* 4. Footer Toolbar & Gallery Thumbnails */}
         <motion.footer
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative z-20 flex flex-col items-center p-3 sm:p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent gap-2.5"
+          className="relative z-20 flex flex-col items-center p-3 sm:p-4 bg-gradient-to-t from-black/95 via-black/80 to-transparent gap-2.5 border-t border-white/10"
         >
           {/* Gallery Thumbnails Strip */}
           {images.length > 1 && (
@@ -549,7 +568,8 @@ const ProductImageLightbox = () => {
                     setSwipeDirection(idx > currentIndex ? -1 : 1);
                     setIndex(idx);
                   }}
-                  className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 ${
+                  aria-label={`View image ${idx + 1}`}
+                  className={`relative w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 cursor-pointer ${
                     currentIndex === idx
                       ? 'border-amber-400 ring-2 ring-amber-400/40 scale-105'
                       : 'border-festival-border opacity-50 hover:opacity-100'
@@ -566,8 +586,8 @@ const ProductImageLightbox = () => {
             </div>
           )}
 
-          {/* Bottom Bar Details & Counter */}
-          <div className="flex items-center justify-between w-full max-w-2xl px-3 text-xs text-slate-400">
+          {/* Bottom Bar Details & Navigation Hints */}
+          <div className="flex items-center justify-between w-full max-w-3xl px-3 text-xs text-slate-400 flex-wrap gap-2">
             {/* Counter */}
             <span className="font-semibold text-amber-300">
               {images.length > 1
@@ -575,9 +595,9 @@ const ProductImageLightbox = () => {
                 : '1 Image Preview'}
             </span>
 
-            {/* Hint */}
-            <span className="text-slate-400 text-[11px]">
-              Swipe or arrow keys to browse • Scroll/pinch to zoom • ESC to close
+            {/* Helpful Close / Interaction Hints */}
+            <span className="text-slate-300 text-[11px] font-medium hidden sm:inline">
+              Click image, click background, or press <kbd className="px-1.5 py-0.5 rounded bg-white/15 text-white font-mono text-[10px]">ESC</kbd> to return to products
             </span>
 
             {/* View Product Page Link if product exists */}
@@ -585,10 +605,10 @@ const ProductImageLightbox = () => {
               <Link
                 to={`/product/${product.slug || product._id}`}
                 onClick={closeLightbox}
-                className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 hover:underline"
+                className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 hover:underline ml-auto"
               >
                 <span>Product Details</span>
-                <ExternalLink className="w-3 h-3" />
+                <ExternalLink className="w-3.5 h-3.5" />
               </Link>
             )}
           </div>

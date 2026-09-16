@@ -63,13 +63,15 @@ export const LightboxProvider = ({ children }) => {
     [images.length]
   );
 
-  // Lock body scroll when Lightbox is open
+  // Lock body scroll when Lightbox is open while preserving exact scroll position
   useEffect(() => {
     if (isOpen) {
+      const scrollY = window.scrollY;
       const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
       return () => {
         document.body.style.overflow = originalOverflow;
+        window.scrollTo(0, scrollY);
       };
     }
   }, [isOpen]);
