@@ -2,6 +2,11 @@ import React, { Suspense, lazy } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/common/Navbar';
 import Footer from './components/common/Footer';
+import FloatingCartBar from './components/cart/FloatingCartBar';
+import WhatsAppFloatingButton from './components/common/WhatsAppFloatingButton';
+import LoadingSpinner from './components/common/LoadingSpinner';
+import ErrorBoundary from './components/common/ErrorBoundary';
+
 // Global modals lazy loaded on demand
 const CartDrawer = lazy(() => import('./components/cart/CartDrawer'));
 const ProductImageLightbox = lazy(() => import('./components/common/ProductImageLightbox'));
@@ -68,36 +73,38 @@ const App = () => {
         </>
       )}
 
-      {/* Main Routing Views */}
+      {/* Main Routing Views Protected by Error Boundary */}
       <main className="flex-1 pb-16 sm:pb-20">
-        <Suspense fallback={<PageFallback />}>
-          <Routes>
-            {/* Public Customer Storefront Routes */}
-            <Route path="/" element={<HomePage />} />
-            <Route path="/products" element={<ProductsPage />} />
-            <Route path="/all-crackers" element={<ProductsPage />} />
-            <Route path="/product/:slug" element={<ProductDetailPage />} />
-            <Route path="/products/:slug" element={<ProductDetailPage />} />
-            <Route path="/cart" element={<CartPage />} />
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
-            <Route path="/track-order" element={<OrderTrackingPage />} />
-            <Route path="/safety" element={<SafetyPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
+        <ErrorBoundary fallbackType="page">
+          <Suspense fallback={<PageFallback />}>
+            <Routes>
+              {/* Public Customer Storefront Routes */}
+              <Route path="/" element={<HomePage />} />
+              <Route path="/products" element={<ProductsPage />} />
+              <Route path="/all-crackers" element={<ProductsPage />} />
+              <Route path="/product/:slug" element={<ProductDetailPage />} />
+              <Route path="/products/:slug" element={<ProductDetailPage />} />
+              <Route path="/cart" element={<CartPage />} />
+              <Route path="/checkout" element={<CheckoutPage />} />
+              <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
+              <Route path="/track-order" element={<OrderTrackingPage />} />
+              <Route path="/safety" element={<SafetyPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
 
-            {/* Admin Portal Routes */}
-            <Route path="/admin/login" element={<AdminLoginPage />} />
-            <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-            <Route path="/admin/orders/:orderId" element={<AdminDashboardPage />} />
-            <Route path="/admin/orders" element={<AdminDashboardPage />} />
-            <Route path="/admin/notifications" element={<AdminDashboardPage />} />
-            <Route path="/admin" element={<AdminDashboardPage />} />
+              {/* Admin Portal Routes */}
+              <Route path="/admin/login" element={<AdminLoginPage />} />
+              <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+              <Route path="/admin/orders/:orderId" element={<AdminDashboardPage />} />
+              <Route path="/admin/orders" element={<AdminDashboardPage />} />
+              <Route path="/admin/notifications" element={<AdminDashboardPage />} />
+              <Route path="/admin" element={<AdminDashboardPage />} />
 
-            {/* Fallback */}
-            <Route path="*" element={<HomePage />} />
-          </Routes>
-        </Suspense>
+              {/* Fallback */}
+              <Route path="*" element={<HomePage />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </main>
 
       {/* Customer Footer */}

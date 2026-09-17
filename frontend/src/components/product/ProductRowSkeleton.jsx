@@ -46,7 +46,7 @@ const ProductRowSkeleton = ({ index = 0 }) => {
 
         {/* Col 6: Stepper Skeleton */}
         <div className="col-span-2 flex justify-center">
-          <div className="h-8 bg-slate-850 bg-slate-900 border border-festival-border/60 rounded-xl w-24" />
+          <div className="h-8 bg-slate-900 border border-festival-border/60 rounded-xl w-24" />
         </div>
 
         {/* Col 7: Subtotal Skeleton */}
