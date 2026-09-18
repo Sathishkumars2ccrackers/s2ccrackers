@@ -26,6 +26,8 @@ import { getProductImages, getProductImage } from '../utils/imageUrlUtils';
 import ProductCard from '../components/product/ProductCard';
 import ProductImage from '../components/common/ProductImage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SEO from '../components/common/SEO';
+import Breadcrumbs from '../components/common/Breadcrumbs';
 
 const ProductDetailPage = () => {
   const { slug } = useParams();
@@ -125,26 +127,90 @@ const ProductDetailPage = () => {
     : 0;
 
   const images = getProductImages(product);
+  const categoryName = product.category?.name || 'Sivakasi Fireworks';
+  const categorySlug = product.category?.slug || product.category?._id || '';
+
+  const seoTitle = `${product.name} - ${categoryName} | Buy Online S2C Crackers Sivakasi`;
+  const seoDescription = `Buy authentic Sivakasi ${product.name} (${categoryName}) online at factory direct price ₹${product.price}. Safe, high quality fireworks with India-wide door delivery.`;
+  const canonicalUrl = `https://www.s2ccrackers.com/product/${product.slug || product._id}`;
+
+  const breadcrumbItems = [
+    { label: 'Home', path: '/' },
+    { label: 'All Crackers', path: '/products' },
+    ...(product.category
+      ? [
+          {
+            label: categoryName,
+            path: `/products?category=${categorySlug}`,
+          },
+        ]
+      : []),
+    { label: product.name, isCurrent: true },
+  ];
+
+  const productStructuredData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'Product',
+        '@id': `${canonicalUrl}#product`,
+        name: product.name,
+        image: images && images.length > 0 ? images : ['https://www.s2ccrackers.com/logo.svg'],
+        description:
+          product.description ||
+          `Buy authentic Sivakasi ${product.name} (${categoryName}) online at direct factory price ₹${product.price} from S2C Crackers. Safe green fireworks with door delivery across India.`,
+        sku: product.productCode || product._id,
+        mpn: product.productCode || product._id,
+        brand: {
+          '@type': 'Brand',
+          name: product.brand || 'S2C Crackers',
+        },
+        category: categoryName,
+        offers: {
+          '@type': 'Offer',
+          url: canonicalUrl,
+          priceCurrency: 'INR',
+          price: product.price,
+          priceValidUntil: '2026-12-31',
+          itemCondition: 'https://schema.org/NewCondition',
+          availability:
+            product.stockQuantity > 0
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          seller: {
+            '@type': 'Organization',
+            name: 'S2C Crackers',
+          },
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          name: item.label,
+          ...(item.path ? { item: `https://www.s2ccrackers.com${item.path.startsWith('/') ? item.path : '/' + item.path}` } : {}),
+        })),
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-festival-dark py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-10">
+      {/* Dynamic SEO Meta & Product Schema */}
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        keywords={`S2C Crackers, Sivakasi Crackers, ${product.name}, ${categoryName}, Buy ${product.name} Online, Crackers Price List 2026, Factory Direct Fireworks`}
+        canonical={canonicalUrl}
+        ogImage={images[0] || product.image}
+        ogType="product"
+        structuredData={productStructuredData}
+      />
+
+      <div className="max-w-7xl mx-auto space-y-8">
         {/* Breadcrumb Bar */}
-        <nav className="flex items-center space-x-2 text-xs text-slate-400">
-          <Link to="/" className="hover:text-amber-400">Home</Link>
-          <span>/</span>
-          <Link to="/products" className="hover:text-amber-400">All Crackers</Link>
-          <span>/</span>
-          {product.category && (
-            <>
-              <Link to={`/products?category=${product.category.slug || product.category._id}`} className="hover:text-amber-400 font-semibold">
-                {product.category.name}
-              </Link>
-              <span>/</span>
-            </>
-          )}
-          <span className="text-amber-300 font-medium truncate max-w-[200px]">{product.name}</span>
-        </nav>
+        <Breadcrumbs items={breadcrumbItems} />
 
         {/* Product Main Container */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-festival-card border border-festival-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl">

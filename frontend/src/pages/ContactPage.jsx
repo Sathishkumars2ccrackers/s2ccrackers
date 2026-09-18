@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { MapPin, Phone, Mail, MessageCircle, Clock, Send, CheckCircle2 } from 'lucide-react';
 import { createWhatsAppGeneralChatUrl } from '../utils/whatsappHelper';
+import SEO from '../components/common/SEO';
+import Breadcrumbs from '../components/common/Breadcrumbs';
+
+const contactBreadcrumbs = [
+  { label: 'Home', path: '/' },
+  { label: 'Contact Us', isCurrent: true },
+];
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
@@ -18,8 +25,18 @@ const ContactPage = () => {
   const whatsappChatUrl = createWhatsAppGeneralChatUrl('919944476516');
 
   return (
-    <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-12">
+    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Contact S2C Crackers | Sivakasi Office & WhatsApp Support"
+        description="Get in touch with S2C Crackers Sivakasi for festival orders, wholesale price lists, and instant WhatsApp support. Fast dispatch and customer assistance."
+        keywords="Contact S2C Crackers, Sivakasi crackers phone number, buy crackers WhatsApp, S2C fireworks customer care, Sivakasi office address"
+        canonical="https://www.s2ccrackers.com/contact"
+      />
+
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Breadcrumb Bar */}
+        <Breadcrumbs items={contactBreadcrumbs} />
+
         {/* Header */}
         <div className="text-center space-y-3 max-w-2xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">

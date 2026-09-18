@@ -1,11 +1,28 @@
 import React from 'react';
 import { ShieldCheck, CheckCircle2, XCircle, AlertTriangle, Flame, Phone, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from '../components/common/SEO';
+import Breadcrumbs from '../components/common/Breadcrumbs';
+
+const safetyBreadcrumbs = [
+  { label: 'Home', path: '/' },
+  { label: 'Safety Guidelines', isCurrent: true },
+];
 
 const SafetyPage = () => {
   return (
-    <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-10">
+    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Cracker Safety Tips & Diwali Fireworks Guidelines | S2C Crackers Sivakasi"
+        description="Important cracker safety tips and Diwali fireworks guidelines from S2C Crackers. Learn safe handling, storage, and lighting practices for a secure celebration."
+        keywords="Cracker safety tips, Diwali fireworks precautions, green crackers safety, fireworks handling guidelines, S2C Crackers safety"
+        canonical="https://www.s2ccrackers.com/safety"
+      />
+
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Breadcrumb Bar */}
+        <Breadcrumbs items={safetyBreadcrumbs} />
+
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider">

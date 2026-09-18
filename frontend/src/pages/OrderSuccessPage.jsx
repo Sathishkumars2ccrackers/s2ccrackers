@@ -19,6 +19,7 @@ import { formatCurrency, formatDate } from '../utils/formatters';
 import { createWhatsAppOrderUrl } from '../utils/whatsappHelper';
 import FireworksCanvas from '../components/common/FireworksCanvas';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SEO from '../components/common/SEO';
 import logoSvg from '../assets/logo.svg';
 
 const OrderSuccessPage = () => {
@@ -82,6 +83,11 @@ const OrderSuccessPage = () => {
 
   return (
     <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <SEO
+        title="Order Placed Successfully | S2C Crackers Sivakasi"
+        description="Your festival crackers order has been received at S2C Crackers. Confirm via WhatsApp and track dispatch."
+        noindex={true}
+      />
       {/* Background Visual Fireworks */}
       <FireworksCanvas className="absolute inset-0 pointer-events-none opacity-40 z-0" autoLaunch={true} />
 

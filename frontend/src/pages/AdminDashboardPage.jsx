@@ -36,6 +36,7 @@ import NotificationManager from '../components/admin/NotificationManager';
 import OrderAlertBanner from '../components/admin/OrderAlertBanner';
 import { setupForegroundMessageListener } from '../config/firebase';
 import { playOrderAlertChime } from '../utils/notificationAudio';
+import SEO from '../components/common/SEO';
 import logoSvg from '../assets/logo.svg';
 
 const TABS = [
@@ -198,6 +199,7 @@ const AdminDashboardPage = () => {
 
   return (
     <div className="min-h-screen bg-[#0a0510] text-slate-100 flex flex-col lg:flex-row">
+      <SEO title="Admin Dashboard | S2C Crackers" noindex={true} />
       {/* Real-Time Floating Order Alert Banner (Phase 13) */}
       <OrderAlertBanner
         alert={currentOrderAlert}

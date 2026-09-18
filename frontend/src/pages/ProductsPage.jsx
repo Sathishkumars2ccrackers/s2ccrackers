@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -25,6 +25,8 @@ import { productService, categoryService } from '../services/api';
 import ProductListRow from '../components/product/ProductListRow';
 import ProductRowSkeleton from '../components/product/ProductRowSkeleton';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SEO from '../components/common/SEO';
+import Breadcrumbs from '../components/common/Breadcrumbs';
 import { useCart } from '../context/CartContext';
 import { formatCurrency, formatProductCode, naturalProductCodeSort, sortProductsByCode } from '../utils/formatters';
 
@@ -91,8 +93,9 @@ const isSameCategory = (catA, catB) => {
 const INITIAL_PAGE_SIZE = 20;
 const PAGE_INCREMENT = 20;
 
-const ProductsPage = () => {
+const ProductsPage = ({ initialCategory }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const routeParams = useParams();
   const { totalItemsCount, cartSubtotal, openCart } = useCart();
 
   const [masterProducts, setMasterProducts] = useState([]);
@@ -104,9 +107,9 @@ const ProductsPage = () => {
   const [visibleCount, setVisibleCount] = useState(INITIAL_PAGE_SIZE);
   const loadMoreTriggerRef = React.useRef(null);
 
-  // Filters state from URL query
+  // Filters state from URL query or Route parameters
   const search = searchParams.get('search') || '';
-  const category = searchParams.get('category') || 'all';
+  const category = searchParams.get('category') || initialCategory || routeParams.categorySlug || 'all';
   const brand = searchParams.get('brand') || 'all';
   const minPrice = searchParams.get('minPrice') || '';
   const maxPrice = searchParams.get('maxPrice') || '';
@@ -212,6 +215,58 @@ const ProductsPage = () => {
     }
     return 'All Crackers Wholesale Catalog';
   }, [currentCategoryObj, category]);
+
+  // Dynamic SEO Title & Description
+  const seoTitle = useMemo(() => {
+    if (currentCategoryObj?.name) {
+      return `${currentCategoryObj.name} Crackers Online | Buy Sivakasi ${currentCategoryObj.name} at Factory Price - S2C Crackers`;
+    }
+    if (search && search.trim()) {
+      return `${search.trim()} - Search Crackers & Fireworks | S2C Crackers Sivakasi`;
+    }
+    return 'All Crackers & Fireworks Price List 2026 | Buy Online - S2C Crackers Sivakasi';
+  }, [currentCategoryObj, search]);
+
+  const seoDescription = useMemo(() => {
+    if (currentCategoryObj?.name) {
+      return `Explore premium Sivakasi ${currentCategoryObj.name} online at wholesale factory rates. 80% discount, authentic quality & door delivery across India from S2C Crackers.`;
+    }
+    if (search && search.trim()) {
+      return `Search results for "${search.trim()}" in Sivakasi crackers 2026 price list. Buy authentic fireworks with up to 80% factory direct discount and door delivery.`;
+    }
+    return 'Browse 2026 Sivakasi crackers price list online. Buy sound crackers, sparklers, flower pots, sky shots & deluxe gift boxes at 80% factory direct discount.';
+  }, [currentCategoryObj, search]);
+
+  const canonicalUrl = useMemo(() => {
+    if (currentCategoryObj?.slug) {
+      return `https://www.s2ccrackers.com/products?category=${currentCategoryObj.slug}`;
+    }
+    return 'https://www.s2ccrackers.com/products';
+  }, [currentCategoryObj]);
+
+  const breadcrumbItems = useMemo(() => {
+    const items = [
+      { label: 'Home', path: '/' },
+      { label: 'All Crackers', path: '/products' },
+    ];
+    if (currentCategoryObj?.name) {
+      items.push({ label: currentCategoryObj.name, isCurrent: true });
+    } else if (search && search.trim()) {
+      items.push({ label: `Search: "${search.trim()}"`, isCurrent: true });
+    }
+    return items;
+  }, [currentCategoryObj, search]);
+
+  const breadcrumbListSchema = useMemo(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: breadcrumbItems.map((item, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: item.label,
+      ...(item.path ? { item: `https://www.s2ccrackers.com${item.path.startsWith('/') ? item.path : '/' + item.path}` } : {}),
+    })),
+  }), [breadcrumbItems]);
 
   // Filter & Sort Products (Natural Numeric Product Code Sorting by Default and after Filters)
   const filteredAndSortedProducts = useMemo(() => {
@@ -375,24 +430,38 @@ const ProductsPage = () => {
 
   return (
     <div className="min-h-screen bg-festival-dark text-slate-100 pb-28">
+      {/* Dynamic SEO Meta & Structured Data */}
+      <SEO
+        title={seoTitle}
+        description={seoDescription}
+        keywords={`S2C Crackers, Sivakasi Crackers, Buy Crackers Online, ${currentCategoryObj?.name || 'All Crackers'}, Crackers Price List 2026, Gift Box Crackers, Diwali Crackers, Factory Direct Fireworks`}
+        canonical={canonicalUrl}
+        structuredData={breadcrumbListSchema}
+      />
+
       {/* 1. Page Title Header Strip (Scrolls away at top) */}
       <div className="bg-gradient-to-b from-festival-card/90 to-transparent border-b border-festival-border/50 pt-5 pb-4 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-1.5 text-amber-400 text-[11px] font-black uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Sivakasi Direct Factory Wholesale Price List 2026</span>
+        <div className="max-w-7xl mx-auto space-y-3">
+          {/* Visual Breadcrumb Navigation */}
+          <Breadcrumbs items={breadcrumbItems} />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-1.5 text-amber-400 text-[11px] font-black uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Sivakasi Direct Factory Wholesale Price List 2026</span>
+              </div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight flex items-baseline gap-2">
+                {catalogTitle}
+                <span className="text-xs sm:text-sm font-bold text-amber-400/90 font-mono">
+                  ({filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'Product' : 'Products'})
+                </span>
+              </h1>
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight flex items-baseline gap-2">
-              {catalogTitle}
-              <span className="text-xs sm:text-sm font-bold text-amber-400/90 font-mono">
-                ({filteredAndSortedProducts.length} {filteredAndSortedProducts.length === 1 ? 'Product' : 'Products'})
-              </span>
-            </h1>
+            <p className="text-xs text-slate-400">
+              Quick Wholesale Order • Select quantities directly • Door Delivery Available
+            </p>
           </div>
-          <p className="text-xs text-slate-400">
-            Quick Wholesale Order • Select quantities directly • Door Delivery Available
-          </p>
         </div>
       </div>
 

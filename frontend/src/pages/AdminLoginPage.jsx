@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Lock, Mail, KeyRound, ShieldAlert, ArrowRight, Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import SEO from '../components/common/SEO';
 import logoSvg from '../assets/logo.svg';
 
 const AdminLoginPage = () => {
@@ -38,6 +39,7 @@ const AdminLoginPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0a0510] via-[#140b20] to-[#0a0510] flex items-center justify-center p-4">
+      <SEO title="Admin Login | S2C Crackers" noindex={true} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}

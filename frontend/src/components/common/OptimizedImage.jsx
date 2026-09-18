@@ -63,8 +63,10 @@ const OptimizedImage = ({
   });
 
   const productId = product?._id || product?.id || product?.productId || 'N/A';
-  const productName = product?.name || alt || 'Fireworks Item';
-  const seoAltText = `${productName} - Authentic Sivakasi Fireworks`;
+  const productName = product?.name || (typeof alt === 'string' && alt !== 'S2C Sivakasi Crackers' ? alt : '') || 'Fireworks Item';
+  const seoAltText = typeof alt === 'string' && alt !== 'S2C Sivakasi Crackers' && alt.length > 3
+    ? `${alt} - Sivakasi Crackers Factory Direct Price`
+    : `${productName} - Authentic Sivakasi Fireworks Direct Factory Price`;
 
   // 1. Intersection Observer: trigger image loading when within 120px of viewport
   useEffect(() => {
@@ -213,6 +215,8 @@ const OptimizedImage = ({
         <img
           src={currentSrc}
           alt={seoAltText}
+          width={optimizedWidth || 300}
+          height={optimizedHeight || optimizedWidth || 300}
           loading={priority ? 'eager' : 'lazy'}
           decoding="async"
           fetchPriority={fetchPriority === 'high' ? 'high' : undefined}

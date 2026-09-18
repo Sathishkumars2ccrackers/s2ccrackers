@@ -22,6 +22,7 @@ const activityLogRoutes = require('./routes/activityLogRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const settingRoutes = require('./routes/settingRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const seoRoutes = require('./routes/seoRoutes');
 
 const app = express();
 
@@ -48,6 +49,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
+
+// SEO Endpoints (Sitemap.xml & Robots.txt at root and /api)
+app.use('/', seoRoutes);
+app.use('/api', seoRoutes);
 
 // API Routes
 app.use('/api/auth', authRoutes);

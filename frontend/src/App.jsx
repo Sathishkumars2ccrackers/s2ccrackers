@@ -82,8 +82,26 @@ const App = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/products" element={<ProductsPage />} />
               <Route path="/all-crackers" element={<ProductsPage />} />
+              <Route path="/crackers" element={<ProductsPage />} />
+              <Route path="/category/:categorySlug" element={<ProductsPage />} />
+              <Route path="/products/category/:categorySlug" element={<ProductsPage />} />
+              
+              {/* SEO-Friendly Category Slugs */}
+              <Route path="/products/sparklers" element={<ProductsPage initialCategory="sparklers" />} />
+              <Route path="/products/flower-pots" element={<ProductsPage initialCategory="flower-pots" />} />
+              <Route path="/products/ground-chakkars" element={<ProductsPage initialCategory="ground-chakkars" />} />
+              <Route path="/products/sound-crackers" element={<ProductsPage initialCategory="sound-crackers" />} />
+              <Route path="/products/gift-boxes" element={<ProductsPage initialCategory="deluxe-gift-boxes" />} />
+              <Route path="/products/deluxe-gift-boxes" element={<ProductsPage initialCategory="deluxe-gift-boxes" />} />
+              <Route path="/products/multi-shot-sky-shots" element={<ProductsPage initialCategory="multi-shot-sky-shots" />} />
+              <Route path="/products/rockets-missiles" element={<ProductsPage initialCategory="rockets-missiles" />} />
+              <Route path="/products/kids-special" element={<ProductsPage initialCategory="kids-special" />} />
+
+              {/* Product Detail Routes */}
               <Route path="/product/:slug" element={<ProductDetailPage />} />
               <Route path="/products/:slug" element={<ProductDetailPage />} />
+              
+              {/* Checkout & Utility Routes */}
               <Route path="/cart" element={<CartPage />} />
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />

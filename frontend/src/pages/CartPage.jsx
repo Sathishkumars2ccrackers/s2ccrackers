@@ -6,6 +6,7 @@ import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { formatCurrency } from '../utils/formatters';
 import ProductImage from '../components/common/ProductImage';
+import SEO from '../components/common/SEO';
 
 const CartPage = () => {
   const navigate = useNavigate();
@@ -37,6 +38,11 @@ const CartPage = () => {
   if (cartItems.length === 0) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center bg-festival-dark px-4 text-center space-y-4">
+        <SEO
+          title="Your Shopping Cart | S2C Crackers Sivakasi"
+          description="Your festival shopping cart is currently empty. Explore authentic Sivakasi fireworks, sparklers, flower pots, and deluxe gift box combos at factory direct price."
+          canonical="https://www.s2ccrackers.com/cart"
+        />
         <div className="w-20 h-20 rounded-full bg-festival-card border border-dashed border-festival-border flex items-center justify-center text-slate-500">
           <ShoppingBag className="w-10 h-10" />
         </div>
@@ -56,6 +62,11 @@ const CartPage = () => {
 
   return (
     <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Your Shopping Cart | S2C Crackers Sivakasi"
+        description="Review your selected Sivakasi fireworks and crackers in cart. Unlock festive discount slabs and free door delivery before direct factory checkout."
+        canonical="https://www.s2ccrackers.com/cart"
+      />
       <div className="max-w-7xl mx-auto space-y-8">
         <div className="flex items-center justify-between pb-6 border-b border-festival-border">
           <div>

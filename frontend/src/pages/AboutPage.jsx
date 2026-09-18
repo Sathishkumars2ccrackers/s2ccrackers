@@ -2,13 +2,30 @@ import React from 'react';
 import { Award, ShieldCheck, Truck, Sparkles, Heart, Building2, Phone, Mail, MessageCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createWhatsAppGeneralChatUrl } from '../utils/whatsappHelper';
+import SEO from '../components/common/SEO';
+import Breadcrumbs from '../components/common/Breadcrumbs';
+
+const aboutBreadcrumbs = [
+  { label: 'Home', path: '/' },
+  { label: 'About Us', isCurrent: true },
+];
 
 const AboutPage = () => {
   const whatsappUrl = createWhatsAppGeneralChatUrl('919944476516', 'Hello S2C Crackers, I would like to place an order.');
 
   return (
-    <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-12">
+    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="About S2C Crackers | Authentic Sivakasi Fireworks Manufacturer"
+        description="Learn about S2C Crackers, Sivakasi's trusted fireworks manufacturer and online distributor. 100% genuine crackers at direct factory wholesale rates."
+        keywords="About S2C Crackers, Sivakasi fireworks manufacturer, buy crackers direct factory, genuine Diwali fireworks, S2C Crackers history"
+        canonical="https://www.s2ccrackers.com/about"
+      />
+
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Breadcrumb Bar */}
+        <Breadcrumbs items={aboutBreadcrumbs} />
+
         {/* Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">

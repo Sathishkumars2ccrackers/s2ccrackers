@@ -18,9 +18,15 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { orderService } from '../services/api';
-import { formatCurrency, formatDate } from '../utils/formatters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ProductImage from '../components/common/ProductImage';
+import SEO from '../components/common/SEO';
+import Breadcrumbs from '../components/common/Breadcrumbs';
+
+const trackBreadcrumbs = [
+  { label: 'Home', path: '/' },
+  { label: 'Track Order', isCurrent: true },
+];
 
 const STEPS = [
   { id: 'Pending', label: 'Order Placed', icon: Clock, desc: 'Received at Sivakasi factory' },
@@ -142,8 +148,18 @@ const OrderTrackingPage = () => {
   const currentStepIndex = order ? getStepIndex(order.status || order.orderStatus) : 0;
 
   return (
-    <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-10">
+    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Track Your Cracker Order Online | S2C Crackers Sivakasi"
+        description="Track your S2C Crackers festival fireworks order live using your Order ID and mobile number. Instant factory dispatch & parcel status updates across India."
+        keywords="Track cracker order, Sivakasi order tracking, S2C Crackers parcel status, live fireworks delivery tracking"
+        canonical="https://www.s2ccrackers.com/track-order"
+      />
+
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Breadcrumb Bar */}
+        <Breadcrumbs items={trackBreadcrumbs} />
+
         {/* Header */}
         <div className="text-center space-y-3 max-w-xl mx-auto">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">

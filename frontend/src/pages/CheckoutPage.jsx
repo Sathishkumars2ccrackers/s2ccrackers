@@ -22,6 +22,7 @@ import { useSettings } from '../context/SettingsContext';
 import { orderService } from '../services/api';
 import { formatCurrency } from '../utils/formatters';
 import ProductImage from '../components/common/ProductImage';
+import SEO from '../components/common/SEO';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
@@ -180,6 +181,11 @@ const CheckoutPage = () => {
   if (!cartItems || cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-festival-dark flex items-center justify-center px-4 py-16">
+        <SEO
+          title="Direct Factory Checkout | S2C Crackers Sivakasi"
+          description="Your cart is empty. Explore our genuine Sivakasi fireworks catalog with 80% direct factory discount and door delivery across India."
+          canonical="https://www.s2ccrackers.com/checkout"
+        />
         <div className="max-w-md w-full text-center bg-festival-card border border-festival-border rounded-3xl p-8 shadow-2xl space-y-6">
           <div className="w-20 h-20 mx-auto rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
             <ShoppingBag className="w-10 h-10" />
@@ -204,6 +210,11 @@ const CheckoutPage = () => {
 
   return (
     <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+      <SEO
+        title="Direct Factory Checkout | Door Delivery Across India - S2C Crackers"
+        description="Fast direct factory checkout for Sivakasi fireworks. Complete your delivery address with zero prepayment risk and door delivery across India."
+        canonical="https://www.s2ccrackers.com/checkout"
+      />
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Page Title */}
         <div className="pb-6 border-b border-festival-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
