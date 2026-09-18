@@ -15,6 +15,7 @@ import {
   Lock,
   Truck,
   Home,
+  ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
@@ -50,13 +51,6 @@ const CheckoutPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  // Redirect if cart is empty
-  useEffect(() => {
-    if (cartItems.length === 0) {
-      navigate('/cart');
-    }
-  }, [cartItems, navigate]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -69,6 +63,33 @@ const CheckoutPage = () => {
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Defensive cart validation
+    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+      setError('Your cart is empty.');
+      return;
+    }
+
+    const sanitizedItems = cartItems
+      .filter((item) => item && (item.productId || item._id || item.id))
+      .map((item) => {
+        const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
+        const unitPrice = Math.max(0, typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0);
+        const subtotal = Math.round(qty * unitPrice * 100) / 100;
+        return {
+          productId: (item.productId || item._id || item.id).toString(),
+          name: (item.name || 'Cracker Item').trim(),
+          price: unitPrice,
+          quantity: qty,
+          subtotal: subtotal,
+          image: item.image || item.imageUrl || '',
+        };
+      });
+
+    if (sanitizedItems.length === 0) {
+      setError('Your cart is empty.');
+      return;
+    }
 
     // Field Validations
     if (!formData.name.trim()) {
@@ -106,8 +127,10 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (cartSubtotal < minimumOrderAmount) {
-      setError(`Minimum order amount is ₹${minimumOrderAmount}. Please add more items.`);
+    const calculatedCartSubtotal = sanitizedItems.reduce((acc, curr) => acc + curr.subtotal, 0);
+
+    if (calculatedCartSubtotal < minimumOrderAmount) {
+      setError(`Minimum order amount is ₹${minimumOrderAmount}. Please add more items to place your order.`);
       return;
     }
 
@@ -128,18 +151,11 @@ const CheckoutPage = () => {
           landmark: formData.landmark.trim(),
           state: formData.state.trim(),
         },
-        items: cartItems.map((item) => ({
-          productId: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          subtotal: item.price * item.quantity,
-          image: item.image,
-        })),
+        items: sanitizedItems,
         notes: formData.notes.trim(),
       };
 
-      // Submit order directly to backend without any pincode restrictions
+      // Submit order directly to backend
       const res = await orderService.placeOrder(orderPayload);
 
       if (res.data?.success && res.data.orderId) {
@@ -148,14 +164,43 @@ const CheckoutPage = () => {
           state: { order: res.data.order, whatsapp: res.data.whatsapp },
         });
       } else {
-        setError(res.data?.message || 'Failed to submit order. Please try again.');
+        setError(res.data?.message || 'Failed to submit order. Please check your details and try again.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to place festival order. Please try again.');
+      setError(
+        err.response?.data?.message ||
+        'Unable to process your order at this moment. Please check your connection or contact us on WhatsApp.'
+      );
     } finally {
       setSubmitting(false);
     }
   };
+
+  // If cart is empty, show dedicated user-friendly empty cart UI
+  if (!cartItems || cartItems.length === 0) {
+    return (
+      <div className="min-h-screen bg-festival-dark flex items-center justify-center px-4 py-16">
+        <div className="max-w-md w-full text-center bg-festival-card border border-festival-border rounded-3xl p-8 shadow-2xl space-y-6">
+          <div className="w-20 h-20 mx-auto rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+            <ShoppingBag className="w-10 h-10" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black text-white">Your cart is empty.</h1>
+            <p className="text-sm text-slate-400">
+              You haven't added any crackers to your cart yet. Explore our genuine Sivakasi fireworks catalog with 80% direct factory discount!
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/products')}
+            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-500 text-slate-950 font-black text-sm hover:from-red-500 hover:to-amber-400 shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2"
+          >
+            <span>Explore All Crackers</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">

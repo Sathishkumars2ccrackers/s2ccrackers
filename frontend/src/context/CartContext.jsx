@@ -128,14 +128,26 @@ export const CartProvider = ({ children }) => {
     localStorage.removeItem(CART_STORAGE_KEY);
   };
 
-  // Calculations
-  const cartSubtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const totalOriginalPrice = cartItems.reduce(
-    (sum, item) => sum + (item.originalPrice || item.price) * item.quantity,
-    0
-  );
+  // Calculations (Defensive against null/undefined/NaN)
+  const cartSubtotal = cartItems.reduce((sum, item) => {
+    const price = typeof item?.price === 'number' ? item.price : parseFloat(item?.price) || 0;
+    const qty = Math.max(1, parseInt(item?.quantity, 10) || 1);
+    return sum + (price * qty);
+  }, 0);
+
+  const totalOriginalPrice = cartItems.reduce((sum, item) => {
+    const origPrice = typeof item?.originalPrice === 'number'
+      ? item.originalPrice
+      : (parseFloat(item?.originalPrice) || (typeof item?.price === 'number' ? item.price : parseFloat(item?.price) || 0));
+    const qty = Math.max(1, parseInt(item?.quantity, 10) || 1);
+    return sum + (origPrice * qty);
+  }, 0);
+
   const totalSavings = Math.max(0, totalOriginalPrice - cartSubtotal);
-  const totalItemsCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const totalItemsCount = cartItems.reduce((sum, item) => {
+    const qty = Math.max(0, parseInt(item?.quantity, 10) || 0);
+    return sum + qty;
+  }, 0);
 
   return (
     <CartContext.Provider

@@ -73,7 +73,18 @@ const placeOrder = async (req, res, next) => {
     const cleanPin = pincode.toString().trim();
 
     // 1. Validate Items & Stock Availability
-    const productIds = rawItems.map((item) => item.productId);
+    const validRawItems = rawItems.filter(
+      (item) => item && (item.productId || item._id || item.id)
+    );
+
+    if (validRawItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your cart is empty. Please add items to proceed.',
+      });
+    }
+
+    const productIds = validRawItems.map((item) => (item.productId || item._id || item.id).toString());
     const products = await Product.find({ _id: { $in: productIds } });
     const productMap = new Map(products.map((p) => [p._id.toString(), p]));
 
@@ -81,19 +92,16 @@ const placeOrder = async (req, res, next) => {
     const validatedItems = [];
     const stockErrors = [];
 
-    for (const item of rawItems) {
-      const product = productMap.get(item.productId.toString());
+    for (const item of validRawItems) {
+      const pId = (item.productId || item._id || item.id).toString();
+      const product = productMap.get(pId);
 
       if (!product || !product.isActive) {
         stockErrors.push(`Product "${item.name || 'Selected item'}" is no longer available.`);
         continue;
       }
 
-      const requestedQty = parseInt(item.quantity, 10);
-      if (isNaN(requestedQty) || requestedQty <= 0) {
-        stockErrors.push(`Invalid quantity for "${product.name}".`);
-        continue;
-      }
+      const requestedQty = Math.max(1, parseInt(item.quantity, 10) || 1);
 
       if (product.stockQuantity < requestedQty) {
         stockErrors.push(
@@ -102,13 +110,16 @@ const placeOrder = async (req, res, next) => {
         continue;
       }
 
-      const itemSubtotal = product.price * requestedQty;
+      const unitPrice = typeof product.price === 'number' && product.price >= 0 ? product.price : 0;
+      const itemSubtotal = Math.round(unitPrice * requestedQty * 100) / 100;
       calculatedSubtotal += itemSubtotal;
 
       validatedItems.push({
         productId: product._id,
         name: product.name,
-        price: product.price,
+        price: unitPrice,
+        quantity: requestedQty,
+        subtotal: itemSubtotal,
         image: Array.isArray(product.images) && product.images.length > 0
           ? product.images[0]
           : (product.imageUrl || product.image || ''),
@@ -120,6 +131,13 @@ const placeOrder = async (req, res, next) => {
         success: false,
         message: stockErrors[0],
         errors: stockErrors,
+      });
+    }
+
+    if (validatedItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Your cart is empty or the selected items are no longer available.',
       });
     }
 
