@@ -25,7 +25,8 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import ProductImage from '../components/common/ProductImage';
 import SEO from '../components/common/SEO';
 import Breadcrumbs from '../components/common/Breadcrumbs';
-import ProfessionalInvoice from '../components/invoice/ProfessionalInvoice';
+import InvoicePDF from '../components/invoice/InvoicePDF';
+import { printInvoiceDocument } from '../utils/printInvoice';
 
 const trackBreadcrumbs = [
   { label: 'Home', path: '/' },
@@ -336,11 +337,11 @@ const OrderTrackingPage = () => {
                         <span>View Tax Invoice</span>
                       </button>
                       <button
-                        onClick={() => window.print()}
+                        onClick={() => printInvoiceDocument(order)}
                         className="no-print px-3.5 py-1.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <Printer className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Print</span>
+                        <span>Print Invoice (PDF)</span>
                       </button>
                     </div>
                   </div>
@@ -722,7 +723,7 @@ const OrderTrackingPage = () => {
               </div>
 
               <div className="overflow-y-auto p-4 sm:p-6">
-                <ProfessionalInvoice order={order} onPrint={() => window.print()} isModal={true} />
+                <InvoicePDF order={order} onPrint={() => printInvoiceDocument(order)} isStandalone={false} />
               </div>
             </motion.div>
           </div>

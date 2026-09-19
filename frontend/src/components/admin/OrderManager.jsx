@@ -42,7 +42,8 @@ import {
   validateAndCleanIndianPhone,
 } from '../../utils/whatsappHelper';
 import LoadingSpinner from '../common/LoadingSpinner';
-import ProfessionalInvoice from '../invoice/ProfessionalInvoice';
+import InvoicePDF from '../invoice/InvoicePDF';
+import { printInvoiceDocument } from '../../utils/printInvoice';
 import logoSvg from '../../assets/logo.svg';
 
 const STATUS_COLORS = {
@@ -1179,11 +1180,11 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                 </span>
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => window.print()}
+                    onClick={() => printInvoiceDocument(selectedOrder)}
                     className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 shadow cursor-pointer"
                   >
                     <Printer className="w-4 h-4" />
-                    Print Invoice
+                    Print Invoice (PDF)
                   </button>
                   <button onClick={() => setIsInvoiceModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
                     <X className="w-5 h-5" />
@@ -1193,7 +1194,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
 
               {/* Printable Invoice Sheet */}
               <div className="p-4 sm:p-6 overflow-y-auto">
-                <ProfessionalInvoice order={selectedOrder} onPrint={() => window.print()} isModal={true} />
+                <InvoicePDF order={selectedOrder} onPrint={() => printInvoiceDocument(selectedOrder)} isStandalone={false} />
               </div>
             </motion.div>
           </div>

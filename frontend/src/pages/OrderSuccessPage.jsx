@@ -14,14 +14,17 @@ import {
   ArrowRight,
   ShieldCheck,
   Tag,
+  FileText,
+  Download,
 } from 'lucide-react';
 import { orderService } from '../services/api';
 import { formatCurrency, formatDate, formatProductCode } from '../utils/formatters';
 import { createWhatsAppOrderUrl } from '../utils/whatsappHelper';
+import { printInvoiceDocument } from '../utils/printInvoice';
 import FireworksCanvas from '../components/common/FireworksCanvas';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import SEO from '../components/common/SEO';
-import ProfessionalInvoice from '../components/invoice/ProfessionalInvoice';
+import InvoicePDF from '../components/invoice/InvoicePDF';
 import logoSvg from '../assets/logo.svg';
 
 const OrderSuccessPage = () => {
@@ -58,7 +61,9 @@ const OrderSuccessPage = () => {
   }, []);
 
   const handlePrint = () => {
-    window.print();
+    if (order) {
+      printInvoiceDocument(order);
+    }
   };
 
   if (loading) {
@@ -181,29 +186,46 @@ const OrderSuccessPage = () => {
             </div>
           </div>
 
-          {/* Prominent WhatsApp Click-to-Chat Button */}
-          <div className="pt-2">
+          {/* Action Buttons: WhatsApp & Direct Invoice Download */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base shadow-2xl shadow-emerald-950/80 border border-emerald-300/50 transform hover:scale-105 transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-xl shadow-emerald-950/80 border border-emerald-300/50 transform hover:scale-105 transition-all cursor-pointer"
             >
-              <MessageCircle className="w-6 h-6 fill-white text-emerald-600" />
-              <span>Send Order via WhatsApp (Instant Confirmation)</span>
+              <MessageCircle className="w-5 h-5 fill-white text-emerald-600" />
+              <span>Send Order via WhatsApp</span>
             </a>
-            <p className="text-[11px] text-emerald-300/80 mt-2">
-              Opens WhatsApp with pre-filled order details to send directly to our factory team.
-            </p>
+
+            <button
+              onClick={handlePrint}
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/60 border border-amber-300/60 transform hover:scale-105 transition-all cursor-pointer"
+            >
+              <Printer className="w-5 h-5" />
+              <span>Download Official Tax Invoice (PDF)</span>
+            </button>
+
+            <Link
+              to={`/invoice/${order.orderId}`}
+              target="_blank"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-festival-dark hover:bg-festival-cardHover text-amber-300 hover:text-white font-bold text-xs border border-festival-border transition-colors cursor-pointer"
+            >
+              <FileText className="w-4 h-4" />
+              <span>Open Full Invoice Tab</span>
+            </Link>
           </div>
+          <p className="text-[11px] text-emerald-300/80 mt-1 text-center">
+            Your official GST-ready factory tax invoice is ready for download and print.
+          </p>
         </motion.div>
 
-        {/* 2. Professional Tax Invoice Sheet */}
+        {/* 2. Dedicated Standalone Tax Invoice Document */}
         <div className="rounded-3xl overflow-hidden shadow-2xl border border-festival-border">
-          <ProfessionalInvoice order={order} onPrint={handlePrint} />
+          <InvoicePDF order={order} onPrint={handlePrint} />
         </div>
 
-        {/* Action Buttons */}
+        {/* Navigation CTAs */}
         <div className="no-print flex flex-wrap items-center justify-between gap-4">
           <Link
             to={`/track-order?orderId=${order.orderId}&phone=${order.customerDetails?.phone}`}

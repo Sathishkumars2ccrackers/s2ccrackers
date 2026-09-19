@@ -19,6 +19,7 @@ const CartPage = lazy(() => import('./pages/CartPage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const OrderSuccessPage = lazy(() => import('./pages/OrderSuccessPage'));
 const OrderTrackingPage = lazy(() => import('./pages/OrderTrackingPage'));
+const InvoicePage = lazy(() => import('./pages/InvoicePage'));
 const SafetyPage = lazy(() => import('./pages/SafetyPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
@@ -50,19 +51,23 @@ const ScrollToTop = () => {
 const App = () => {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isInvoiceRoute = location.pathname.startsWith('/invoice');
+  const isBareLayout = isAdminRoute || isInvoiceRoute;
 
   return (
-    <div className="min-h-screen bg-festival-dark text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950">
+    <div className={`min-h-screen ${isInvoiceRoute ? 'bg-slate-100 text-slate-900' : 'bg-festival-dark text-slate-100'} flex flex-col font-sans selection:bg-amber-500 selection:text-slate-950`}>
       {/* Auto Scroll To Top Controller */}
       <ScrollToTop />
 
       {/* Global Product Image Lightbox & Zoom Viewer (Lazy Loaded) */}
-      <Suspense fallback={null}>
-        <ProductImageLightbox />
-      </Suspense>
+      {!isInvoiceRoute && (
+        <Suspense fallback={null}>
+          <ProductImageLightbox />
+        </Suspense>
+      )}
 
       {/* Customer Storefront Shell */}
-      {!isAdminRoute && (
+      {!isBareLayout && (
         <>
           <Navbar />
           <Suspense fallback={null}>
@@ -74,7 +79,7 @@ const App = () => {
       )}
 
       {/* Main Routing Views Protected by Error Boundary */}
-      <main className="flex-1 pb-16 sm:pb-20">
+      <main className={`flex-1 ${isInvoiceRoute ? 'pb-0' : 'pb-16 sm:pb-20'}`}>
         <ErrorBoundary fallbackType="page">
           <Suspense fallback={<PageFallback />}>
             <Routes>
@@ -106,6 +111,7 @@ const App = () => {
               <Route path="/checkout" element={<CheckoutPage />} />
               <Route path="/order-success/:orderId" element={<OrderSuccessPage />} />
               <Route path="/track-order" element={<OrderTrackingPage />} />
+              <Route path="/invoice/:orderId" element={<InvoicePage />} />
               <Route path="/safety" element={<SafetyPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/contact" element={<ContactPage />} />
@@ -126,7 +132,7 @@ const App = () => {
       </main>
 
       {/* Customer Footer */}
-      {!isAdminRoute && <Footer />}
+      {!isBareLayout && <Footer />}
     </div>
   );
 };
