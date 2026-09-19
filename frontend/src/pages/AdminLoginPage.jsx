@@ -26,10 +26,17 @@ const AdminLoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !password) {
+      setError('Please enter both Admin Email and Password.');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await login(email, password);
+      await login(cleanEmail, password);
       navigate('/admin/dashboard');
     } catch (err) {
       setError(err.message || 'Invalid administrator credentials.');
@@ -73,7 +80,7 @@ const AdminLoginPage = () => {
           </motion.div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
           <div>
             <label htmlFor="admin-email" className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
               Admin Email
@@ -81,15 +88,16 @@ const AdminLoginPage = () => {
             <div className="relative">
               <input
                 id="admin-email"
-                name="email"
+                name="admin_login_email"
                 type="email"
                 required
-                autoComplete="username"
+                autoFocus
+                autoComplete="off"
                 autoCapitalize="none"
                 spellCheck="false"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter administrative email"
+                placeholder="Enter Admin Email"
                 className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -103,13 +111,13 @@ const AdminLoginPage = () => {
             <div className="relative">
               <input
                 id="admin-password"
-                name="password"
+                name="admin_login_password"
                 type={showPassword ? 'text' : 'password'}
                 required
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
+                placeholder="Enter Password"
                 className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-11 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
               />
               <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
