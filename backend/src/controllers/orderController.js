@@ -6,6 +6,7 @@ const { generateOrderId } = require('../utils/orderIdGenerator');
 const { sendCustomerOrderConfirmationEmail, sendAdminNewOrderAlertEmail } = require('../config/mailer');
 const { sendOrderNotification } = require('../services/notificationService');
 const { logActivity } = require('../utils/activityLogger');
+const { calculateItemPricing, calculateOrderPricing } = require('../utils/pricing');
 
 // Calculate highest matching discount slab from business settings
 const calculateDiscount = (subtotal, slabs = []) => {
@@ -30,15 +31,19 @@ const calculateDiscount = (subtotal, slabs = []) => {
 // Generate pre-filled WhatsApp confirmation message
 const buildWhatsAppMessage = (order, businessPhone = '919944476516') => {
   const itemsText = order.items
-    .map((item) => `- ${item.quantity}x ${item.name} (₹${item.price * item.quantity})`)
+    .map((item) => `- ${item.quantity}x ${item.name} (MRP: ₹${item.mrpPrice || item.price} | Our Price: ₹${item.sellingPrice || item.price}) = ₹${item.subtotal || item.price * item.quantity}`)
     .join('\n');
 
-  let discountText = '';
-  if (order.discountAmount > 0) {
-    discountText = `\nItems Subtotal: ₹${order.subtotal}\nSpecial Discount (${order.discountPercentage}%): -₹${order.discountAmount}\nDelivery: ${order.deliveryFee > 0 ? '₹' + order.deliveryFee : 'FREE'}`;
-  }
+  const mrpTotal = order.orderMrpTotal || order.subtotal;
+  const savingsTotal = order.orderSavingsTotal || order.discountAmount || 0;
 
-  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}${discountText}\n\nTotal Amount: ₹${order.totalAmount}\nPayment Method: Door Delivery Available\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
+  let discountText = `\n\nOrder Value (MRP): ₹${mrpTotal}\nTotal Discount Savings: ₹${savingsTotal}`;
+  if (order.discountAmount > 0) {
+    discountText += `\nSpecial Slab Discount (${order.discountPercentage}%): -₹${order.discountAmount}`;
+  }
+  discountText += `\nDelivery: ${order.deliveryFee > 0 ? '₹' + order.deliveryFee : 'FREE'}`;
+
+  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}${discountText}\n\nAmount Payable: ₹${order.totalAmount}\nPayment Method: Door Delivery Available\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
 
   const encodedMessage = encodeURIComponent(rawMessage);
   const cleanNumber = businessPhone.replace(/[^0-9]/g, '');
@@ -89,6 +94,8 @@ const placeOrder = async (req, res, next) => {
     const productMap = new Map(products.map((p) => [p._id.toString(), p]));
 
     let calculatedSubtotal = 0;
+    let orderMrpTotal = 0;
+    let orderItemSavingsTotal = 0;
     const validatedItems = [];
     const stockErrors = [];
 
@@ -110,16 +117,23 @@ const placeOrder = async (req, res, next) => {
         continue;
       }
 
-      const unitPrice = typeof product.price === 'number' && product.price >= 0 ? product.price : 0;
-      const itemSubtotal = Math.round(unitPrice * requestedQty * 100) / 100;
-      calculatedSubtotal += itemSubtotal;
+      const itemPricing = calculateItemPricing(product, requestedQty);
+      calculatedSubtotal += itemPricing.lineSellingPrice;
+      orderMrpTotal += itemPricing.lineMrp;
+      orderItemSavingsTotal += itemPricing.lineSavings;
 
       validatedItems.push({
         productId: product._id,
+        productCode: product.productCode || '',
         name: product.name,
-        price: unitPrice,
+        price: itemPricing.sellingPrice,
+        mrpPrice: itemPricing.mrpPrice,
+        sellingPrice: itemPricing.sellingPrice,
+        discountPercent: itemPricing.discountPercent,
+        discountAmount: itemPricing.discountAmount,
         quantity: requestedQty,
-        subtotal: itemSubtotal,
+        subtotal: itemPricing.lineSellingPrice,
+        lineSavings: itemPricing.lineSavings,
         image: Array.isArray(product.images) && product.images.length > 0
           ? product.images[0]
           : (product.imageUrl || product.image || ''),
@@ -170,6 +184,7 @@ const placeOrder = async (req, res, next) => {
     const defaultFee = setting.defaultDeliveryFee !== undefined ? setting.defaultDeliveryFee : 150;
     const deliveryFee = calculatedSubtotal >= freeThreshold ? 0 : defaultFee;
     const totalAmount = Math.max(0, calculatedSubtotal - discountAmount + deliveryFee);
+    const orderSavingsTotal = Math.round((orderItemSavingsTotal + discountAmount) * 100) / 100;
 
     // 3. Generate Order ID (S2C-YYYYMMDD-XXXXXX)
     let orderId = generateOrderId();
@@ -202,6 +217,9 @@ const placeOrder = async (req, res, next) => {
         state: customerDetails.state ? customerDetails.state.trim() : 'Tamil Nadu',
       },
       items: validatedItems,
+      orderMrpTotal: Math.round(orderMrpTotal * 100) / 100,
+      orderSavingsTotal,
+      orderFinalTotal: totalAmount,
       subtotal: calculatedSubtotal,
       discountPercentage,
       discountAmount,
@@ -351,6 +369,34 @@ const trackOrder = async (req, res, next) => {
 
     // Sanitize response strictly for privacy and security
     // NEVER expose customer phone numbers, emails, internal admin notes, or admin user IDs
+    const items = (order.items || []).map((item) => {
+      const mrp = typeof item.mrpPrice === 'number' ? item.mrpPrice : (item.price || 0);
+      const selling = typeof item.sellingPrice === 'number' ? item.sellingPrice : (item.price || 0);
+      const qty = item.quantity || 1;
+      const savings = typeof item.lineSavings === 'number' ? item.lineSavings : Math.max(0, (mrp - selling) * qty);
+      const discPercent = typeof item.discountPercent === 'number' ? item.discountPercent : (mrp > 0 ? Math.round(((mrp - selling) / mrp) * 100) : 0);
+
+      return {
+        productId: item.productId,
+        productCode: item.productCode || '',
+        name: item.name,
+        price: selling,
+        mrpPrice: mrp,
+        sellingPrice: selling,
+        discountPercent: discPercent,
+        discountAmount: Math.max(0, mrp - selling),
+        quantity: qty,
+        subtotal: item.subtotal || selling * qty,
+        lineSavings: savings,
+        image: item.image || '',
+      };
+    });
+
+    const computedMrpTotal = order.orderMrpTotal || items.reduce((sum, i) => sum + (i.mrpPrice * i.quantity), 0);
+    const computedSavingsTotal = order.orderSavingsTotal !== undefined
+      ? order.orderSavingsTotal
+      : Math.max(0, computedMrpTotal - (order.totalAmount - (order.deliveryFee || 0)));
+
     const sanitizedOrder = {
       orderId: order.orderId,
       customerName: order.customerDetails?.name || 'Valued Customer',
@@ -370,15 +416,13 @@ const trackOrder = async (req, res, next) => {
       trackingNumber: order.trackingNumber || '',
       courierName: order.courierName || 'Sivakasi Surface Transport',
       estimatedDelivery: order.estimatedDelivery || (order.status === 'Delivered' ? 'Delivered' : '3-5 Business Days'),
-      items: (order.items || []).map((item) => ({
-        productId: item.productId,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        subtotal: item.subtotal || item.price * item.quantity,
-        image: item.image || '',
-      })),
+      items,
+      orderMrpTotal: computedMrpTotal,
+      orderSavingsTotal: computedSavingsTotal,
+      orderFinalTotal: order.orderFinalTotal || order.totalAmount,
       subtotal: order.subtotal,
+      discountPercentage: order.discountPercentage || 0,
+      discountAmount: order.discountAmount || 0,
       deliveryFee: order.deliveryFee,
       totalAmount: order.totalAmount,
       paymentMethod: order.paymentMethod || 'Door Delivery Available',

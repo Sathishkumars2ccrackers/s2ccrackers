@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShoppingBag, X, Plus, Minus, Trash2, ArrowRight, ShieldCheck, Sparkles, Percent } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { useSettings } from '../../context/SettingsContext';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatProductCode } from '../../utils/formatters';
+import { calculateItemPricing } from '../../utils/pricing';
 import ProductImage from '../common/ProductImage';
 
 const CartDrawer = () => {
@@ -12,6 +13,7 @@ const CartDrawer = () => {
   const {
     cartItems,
     cartSubtotal,
+    totalMrp,
     totalSavings,
     totalItemsCount,
     isCartOpen,
@@ -23,7 +25,6 @@ const CartDrawer = () => {
   const {
     minimumOrderAmount,
     deliveryMessage,
-    cartProgressMessage,
     calculateDiscount,
     getFreeDeliveryProgress,
   } = useSettings();
@@ -33,6 +34,7 @@ const CartDrawer = () => {
 
   const { discountPercentage, discountAmount, nextSlab, amountNeededForNextSlab } = calculateDiscount(cartSubtotal);
   const finalCartTotal = Math.max(0, cartSubtotal - discountAmount);
+  const totalCombinedSavings = totalSavings + discountAmount;
   const isMinOrderMet = cartSubtotal >= minimumOrderAmount;
 
   const handleCheckoutClick = () => {
@@ -76,7 +78,7 @@ const CartDrawer = () => {
                 </div>
                 <button
                   onClick={closeCart}
-                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -116,7 +118,7 @@ const CartDrawer = () => {
               </div>
 
               {/* Drawer Content - Items List */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
                 {cartItems.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-4">
                     <div className="w-20 h-20 rounded-full bg-festival-dark border border-dashed border-festival-border flex items-center justify-center text-slate-500">
@@ -133,96 +135,119 @@ const CartDrawer = () => {
                         closeCart();
                         navigate('/products');
                       }}
-                      className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-xs rounded-full shadow-lg"
+                      className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-amber-600 text-white font-bold text-xs rounded-full shadow-lg cursor-pointer"
                     >
                       Browse Sivakasi Crackers
                     </button>
                   </div>
                 ) : (
-                  cartItems.map((item) => (
-                    <motion.div
-                      key={item.productId}
-                      layout
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="p-3.5 rounded-2xl bg-festival-dark/80 border border-festival-border flex gap-3.5 items-center group"
-                    >
-                      {/* Product Image */}
-                      <ProductImage
-                        product={item}
-                        src={item.image}
-                        alt={item.name}
-                        optimizedWidth={160}
-                        optimizedHeight={160}
-                        componentName="CartDrawer"
-                        enableZoom={true}
-                        containerClassName="w-16 h-16 rounded-xl border border-amber-500/20 flex-shrink-0"
-                        className="w-full h-full object-cover"
-                      />
+                  cartItems.map((item) => {
+                    const itemPricing = calculateItemPricing(item, item.quantity);
+                    return (
+                      <motion.div
+                        key={item.productId}
+                        layout
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="p-3 rounded-2xl bg-festival-dark/80 border border-festival-border flex gap-3 items-start group"
+                      >
+                        {/* Product Image */}
+                        <ProductImage
+                          product={item}
+                          src={item.image}
+                          alt={item.name}
+                          optimizedWidth={160}
+                          optimizedHeight={160}
+                          componentName="CartDrawer"
+                          enableZoom={true}
+                          containerClassName="w-16 h-16 rounded-xl border border-amber-500/20 flex-shrink-0 mt-0.5"
+                          className="w-full h-full object-cover"
+                        />
 
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <h4 className="text-white font-bold text-xs leading-snug truncate">{item.name}</h4>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
-                          Qty: <strong className="text-white font-bold">{item.quantity}</strong> • {formatCurrency(item.price)} each
-                        </p>
-                        <div className="flex items-baseline gap-2 mt-1">
-                          <span className="text-xs font-bold text-amber-300">
-                            Subtotal: <strong className="text-sm font-black text-amber-400">{formatCurrency(item.price * item.quantity)}</strong>
-                          </span>
-                          {item.originalPrice > item.price && (
-                            <span className="text-[10px] text-slate-400 line-through">
-                              {formatCurrency(item.originalPrice * item.quantity)}
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h4 className="text-white font-bold text-xs leading-snug truncate max-w-full">{item.name}</h4>
+                            {item.productCode && (
+                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1 rounded">
+                                {formatProductCode(item.productCode)}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Pricing Breakdown */}
+                          <div className="text-[11px] space-y-0.5 mt-1">
+                            <div className="flex items-center gap-1.5 text-slate-400">
+                              <span>MRP:</span>
+                              <span className="line-through">{formatCurrency(itemPricing.mrpPrice)} × {item.quantity}</span>
+                              {itemPricing.discountPercent > 0 && (
+                                <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/70 px-1 rounded">
+                                  {itemPricing.discountPercent}% OFF
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-1.5 text-amber-300 font-semibold">
+                              <span>Rate:</span>
+                              <span>{formatCurrency(itemPricing.sellingPrice)} × {item.quantity} = <strong>{formatCurrency(itemPricing.lineSellingPrice)}</strong></span>
+                            </div>
+                            {itemPricing.lineSavings > 0 && (
+                              <div className="text-[10px] font-bold text-emerald-400">
+                                You Save: {formatCurrency(itemPricing.lineSavings)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Quantity Controls & Remove */}
+                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                          <button
+                            onClick={() => removeFromCart(item.productId)}
+                            className="text-slate-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
+                            title="Remove item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                          <div className="flex items-center border border-festival-border rounded-lg bg-festival-card">
+                            <button
+                              onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                              className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <span className="px-2 text-xs font-bold text-white min-w-[20px] text-center">
+                              {item.quantity}
                             </span>
-                          )}
+                            <button
+                              onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                              className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-
-                      {/* Quantity Controls */}
-                      <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => removeFromCart(item.productId)}
-                          className="text-slate-500 hover:text-rose-400 p-1 transition-colors"
-                          title="Remove item"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                        <div className="flex items-center border border-festival-border rounded-lg bg-festival-card">
-                          <button
-                            onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                            className="p-1 text-slate-400 hover:text-white transition-colors"
-                          >
-                            <Minus className="w-3 h-3" />
-                          </button>
-                          <span className="px-2 text-xs font-bold text-white min-w-[20px] text-center">
-                            {item.quantity}
-                          </span>
-                          <button
-                            onClick={() => updateQuantity(item.productId, item.quantity + 1)}
-                            className="p-1 text-slate-400 hover:text-white transition-colors"
-                          >
-                            <Plus className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))
+                      </motion.div>
+                    );
+                  })
                 )}
               </div>
 
               {/* Drawer Footer - Price & Checkout */}
               {cartItems.length > 0 && (
-                <div className="p-5 border-t border-festival-border bg-festival-dark/95 space-y-4">
+                <div className="p-5 border-t border-festival-border bg-festival-dark/95 space-y-3.5">
                   {/* Summary Breakdown */}
                   <div className="space-y-1.5 text-xs">
                     <div className="flex justify-between text-slate-300">
-                      <span>Items Subtotal:</span>
+                      <span>Total MRP Value:</span>
+                      <span className="font-semibold text-slate-400 line-through">{formatCurrency(totalMrp)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-300">
+                      <span>Factory Price Subtotal:</span>
                       <span className="font-bold text-white">{formatCurrency(cartSubtotal)}</span>
                     </div>
                     {totalSavings > 0 && (
                       <div className="flex justify-between text-emerald-400 font-medium">
-                        <span>Festival Direct Factory Savings:</span>
+                        <span>Direct Factory Savings:</span>
                         <span>-{formatCurrency(totalSavings)}</span>
                       </div>
                     )}
@@ -235,12 +260,18 @@ const CartDrawer = () => {
                         <span>-{formatCurrency(discountAmount)}</span>
                       </div>
                     )}
+                    {totalCombinedSavings > 0 && (
+                      <div className="flex justify-between text-emerald-300 font-bold bg-emerald-950/60 px-2 py-1 rounded-lg border border-emerald-500/30">
+                        <span>Total Savings:</span>
+                        <span>Save {formatCurrency(totalCombinedSavings)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-slate-300">
                       <span>Estimated Shipping:</span>
                       <span>{isFreeDeliveryUnlocked ? 'FREE' : 'Calculated at checkout'}</span>
                     </div>
                     <div className="pt-2 border-t border-festival-border flex justify-between text-sm font-bold text-white">
-                      <span>Estimated Total:</span>
+                      <span>Final Payable Amount:</span>
                       <span className="text-amber-400 text-base">{formatCurrency(finalCartTotal)}</span>
                     </div>
                   </div>
@@ -256,7 +287,7 @@ const CartDrawer = () => {
                   <button
                     disabled={!isMinOrderMet}
                     onClick={handleCheckoutClick}
-                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>Proceed to Checkout</span>
                     <ArrowRight className="w-4 h-4" />

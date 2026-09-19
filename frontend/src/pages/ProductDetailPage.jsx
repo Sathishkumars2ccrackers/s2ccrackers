@@ -23,6 +23,7 @@ import { useSettings } from '../context/SettingsContext';
 import { useLightbox } from '../context/LightboxContext';
 import { formatCurrency, formatProductCode } from '../utils/formatters';
 import { getProductImages, getProductImage } from '../utils/imageUrlUtils';
+import { calculateItemPricing } from '../utils/pricing';
 import ProductCard from '../components/product/ProductCard';
 import ProductImage from '../components/common/ProductImage';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -121,17 +122,14 @@ const ProductDetailPage = () => {
   }
 
   const isOutOfStock = product.stockQuantity <= 0;
-  const savings = Math.max(0, (product.originalPrice || product.price) - product.price);
-  const discountPercent = product.originalPrice
-    ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-    : 0;
+  const pricing = calculateItemPricing(product, quantity);
 
   const images = getProductImages(product);
   const categoryName = product.category?.name || 'Sivakasi Fireworks';
   const categorySlug = product.category?.slug || product.category?._id || '';
 
   const seoTitle = `${product.name} - ${categoryName} | Buy Online S2C Crackers Sivakasi`;
-  const seoDescription = `Buy authentic Sivakasi ${product.name} (${categoryName}) online at factory direct price ₹${product.price}. Safe, high quality fireworks with India-wide door delivery.`;
+  const seoDescription = `Buy authentic Sivakasi ${product.name} (${categoryName}) online at factory direct price ₹${pricing.sellingPrice}. Safe, high quality fireworks with India-wide door delivery.`;
   const canonicalUrl = `https://www.s2ccrackers.com/product/${product.slug || product._id}`;
 
   const breadcrumbItems = [
@@ -158,7 +156,7 @@ const ProductDetailPage = () => {
         image: images && images.length > 0 ? images : ['https://www.s2ccrackers.com/logo.svg'],
         description:
           product.description ||
-          `Buy authentic Sivakasi ${product.name} (${categoryName}) online at direct factory price ₹${product.price} from S2C Crackers. Safe green fireworks with door delivery across India.`,
+          `Buy authentic Sivakasi ${product.name} (${categoryName}) online at direct factory price ₹${pricing.sellingPrice} from S2C Crackers. Safe green fireworks with door delivery across India.`,
         sku: product.productCode || product._id,
         mpn: product.productCode || product._id,
         brand: {
@@ -170,7 +168,7 @@ const ProductDetailPage = () => {
           '@type': 'Offer',
           url: canonicalUrl,
           priceCurrency: 'INR',
-          price: product.price,
+          price: pricing.sellingPrice,
           priceValidUntil: '2026-12-31',
           itemCondition: 'https://schema.org/NewCondition',
           availability:
@@ -251,9 +249,9 @@ const ProductDetailPage = () => {
                     Bestseller
                   </span>
                 )}
-                {discountPercent > 0 && (
+                {pricing.discountPercent > 0 && (
                   <span className="px-2.5 py-1 rounded-full bg-amber-500 text-slate-950 text-[10px] font-black uppercase shadow-md">
-                    {discountPercent}% OFF
+                    {pricing.discountPercent}% OFF
                   </span>
                 )}
               </div>
@@ -328,19 +326,24 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Pricing Section */}
-            <div className="p-4 rounded-2xl bg-festival-dark/70 border border-festival-border space-y-1">
-              <div className="flex items-baseline gap-3">
+            <div className="p-4 rounded-2xl bg-festival-dark/70 border border-festival-border space-y-2">
+              <div className="flex items-baseline gap-3 flex-wrap">
                 <span className="text-3xl sm:text-4xl font-black text-amber-400">
-                  {formatCurrency(product.price)}
+                  {formatCurrency(pricing.sellingPrice)}
                 </span>
-                {product.originalPrice && product.originalPrice > product.price && (
+                {pricing.mrpPrice > pricing.sellingPrice && (
                   <span className="text-lg text-slate-500 line-through">
-                    {formatCurrency(product.originalPrice)}
+                    MRP {formatCurrency(pricing.mrpPrice)}
                   </span>
                 )}
-                {savings > 0 && (
+                {pricing.discountPercent > 0 && (
+                  <span className="text-xs font-extrabold text-emerald-400 bg-emerald-950/70 px-2 py-0.5 rounded-md border border-emerald-500/30">
+                    {pricing.discountPercent}% OFF
+                  </span>
+                )}
+                {pricing.discountAmount > 0 && (
                   <span className="text-xs font-bold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-500/30">
-                    Save {formatCurrency(savings)}
+                    Save {formatCurrency(pricing.discountAmount)} per pack
                   </span>
                 )}
               </div>
@@ -429,9 +432,32 @@ const ProductDetailPage = () => {
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
-                <span className="text-xs text-slate-400">
-                  Total: <strong className="text-amber-400">{formatCurrency(product.price * quantity)}</strong>
-                </span>
+              </div>
+
+              {/* Dynamic Quantity Calculation Box */}
+              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-festival-border space-y-2">
+                <div className="text-xs font-bold text-slate-300 uppercase flex items-center justify-between">
+                  <span>Price Calculation ({quantity} {quantity === 1 ? 'box' : 'boxes'})</span>
+                  {pricing.discountPercent > 0 && (
+                    <span className="text-emerald-400 font-extrabold">{pricing.discountPercent}% Savings</span>
+                  )}
+                </div>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between text-slate-400">
+                    <span>Total MRP ({quantity} × {formatCurrency(pricing.mrpPrice)}):</span>
+                    <span className="line-through">{formatCurrency(pricing.lineMrp)}</span>
+                  </div>
+                  {pricing.lineSavings > 0 && (
+                    <div className="flex justify-between text-emerald-400 font-semibold">
+                      <span>Total Discount Saved:</span>
+                      <span>- {formatCurrency(pricing.lineSavings)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-amber-400 font-black text-sm pt-1 border-t border-festival-border">
+                    <span>Final Payable Amount:</span>
+                    <span>{formatCurrency(pricing.lineSellingPrice)}</span>
+                  </div>
+                </div>
               </div>
 
               {/* Action Buttons: Add to Cart & Buy Now */}

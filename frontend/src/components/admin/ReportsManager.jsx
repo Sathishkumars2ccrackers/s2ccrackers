@@ -138,33 +138,39 @@ const ReportsManager = () => {
         </p>
       </div>
 
-      {/* Quick Revenue Summary */}
+      {/* Quick Revenue & Discount Transparency Summary */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-          <div className="p-6 rounded-3xl bg-festival-card border border-festival-border">
-            <span className="text-xs font-bold text-slate-400 uppercase">Total Life Revenue</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="p-5 rounded-3xl bg-festival-card border border-festival-border">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Life Revenue</span>
             <div className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
               {formatCurrency(stats.summary?.totalRevenue || 0)}
             </div>
-            <p className="text-xs text-slate-400 mt-1">From all delivered and confirmed orders</p>
+            <p className="text-xs text-slate-400 mt-1">Net payable collected</p>
           </div>
 
-          <div className="p-6 rounded-3xl bg-festival-card border border-festival-border">
-            <span className="text-xs font-bold text-slate-400 uppercase">Today's Sales</span>
+          <div className="p-5 rounded-3xl bg-festival-card border border-festival-border">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total MRP Value Sold</span>
+            <div className="text-2xl sm:text-3xl font-black text-slate-300 mt-1">
+              {formatCurrency(stats.summary?.totalMrpSold || 0)}
+            </div>
+            <p className="text-xs text-slate-400 mt-1">Catalog value before discounts</p>
+          </div>
+
+          <div className="p-5 rounded-3xl bg-festival-card border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 to-transparent">
+            <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Total Customer Savings</span>
             <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
+              {formatCurrency(stats.summary?.totalDiscountGiven || 0)}
+            </div>
+            <p className="text-xs text-emerald-400/80 mt-1">Direct festival discounts provided</p>
+          </div>
+
+          <div className="p-5 rounded-3xl bg-festival-card border border-festival-border">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Today's Sales</span>
+            <div className="text-2xl sm:text-3xl font-black text-white mt-1">
               {formatCurrency(stats.summary?.todayRevenue || 0)}
             </div>
             <p className="text-xs text-slate-400 mt-1">{stats.summary?.todayOrders || 0} order(s) placed today</p>
-          </div>
-
-          <div className="p-6 rounded-3xl bg-festival-card border border-festival-border">
-            <span className="text-xs font-bold text-slate-400 uppercase">Average Order Value (AOV)</span>
-            <div className="text-2xl sm:text-3xl font-black text-white mt-1">
-              {stats.summary?.totalOrders > 0
-                ? formatCurrency(Math.round(stats.summary.totalRevenue / stats.summary.totalOrders))
-                : formatCurrency(0)}
-            </div>
-            <p className="text-xs text-slate-400 mt-1">Per completed order</p>
           </div>
         </div>
       )}

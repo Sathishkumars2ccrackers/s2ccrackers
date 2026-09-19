@@ -30,14 +30,23 @@ initializeMailer();
 
 // HTML email template generator for customer order confirmation
 const generateCustomerEmailHTML = (order) => {
+  const mrpTotal = order.orderMrpTotal || (order.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0);
+  const savingsTotal = order.orderSavingsTotal !== undefined
+    ? order.orderSavingsTotal
+    : Math.max(0, mrpTotal - (order.totalAmount - (order.deliveryFee || 0)));
+
   const itemsRows = order.items
     .map(
       (item) => `
       <tr style="border-bottom: 1px solid #fed7aa;">
-        <td style="padding: 12px; font-weight: 500; color: #1e293b;">${item.name}</td>
-        <td style="padding: 12px; text-align: center; color: #475569;">${item.quantity}</td>
-        <td style="padding: 12px; text-align: right; color: #475569;">₹${item.price}</td>
-        <td style="padding: 12px; text-align: right; font-weight: bold; color: #b91c1c;">₹${item.subtotal || item.price * item.quantity}</td>
+        <td style="padding: 10px 12px; font-weight: 500; color: #1e293b;">
+          ${item.productCode ? `<span style="font-family:monospace; color:#d97706; font-size:11px; font-weight:bold;">${item.productCode}</span> ` : ''}
+          ${item.name}
+        </td>
+        <td style="padding: 10px 12px; text-align: center; color: #475569;">${item.quantity}</td>
+        <td style="padding: 10px 12px; text-align: right; color: #64748b; text-decoration: line-through; font-size: 11px;">₹${item.mrpPrice || item.price}</td>
+        <td style="padding: 10px 12px; text-align: right; color: #047857; font-weight: 600;">₹${item.sellingPrice || item.price}</td>
+        <td style="padding: 10px 12px; text-align: right; font-weight: bold; color: #b91c1c;">₹${item.subtotal || item.price * item.quantity}</td>
       </tr>
     `
     )
@@ -76,6 +85,11 @@ const generateCustomerEmailHTML = (order) => {
                   Thank you for placing your festival cracker order with <strong>S2C Crackers</strong>! We have received your order and our Sivakasi packaging team is preparing your authentic fireworks with maximum safety.
                 </p>
 
+                <!-- Savings Banner -->
+                <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin: 16px 0; text-align: center;">
+                  <span style="color: #166534; font-weight: bold; font-size: 14px;">🎉 You Saved ₹${savingsTotal} On This Festival Order!</span>
+                </div>
+
                 <!-- Order Info Card -->
                 <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 16px; margin: 20px 0;">
                   <table width="100%" style="font-size: 14px;">
@@ -103,7 +117,8 @@ const generateCustomerEmailHTML = (order) => {
                     <tr style="background-color: #fef2f2; color: #991b1b;">
                       <th style="padding: 10px; text-align: left;">Item</th>
                       <th style="padding: 10px; text-align: center;">Qty</th>
-                      <th style="padding: 10px; text-align: right;">Rate</th>
+                      <th style="padding: 10px; text-align: right;">MRP</th>
+                      <th style="padding: 10px; text-align: right;">Our Rate</th>
                       <th style="padding: 10px; text-align: right;">Total</th>
                     </tr>
                   </thead>
@@ -112,15 +127,19 @@ const generateCustomerEmailHTML = (order) => {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="3" style="padding: 10px 12px; text-align: right; color: #475569;">Subtotal:</td>
-                      <td style="padding: 10px 12px; text-align: right; color: #1e293b; font-weight: 500;">₹${order.subtotal}</td>
+                      <td colspan="4" style="padding: 10px 12px; text-align: right; color: #475569;">Total MRP:</td>
+                      <td style="padding: 10px 12px; text-align: right; color: #64748b; text-decoration: line-through;">₹${mrpTotal}</td>
                     </tr>
                     <tr>
-                      <td colspan="3" style="padding: 6px 12px; text-align: right; color: #475569;">Delivery Fee:</td>
-                      <td style="padding: 6px 12px; text-align: right; color: #1e293b; font-weight: 500;">₹${order.deliveryFee || 0}</td>
+                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #047857; font-weight: 600;">Total Savings:</td>
+                      <td style="padding: 6px 12px; text-align: right; color: #047857; font-weight: 600;">-₹${savingsTotal}</td>
+                    </tr>
+                    <tr>
+                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #475569;">Delivery Fee:</td>
+                      <td style="padding: 6px 12px; text-align: right; color: #1e293b; font-weight: 500;">${order.deliveryFee === 0 ? 'FREE' : `₹${order.deliveryFee}`}</td>
                     </tr>
                     <tr style="background-color: #fef2f2;">
-                      <td colspan="3" style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 15px;">Grand Total:</td>
+                      <td colspan="4" style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 15px;">Net Amount Payable:</td>
                       <td style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 16px;">₹${order.totalAmount}</td>
                     </tr>
                   </tfoot>

@@ -20,13 +20,14 @@ import {
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { orderService } from '../services/api';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatProductCode } from '../utils/formatters';
+import { calculateItemPricing } from '../utils/pricing';
 import ProductImage from '../components/common/ProductImage';
 import SEO from '../components/common/SEO';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { cartItems, cartSubtotal, totalSavings, totalItemsCount, clearCart } = useCart();
+  const { cartItems, cartSubtotal, totalMrp, totalSavings, totalItemsCount, clearCart } = useCart();
   const {
     minimumOrderAmount,
     freeDeliveryThreshold,
@@ -60,6 +61,7 @@ const CheckoutPage = () => {
   const { discountPercentage, discountAmount } = calculateDiscount(cartSubtotal);
   const deliveryFee = cartSubtotal >= freeDeliveryThreshold ? 0 : defaultDeliveryFee;
   const grandTotal = Math.max(0, cartSubtotal - discountAmount + deliveryFee);
+  const totalCombinedSavings = totalSavings + discountAmount;
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
@@ -74,15 +76,19 @@ const CheckoutPage = () => {
     const sanitizedItems = cartItems
       .filter((item) => item && (item.productId || item._id || item.id))
       .map((item) => {
-        const qty = Math.max(1, parseInt(item.quantity, 10) || 1);
-        const unitPrice = Math.max(0, typeof item.price === 'number' ? item.price : parseFloat(item.price) || 0);
-        const subtotal = Math.round(qty * unitPrice * 100) / 100;
+        const itemPricing = calculateItemPricing(item, item.quantity || 1);
         return {
           productId: (item.productId || item._id || item.id).toString(),
-          name: (item.name || 'Cracker Item').trim(),
-          price: unitPrice,
-          quantity: qty,
-          subtotal: subtotal,
+          productCode: itemPricing.productCode,
+          name: itemPricing.name,
+          price: itemPricing.sellingPrice,
+          mrpPrice: itemPricing.mrpPrice,
+          sellingPrice: itemPricing.sellingPrice,
+          discountPercent: itemPricing.discountPercent,
+          discountAmount: itemPricing.discountAmount,
+          lineSavings: itemPricing.lineSavings,
+          quantity: itemPricing.quantity,
+          subtotal: itemPricing.lineSellingPrice,
           image: item.image || item.imageUrl || '',
         };
       });
@@ -198,7 +204,7 @@ const CheckoutPage = () => {
           </div>
           <button
             onClick={() => navigate('/products')}
-            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-500 text-slate-950 font-black text-sm hover:from-red-500 hover:to-amber-400 shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 px-6 rounded-2xl bg-gradient-to-r from-red-600 to-amber-500 text-slate-950 font-black text-sm hover:from-red-500 hover:to-amber-400 shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Explore All Crackers</span>
             <ArrowRight className="w-4 h-4" />
@@ -497,47 +503,83 @@ const CheckoutPage = () => {
               </h3>
 
               {/* Items List preview */}
-              <div className="max-h-60 overflow-y-auto space-y-3 pr-1 text-xs">
-                {cartItems.map((item) => (
-                  <div key={item.productId} className="flex items-center justify-between gap-3 pb-2 border-b border-festival-border/50">
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <ProductImage
-                        product={item}
-                        src={item.image}
-                        alt={item.name}
-                        optimizedWidth={100}
-                        optimizedHeight={100}
-                        componentName="CheckoutPage"
-                        enableZoom={true}
-                        containerClassName="w-10 h-10 rounded-lg flex-shrink-0"
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                      <div className="truncate">
-                        <p className="font-bold text-white truncate">{item.name}</p>
-                        <p className="text-[10px] text-slate-400">{item.quantity} × {formatCurrency(item.price)}</p>
+              <div className="max-h-64 overflow-y-auto space-y-3 pr-1 text-xs">
+                {cartItems.map((item) => {
+                  const itemPricing = calculateItemPricing(item, item.quantity);
+                  return (
+                    <div key={item.productId} className="flex items-start justify-between gap-3 pb-2.5 border-b border-festival-border/50">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <ProductImage
+                          product={item}
+                          src={item.image}
+                          alt={item.name}
+                          optimizedWidth={100}
+                          optimizedHeight={100}
+                          componentName="CheckoutPage"
+                          enableZoom={true}
+                          containerClassName="w-11 h-11 rounded-lg flex-shrink-0 mt-0.5"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-white truncate max-w-full">{item.name}</p>
+                            {item.productCode && (
+                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded">
+                                {formatProductCode(item.productCode)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-slate-400 space-y-0.5 mt-0.5">
+                            <div>
+                              <span>MRP: </span>
+                              <span className="line-through">{formatCurrency(itemPricing.mrpPrice)}</span> × {item.quantity}
+                            </div>
+                            <div className="text-amber-300 font-semibold">
+                              <span>Rate: </span>
+                              <span>{formatCurrency(itemPricing.sellingPrice)}</span> × {item.quantity}
+                            </div>
+                            {itemPricing.lineSavings > 0 && (
+                              <div className="text-emerald-400 font-bold">
+                                Save {formatCurrency(itemPricing.lineSavings)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right flex-shrink-0">
+                        <span className="font-bold text-white block">{formatCurrency(itemPricing.lineSellingPrice)}</span>
                       </div>
                     </div>
-                    <span className="font-bold text-white flex-shrink-0">{formatCurrency(item.price * item.quantity)}</span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Bill breakdown */}
               <div className="space-y-2 text-xs pt-2 border-t border-festival-border">
                 <div className="flex justify-between text-slate-300">
-                  <span>Subtotal:</span>
+                  <span>Order Value (Total MRP):</span>
+                  <span className="font-semibold text-slate-400 line-through">{formatCurrency(totalMrp)}</span>
+                </div>
+                <div className="flex justify-between text-slate-300">
+                  <span>Items Factory Price:</span>
                   <span className="font-bold text-white">{formatCurrency(cartSubtotal)}</span>
                 </div>
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-emerald-400 font-bold">
-                    <span>Festival Factory Savings:</span>
+                    <span>Product Discount Savings:</span>
                     <span>-{formatCurrency(totalSavings)}</span>
                   </div>
                 )}
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
-                    <span>Special Discount ({discountPercentage}%):</span>
+                    <span>Special Tier Discount ({discountPercentage}%):</span>
                     <span>-{formatCurrency(discountAmount)}</span>
+                  </div>
+                )}
+                {totalCombinedSavings > 0 && (
+                  <div className="flex justify-between text-emerald-300 font-extrabold bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-500/30">
+                    <span>Total Discount Savings:</span>
+                    <span>Save {formatCurrency(totalCombinedSavings)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-300">
@@ -547,7 +589,7 @@ const CheckoutPage = () => {
                   </span>
                 </div>
                 <div className="pt-3 border-t border-festival-border flex justify-between text-base font-black text-white">
-                  <span>Total Amount:</span>
+                  <span>Amount Payable:</span>
                   <span className="text-amber-400 text-xl">{formatCurrency(grandTotal)}</span>
                 </div>
               </div>
@@ -556,7 +598,7 @@ const CheckoutPage = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-base shadow-2xl shadow-amber-950/60 transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-base shadow-2xl shadow-amber-950/60 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
               >
                 {submitting ? (
                   <>
@@ -566,7 +608,7 @@ const CheckoutPage = () => {
                 ) : (
                   <>
                     <span>Confirm & Place Order</span>
-                    <ArrowRight className="w-5 h-5" />
+                    <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>

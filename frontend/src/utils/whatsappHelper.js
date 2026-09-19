@@ -105,7 +105,12 @@ export const formatProductListForWhatsApp = (items = []) => {
   }
 
   return items
-    .map((item) => `• ${item.name} × ${item.quantity} (₹${item.price} each = ₹${item.subtotal || item.price * item.quantity})`)
+    .map((item) => {
+      const mrp = item.mrpPrice || item.price;
+      const rate = item.sellingPrice || item.price;
+      const total = item.subtotal || rate * item.quantity;
+      return `• ${item.name} × ${item.quantity} (MRP: ₹${mrp} | Rate: ₹${rate} = ₹${total})`;
+    })
     .join('\n');
 };
 
@@ -140,6 +145,8 @@ export const generateAdminWhatsAppConfirmationMessage = (order, storePhone = DEF
   const orderId = order.orderId;
   const orderDate = formatDate(order.createdAt || new Date(), true);
   const productList = formatProductListForWhatsApp(order.items);
+  const mrpTotal = (order.orderMrpTotal || (order.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0)).toLocaleString('en-IN');
+  const savingsTotal = (order.orderSavingsTotal !== undefined ? order.orderSavingsTotal : Math.max(0, (order.orderMrpTotal || order.subtotal) - (order.totalAmount - (order.deliveryFee || 0)))).toLocaleString('en-IN');
   const totalAmount = (order.totalAmount || 0).toLocaleString('en-IN');
   const deliveryAddress = formatDeliveryAddressForWhatsApp(c);
   const primaryPhone = c.phone || 'Not provided';
@@ -186,7 +193,13 @@ ${productList}
 ORDER VALUE
 ━━━━━━━━━━━━━━━
 
-Total Amount:
+Total MRP Value:
+₹${mrpTotal}
+
+Total Discount Savings:
+₹${savingsTotal}
+
+Amount Payable:
 ₹${totalAmount}
 
 ━━━━━━━━━━━━━━━
@@ -361,9 +374,19 @@ export const createWhatsAppOrderUrl = (order, businessPhone = DEFAULT_STORE_PHON
 
   const itemsList = order.items
     ? order.items
-        .map((item) => `• ${item.quantity}x ${item.name} (₹${item.price * item.quantity})`)
+        .map((item) => {
+          const mrp = item.mrpPrice || item.price;
+          const rate = item.sellingPrice || item.price;
+          const total = item.subtotal || rate * item.quantity;
+          return `• ${item.quantity}x ${item.name} (MRP: ₹${mrp} | Our Price: ₹${rate} = ₹${total})`;
+        })
         .join('\n')
     : '';
+
+  const mrpTotal = order.orderMrpTotal || (order.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0);
+  const savingsTotal = order.orderSavingsTotal !== undefined
+    ? order.orderSavingsTotal
+    : Math.max(0, mrpTotal - (order.totalAmount - (order.deliveryFee || 0)));
 
   const message = `Hello S2C Crackers,
 
@@ -376,7 +399,9 @@ Phone Number: ${order.customerDetails.phone}
 Ordered Items:
 ${itemsList}
 
-Total Amount: ₹${order.totalAmount} (Door Delivery Available)
+Order Value (MRP): ₹${mrpTotal}
+Total Discount Savings: ₹${savingsTotal}
+Amount Payable: ₹${order.totalAmount} (Door Delivery Available)
 Delivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}
 
 Please confirm my order.`;

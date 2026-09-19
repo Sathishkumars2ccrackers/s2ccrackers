@@ -6,6 +6,7 @@ import { useLightbox } from '../../context/LightboxContext';
 import { formatCurrency, formatProductCode } from '../../utils/formatters';
 import ProductImage from '../common/ProductImage';
 import { getProductImages } from '../../utils/imageUrlUtils';
+import { calculateItemPricing } from '../../utils/pricing';
 
 const ProductListRow = memo(({ product, index }) => {
   const { addToCart, updateQuantity, removeFromCart, cartItems } = useCart();
@@ -17,7 +18,10 @@ const ProductListRow = memo(({ product, index }) => {
   const inCartQty = currentCartItem ? currentCartItem.quantity : 0;
   const isOutOfStock = product.stockQuantity <= 0;
   const isLowStock = product.stockQuantity > 0 && product.stockQuantity <= 10;
-  const itemSubtotal = product.price * inCartQty;
+  
+  const pricing = calculateItemPricing(product, inCartQty > 0 ? inCartQty : 1);
+  const itemSubtotal = pricing.sellingPrice * inCartQty;
+  const itemSavings = pricing.discountAmount * inCartQty;
 
   const handleDecreaseQty = (e) => {
     e.preventDefault();
@@ -177,20 +181,25 @@ const ProductListRow = memo(({ product, index }) => {
         <div className="col-span-2 text-right pr-2">
           <div className="flex flex-col items-end">
             <span className="text-base font-black text-amber-400">
-              {formatCurrency(product.price)}
+              {formatCurrency(pricing.sellingPrice)}
             </span>
-            <div className="flex items-center gap-1 mt-0.5">
-              {product.originalPrice > product.price && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              {pricing.mrpPrice > pricing.sellingPrice && (
                 <span className="text-[11px] text-slate-500 line-through">
-                  {formatCurrency(product.originalPrice)}
+                  MRP {formatCurrency(pricing.mrpPrice)}
                 </span>
               )}
-              {product.discountPercentage > 0 && (
-                <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-950/60 px-1.5 py-0.2 rounded border border-emerald-500/30">
-                  {Math.round(product.discountPercentage)}% OFF
+              {pricing.discountPercent > 0 && (
+                <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                  {pricing.discountPercent}% OFF
                 </span>
               )}
             </div>
+            {pricing.discountAmount > 0 && (
+              <span className="text-[10px] font-bold text-emerald-400 mt-0.5">
+                Save {formatCurrency(pricing.discountAmount)}
+              </span>
+            )}
             {isOutOfStock ? (
               <span className="text-[9px] font-bold text-rose-400 bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-500/30 mt-0.5">
                 Out of Stock
@@ -247,7 +256,12 @@ const ProductListRow = memo(({ product, index }) => {
               <span className="text-sm font-black text-emerald-400">
                 {formatCurrency(itemSubtotal)}
               </span>
-              <span className="text-[10px] font-bold text-emerald-300/90 flex items-center gap-0.5 mt-0.5">
+              {itemSavings > 0 && (
+                <span className="text-[10px] font-bold text-emerald-300/90">
+                  Save {formatCurrency(itemSavings)}
+                </span>
+              )}
+              <span className="text-[9px] font-bold text-emerald-400 flex items-center gap-0.5 mt-0.5">
                 <Check className="w-2.5 h-2.5" />
                 In Cart
               </span>
@@ -322,13 +336,25 @@ const ProductListRow = memo(({ product, index }) => {
         <div className="flex items-center justify-between gap-2 pt-2 border-t border-festival-border/50">
           {/* Price */}
           <div>
-            <div className="flex items-baseline gap-1.5">
+            <div className="flex items-baseline gap-1.5 flex-wrap">
               <span className="text-sm font-black text-amber-400">
-                {formatCurrency(product.price)}
+                {formatCurrency(pricing.sellingPrice)}
               </span>
-              {product.originalPrice > product.price && (
+              {pricing.mrpPrice > pricing.sellingPrice && (
                 <span className="text-[10px] text-slate-500 line-through">
-                  {formatCurrency(product.originalPrice)}
+                  MRP {formatCurrency(pricing.mrpPrice)}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1 mt-0.5">
+              {pricing.discountPercent > 0 && (
+                <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-950/70 px-1 py-0.2 rounded border border-emerald-500/30">
+                  {pricing.discountPercent}% OFF
+                </span>
+              )}
+              {pricing.discountAmount > 0 && (
+                <span className="text-[9px] font-bold text-emerald-400">
+                  Save {formatCurrency(pricing.discountAmount)}
                 </span>
               )}
             </div>
@@ -383,6 +409,11 @@ const ProductListRow = memo(({ product, index }) => {
                 <span className="text-xs font-black text-emerald-400 block">
                   {formatCurrency(itemSubtotal)}
                 </span>
+                {itemSavings > 0 && (
+                  <span className="text-[9px] text-emerald-300/90 block">
+                    Save {formatCurrency(itemSavings)}
+                  </span>
+                )}
                 <span className="text-[9px] font-bold text-emerald-300">
                   ✓ In Cart
                 </span>

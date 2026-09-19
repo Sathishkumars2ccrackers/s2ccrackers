@@ -454,59 +454,125 @@ const OrderTrackingPage = () => {
                   </span>
                 </h3>
 
-                <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
-                  {order.items?.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center justify-between text-xs pb-2.5 border-b border-festival-border/40"
-                    >
-                      <div className="flex items-center gap-3">
-                        <ProductImage
-                          product={item}
-                          src={item.image}
-                          alt={item.name}
-                          optimizedWidth={100}
-                          optimizedHeight={100}
-                          componentName="OrderTrackingPage"
-                          enableZoom={true}
-                          containerClassName="w-10 h-10 rounded-lg flex-shrink-0 border border-festival-border"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                        <div>
-                          <p className="font-bold text-white">{item.name}</p>
-                          <p className="text-[10px] text-slate-400">
-                            Qty: <strong className="text-slate-200">{item.quantity}</strong> × {formatCurrency(item.price)}
-                          </p>
+                <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+                  {order.items?.map((item, idx) => {
+                    const itemMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
+                    const itemSelling = item.sellingPrice !== undefined ? item.sellingPrice : item.price;
+                    const itemDiscountPercent = item.discountPercent !== undefined
+                      ? item.discountPercent
+                      : (itemMrp > 0 ? Math.round(((itemMrp - itemSelling) / itemMrp) * 100) : 0);
+                    const itemLineSavings = item.lineSavings !== undefined
+                      ? item.lineSavings
+                      : Math.max(0, (itemMrp - itemSelling) * item.quantity);
+                    const itemSubtotal = item.subtotal !== undefined ? item.subtotal : itemSelling * item.quantity;
+
+                    return (
+                      <div
+                        key={idx}
+                        className="flex items-start justify-between text-xs pb-3 border-b border-festival-border/40 gap-3"
+                      >
+                        <div className="flex items-start gap-3 min-w-0">
+                          <ProductImage
+                            product={item}
+                            src={item.image}
+                            alt={item.name}
+                            optimizedWidth={100}
+                            optimizedHeight={100}
+                            componentName="OrderTrackingPage"
+                            enableZoom={true}
+                            containerClassName="w-11 h-11 rounded-lg flex-shrink-0 border border-festival-border mt-0.5"
+                            className="w-full h-full object-cover rounded-lg"
+                          />
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="font-bold text-white truncate max-w-full">{item.name}</p>
+                              {item.productCode && (
+                                <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded border border-amber-500/20">
+                                  {item.productCode}
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[10px] text-slate-400 space-y-0.5 mt-0.5">
+                              <div>
+                                <span>MRP: </span>
+                                <span className="line-through">{formatCurrency(itemMrp)}</span> × {item.quantity}
+                                {itemDiscountPercent > 0 && (
+                                  <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-950/70 px-1 rounded ml-1">
+                                    {itemDiscountPercent}% OFF
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-amber-300 font-semibold">
+                                <span>Rate: </span>
+                                <span>{formatCurrency(itemSelling)}</span> × {item.quantity}
+                              </div>
+                              {itemLineSavings > 0 && (
+                                <div className="text-emerald-400 font-bold">
+                                  Save {formatCurrency(itemLineSavings)}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
+                        <span className="font-bold text-amber-400 font-mono flex-shrink-0">
+                          {formatCurrency(itemSubtotal)}
+                        </span>
                       </div>
-                      <span className="font-bold text-amber-400 font-mono">
-                        {formatCurrency(item.subtotal || item.price * item.quantity)}
-                      </span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                {/* Amount Totals */}
-                <div className="pt-2 space-y-1.5 border-t border-festival-border text-xs">
-                  <div className="flex justify-between text-slate-300">
-                    <span>Items Subtotal:</span>
-                    <span className="font-bold text-white font-mono">{formatCurrency(order.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-300">
-                    <span>Delivery Charge:</span>
-                    <span className="font-bold text-white">
-                      {order.deliveryFee === 0 ? (
-                        <span className="text-emerald-400 uppercase font-black text-[11px]">FREE</span>
-                      ) : (
-                        formatCurrency(order.deliveryFee)
+                {/* Amount Totals with Full Transparency */}
+                {(() => {
+                  const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
+                    const unitMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
+                    return acc + unitMrp * (item.quantity || 1);
+                  }, 0);
+                  const itemsSubtotal = order.orderItemsSubtotal || order.subtotal || order.totalAmount || 0;
+                  const finalTotal = order.orderFinalTotal || order.totalAmount || 0;
+                  const totalSavings = order.orderSavingsTotal !== undefined
+                    ? order.orderSavingsTotal
+                    : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
+
+                  return (
+                    <div className="pt-3 space-y-1.5 border-t border-festival-border text-xs">
+                      <div className="flex justify-between text-slate-300">
+                        <span>Original MRP Total:</span>
+                        <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(computedMrpTotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-slate-300">
+                        <span>Factory Price Subtotal:</span>
+                        <span className="font-bold text-white font-mono">{formatCurrency(itemsSubtotal)}</span>
+                      </div>
+                      {order.discountAmount > 0 && (
+                        <div className="flex justify-between text-amber-300">
+                          <span>Special Discount ({order.discountPercentage || 0}%):</span>
+                          <span className="font-bold font-mono">-{formatCurrency(order.discountAmount)}</span>
+                        </div>
                       )}
-                    </span>
-                  </div>
-                  <div className="pt-2 flex justify-between text-sm font-black text-white border-t border-festival-border">
-                    <span className="text-amber-400">Grand Total:</span>
-                    <span className="text-amber-400 text-base font-mono">{formatCurrency(order.totalAmount)}</span>
-                  </div>
-                </div>
+                      {totalSavings > 0 && (
+                        <div className="flex justify-between text-emerald-400 font-extrabold bg-emerald-950/60 p-2 rounded-xl border border-emerald-500/30">
+                          <span>Total Discount Savings:</span>
+                          <span className="font-mono">Save {formatCurrency(totalSavings)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-slate-300">
+                        <span>Delivery Charge:</span>
+                        <span className="font-bold text-white">
+                          {order.deliveryFee === 0 ? (
+                            <span className="text-emerald-400 uppercase font-black text-[11px]">FREE</span>
+                          ) : (
+                            formatCurrency(order.deliveryFee)
+                          )}
+                        </span>
+                      </div>
+                      <div className="pt-2 flex justify-between text-sm font-black text-white border-t border-festival-border">
+                        <span className="text-amber-400">Final Amount Payable:</span>
+                        <span className="text-amber-400 text-base font-mono">{formatCurrency(finalTotal)}</span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Delivery Destination Address (Phone numbers withheld for privacy) */}

@@ -13,9 +13,10 @@ import {
   Phone,
   ArrowRight,
   ShieldCheck,
+  Tag,
 } from 'lucide-react';
 import { orderService } from '../services/api';
-import { formatCurrency, formatDate } from '../utils/formatters';
+import { formatCurrency, formatDate, formatProductCode } from '../utils/formatters';
 import { createWhatsAppOrderUrl } from '../utils/whatsappHelper';
 import FireworksCanvas from '../components/common/FireworksCanvas';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -81,6 +82,18 @@ const OrderSuccessPage = () => {
 
   const whatsappUrl = createWhatsAppOrderUrl(order, '919944476516');
 
+  // Compute pricing totals with backward compatibility
+  const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
+    const unitMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
+    return acc + unitMrp * (item.quantity || 1);
+  }, 0);
+
+  const finalTotal = order.orderFinalTotal || order.totalAmount || 0;
+  const itemsSubtotal = order.orderItemsSubtotal || order.subtotal || finalTotal;
+  const totalSavings = order.orderSavingsTotal !== undefined
+    ? order.orderSavingsTotal
+    : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
+
   return (
     <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       <SEO
@@ -126,13 +139,26 @@ const OrderSuccessPage = () => {
             <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono tracking-wide">{order.orderId}</span>
           </div>
 
+          {/* Savings Highlight Banner */}
+          {totalSavings > 0 && (
+            <div className="p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 max-w-md mx-auto text-center shadow-lg">
+              <div className="flex items-center justify-center gap-2 text-emerald-300 font-extrabold text-sm sm:text-base">
+                <Sparkles className="w-5 h-5 text-emerald-400 fill-emerald-400" />
+                <span>🎉 You Saved {formatCurrency(totalSavings)} On This Festival Order!</span>
+              </div>
+              <p className="text-[11px] text-emerald-200/80 mt-0.5">
+                Total MRP: {formatCurrency(computedMrpTotal)} • Direct Sivakasi Factory Rate Applied
+              </p>
+            </div>
+          )}
+
           {/* Prominent WhatsApp Click-to-Chat Button */}
           <div className="pt-2">
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base shadow-2xl shadow-emerald-950/80 border border-emerald-300/50 transform hover:scale-105 transition-all"
+              className="inline-flex items-center justify-center gap-3 w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm sm:text-base shadow-2xl shadow-emerald-950/80 border border-emerald-300/50 transform hover:scale-105 transition-all cursor-pointer"
             >
               <MessageCircle className="w-6 h-6 fill-white text-emerald-600" />
               <span>Send Order via WhatsApp (Instant Confirmation)</span>
@@ -149,7 +175,7 @@ const OrderSuccessPage = () => {
             <div className="flex items-center gap-3">
               <img src={logoSvg} alt="S2C Crackers" className="h-9 w-auto" />
               <div>
-                <h2 className="text-lg font-bold text-white">Order Summary & Receipt</h2>
+                <h2 className="text-lg font-bold text-white">Order Summary & Tax Invoice</h2>
                 <p className="text-xs text-slate-400">
                   Placed on: {formatDate(order.createdAt, true)} • Payment & Delivery: <strong>Door Delivery Available</strong>
                 </p>
@@ -157,50 +183,98 @@ const OrderSuccessPage = () => {
             </div>
             <button
               onClick={handlePrint}
-              className="no-print px-4 py-2 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-200 hover:text-white flex items-center gap-2 transition-colors"
+              className="no-print px-4 py-2 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-200 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
             >
               <Printer className="w-4 h-4 text-amber-400" />
               <span>Print Invoice</span>
             </button>
           </div>
 
-          {/* Items Table */}
+          {/* Items Table with Full Pricing Transparency */}
           <div className="overflow-x-auto">
             <table className="w-full text-xs text-left">
               <thead>
                 <tr className="border-b border-festival-border text-slate-400 font-bold uppercase text-[10px]">
+                  <th className="pb-3">Code</th>
                   <th className="pb-3">Fireworks Item</th>
                   <th className="pb-3 text-center">Qty</th>
-                  <th className="pb-3 text-right">Price</th>
-                  <th className="pb-3 text-right">Subtotal</th>
+                  <th className="pb-3 text-right">MRP</th>
+                  <th className="pb-3 text-center">Disc %</th>
+                  <th className="pb-3 text-right">Our Rate</th>
+                  <th className="pb-3 text-right">Savings</th>
+                  <th className="pb-3 text-right">Line Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-festival-border/50">
-                {order.items?.map((item, idx) => (
-                  <tr key={idx} className="text-slate-200">
-                    <td className="py-3 font-semibold text-white">{item.name}</td>
-                    <td className="py-3 text-center text-slate-300">{item.quantity}</td>
-                    <td className="py-3 text-right text-slate-400">{formatCurrency(item.price)}</td>
-                    <td className="py-3 text-right font-bold text-amber-400">
-                      {formatCurrency(item.subtotal || item.price * item.quantity)}
-                    </td>
-                  </tr>
-                ))}
+                {order.items?.map((item, idx) => {
+                  const itemMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
+                  const itemSelling = item.sellingPrice !== undefined ? item.sellingPrice : item.price;
+                  const itemDiscountPercent = item.discountPercent !== undefined
+                    ? item.discountPercent
+                    : (itemMrp > 0 ? Math.round(((itemMrp - itemSelling) / itemMrp) * 100) : 0);
+                  const itemLineSavings = item.lineSavings !== undefined
+                    ? item.lineSavings
+                    : Math.max(0, (itemMrp - itemSelling) * item.quantity);
+                  const itemSubtotal = item.subtotal !== undefined ? item.subtotal : itemSelling * item.quantity;
+
+                  return (
+                    <tr key={idx} className="text-slate-200">
+                      <td className="py-3 font-mono font-bold text-amber-300">
+                        {item.productCode ? formatProductCode(item.productCode) : `CRK-${idx + 1}`}
+                      </td>
+                      <td className="py-3 font-semibold text-white">{item.name}</td>
+                      <td className="py-3 text-center text-slate-300 font-bold">{item.quantity}</td>
+                      <td className="py-3 text-right text-slate-400 line-through">{formatCurrency(itemMrp)}</td>
+                      <td className="py-3 text-center">
+                        {itemDiscountPercent > 0 ? (
+                          <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
+                            {itemDiscountPercent}%
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
+                      </td>
+                      <td className="py-3 text-right font-semibold text-amber-300">{formatCurrency(itemSelling)}</td>
+                      <td className="py-3 text-right text-emerald-400 font-medium">
+                        {itemLineSavings > 0 ? formatCurrency(itemLineSavings) : '—'}
+                      </td>
+                      <td className="py-3 text-right font-bold text-white">
+                        {formatCurrency(itemSubtotal)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr className="border-t border-festival-border text-xs text-slate-300">
-                  <td colSpan="3" className="pt-4 text-right">Items Subtotal:</td>
-                  <td className="pt-4 text-right font-bold text-white">{formatCurrency(order.subtotal)}</td>
+                  <td colSpan="7" className="pt-4 text-right">Total MRP Value:</td>
+                  <td className="pt-4 text-right font-semibold text-slate-400 line-through">{formatCurrency(computedMrpTotal)}</td>
                 </tr>
                 <tr className="text-xs text-slate-300">
-                  <td colSpan="3" className="py-1 text-right">Delivery Charge:</td>
+                  <td colSpan="7" className="py-1 text-right">Items Factory Price:</td>
+                  <td className="py-1 text-right font-bold text-white">{formatCurrency(itemsSubtotal)}</td>
+                </tr>
+                {order.discountAmount > 0 && (
+                  <tr className="text-xs text-amber-300">
+                    <td colSpan="7" className="py-1 text-right">Special Discount ({order.discountPercentage || 0}%):</td>
+                    <td className="py-1 text-right font-bold text-amber-400">-{formatCurrency(order.discountAmount)}</td>
+                  </tr>
+                )}
+                {totalSavings > 0 && (
+                  <tr className="text-xs text-emerald-400 font-bold bg-emerald-950/30">
+                    <td colSpan="7" className="py-2 text-right">Total Discount Savings:</td>
+                    <td className="py-2 text-right font-extrabold text-emerald-400">Save {formatCurrency(totalSavings)}</td>
+                  </tr>
+                )}
+                <tr className="text-xs text-slate-300">
+                  <td colSpan="7" className="py-1 text-right">Delivery Charge:</td>
                   <td className="py-1 text-right font-bold text-white">
-                    {order.deliveryFee === 0 ? <span className="text-emerald-400">FREE</span> : formatCurrency(order.deliveryFee)}
+                    {order.deliveryFee === 0 ? <span className="text-emerald-400 font-bold">FREE</span> : formatCurrency(order.deliveryFee)}
                   </td>
                 </tr>
-                <tr className="text-sm font-black text-white">
-                  <td colSpan="3" className="pt-3 text-right text-amber-400">Total Amount:</td>
-                  <td className="pt-3 text-right text-amber-400 text-base">{formatCurrency(order.totalAmount)}</td>
+                <tr className="text-sm font-black text-white border-t border-festival-border">
+                  <td colSpan="7" className="pt-3 text-right text-amber-400 text-base">Final Amount Payable:</td>
+                  <td className="pt-3 text-right text-amber-400 text-lg font-black">{formatCurrency(finalTotal)}</td>
                 </tr>
               </tfoot>
             </table>

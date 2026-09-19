@@ -7,6 +7,11 @@ const orderItemSchema = new mongoose.Schema(
       ref: 'Product',
       required: true,
     },
+    productCode: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     name: {
       type: String,
       required: true,
@@ -14,6 +19,31 @@ const orderItemSchema = new mongoose.Schema(
     price: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    mrpPrice: {
+      type: Number,
+      default: function () {
+        return this.price || 0;
+      },
+      min: 0,
+    },
+    sellingPrice: {
+      type: Number,
+      default: function () {
+        return this.price || 0;
+      },
+      min: 0,
+    },
+    discountPercent: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
       min: 0,
     },
     quantity: {
@@ -24,6 +54,11 @@ const orderItemSchema = new mongoose.Schema(
     subtotal: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    lineSavings: {
+      type: Number,
+      default: 0,
       min: 0,
     },
     image: {
@@ -145,6 +180,23 @@ const orderSchema = new mongoose.Schema(
     subtotal: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    orderMrpTotal: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    orderSavingsTotal: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    orderFinalTotal: {
+      type: Number,
+      default: function () {
+        return this.totalAmount || 0;
+      },
       min: 0,
     },
     discountPercentage: {

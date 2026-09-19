@@ -213,26 +213,37 @@ const CustomerManager = () => {
                 ) : customerOrders.length === 0 ? (
                   <p className="text-xs text-slate-400 py-4 text-center">No orders on record.</p>
                 ) : (
-                  <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
-                    {customerOrders.map((o) => (
-                      <div
-                        key={o._id}
-                        className="p-3.5 rounded-xl bg-festival-dark border border-festival-border flex items-center justify-between text-xs"
-                      >
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-amber-400">{o.orderId}</span>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-950 text-amber-300">
-                              {o.status}
-                            </span>
+                    <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                    {customerOrders.map((o) => {
+                      const computedMrp = o.orderMrpTotal || (o.items || []).reduce((acc, it) => acc + (it.mrpPrice || it.originalPrice || it.price) * (it.quantity || 1), 0);
+                      const computedSavings = o.orderSavingsTotal !== undefined ? o.orderSavingsTotal : Math.max(0, computedMrp - (o.totalAmount || 0));
+                      return (
+                        <div
+                          key={o._id}
+                          className="p-3.5 rounded-xl bg-festival-dark border border-festival-border flex items-center justify-between text-xs gap-4"
+                        >
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-bold text-amber-400">{o.orderId}</span>
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-950 text-amber-300">
+                                {o.status}
+                              </span>
+                            </div>
+                            <p className="text-slate-400 text-[11px] mt-0.5">
+                              {formatDate(o.createdAt, true)} • {o.items?.length || 0} item(s)
+                            </p>
                           </div>
-                          <p className="text-slate-400 text-[11px] mt-0.5">
-                            {formatDate(o.createdAt, true)} • {o.items?.length} item(s)
-                          </p>
+                          <div className="text-right">
+                            {computedSavings > 0 && (
+                              <div className="text-[10px] text-slate-400">
+                                MRP <span className="line-through">{formatCurrency(computedMrp)}</span> • <span className="text-emerald-400 font-bold">Saved {formatCurrency(computedSavings)}</span>
+                              </div>
+                            )}
+                            <span className="text-sm font-black text-amber-400">{formatCurrency(o.totalAmount)}</span>
+                          </div>
                         </div>
-                        <span className="text-sm font-black text-white">{formatCurrency(o.totalAmount)}</span>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>

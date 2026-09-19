@@ -34,7 +34,7 @@ import {
 import { orderService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { useSettings } from '../../context/SettingsContext';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { formatCurrency, formatDate, formatProductCode } from '../../utils/formatters';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import {
   createAdminOrderWhatsAppUrl,
@@ -401,14 +401,16 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
         <div className="bg-festival-card border border-festival-border rounded-3xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-festival-dark/80 text-slate-400 uppercase font-bold border-b border-festival-border">
+              <thead className="bg-festival-dark/80 text-slate-400 uppercase font-bold border-b border-festival-border text-[10px]">
                 <tr>
                   <th className="p-4">Order ID & Date</th>
                   <th className="p-4">Customer Details</th>
-                  <th className="p-4 text-center">WhatsApp Contact</th>
+                  <th className="p-4 text-center">WhatsApp</th>
                   <th className="p-4">Delivery Location</th>
                   <th className="p-4 text-center">Items Qty</th>
-                  <th className="p-4 text-right">Amount</th>
+                  <th className="p-4 text-right">MRP Value</th>
+                  <th className="p-4 text-right">Discount</th>
+                  <th className="p-4 text-right">Payable</th>
                   <th className="p-4 text-center">Status</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
@@ -418,6 +420,17 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                   const statusClass = STATUS_COLORS[o.status] || 'bg-slate-900 text-slate-300';
                   const isContacted = !!o.whatsappConfirmationSent;
                   const isHighlighted = highlightedOrderId && (o.orderId === highlightedOrderId || o._id === highlightedOrderId);
+
+                  const computedMrp = o.orderMrpTotal || (o.items || []).reduce((acc, it) => {
+                    const unitMrp = it.mrpPrice !== undefined ? it.mrpPrice : (it.originalPrice !== undefined ? it.originalPrice : it.price);
+                    return acc + unitMrp * (it.quantity || 1);
+                  }, 0);
+                  const itemsSubtotal = o.orderItemsSubtotal || o.subtotal || o.totalAmount || 0;
+                  const finalTotal = o.orderFinalTotal || o.totalAmount || 0;
+                  const orderSavings = o.orderSavingsTotal !== undefined
+                    ? o.orderSavingsTotal
+                    : Math.max(0, computedMrp - itemsSubtotal + (o.discountAmount || 0));
+
                   return (
                     <tr
                       key={o._id}
@@ -451,18 +464,13 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                               title={o.whatsappConfirmationSentAt ? `Contacted at ${formatDate(o.whatsappConfirmationSentAt, true)} by ${o.whatsappConfirmationSentBy || 'Admin'}` : 'Customer Contacted'}
                             >
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                              <span>Customer Contacted</span>
+                              <span>Contacted</span>
                             </span>
-                            {o.whatsappConfirmationSentAt && (
-                              <span className="text-[9px] text-slate-400 font-mono">
-                                {formatDate(o.whatsappConfirmationSentAt, true)}
-                              </span>
-                            )}
                           </div>
                         ) : (
                           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-950/80 text-amber-300 border border-amber-500/40">
                             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                            <span>Pending Contact</span>
+                            <span>Pending</span>
                           </span>
                         )}
                       </td>
@@ -471,13 +479,19 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                         <p className="text-[10px] text-slate-400">PIN: {o.customerDetails?.pincode}</p>
                       </td>
                       <td className="p-4 text-center font-bold text-white">
-                        {o.items?.reduce((sum, item) => sum + item.quantity, 0)} boxes
+                        {o.items?.reduce((sum, item) => sum + item.quantity, 0)}
                       </td>
-                      <td className="p-4 text-right font-black text-amber-400 text-sm">
-                        {formatCurrency(o.totalAmount)}
+                      <td className="p-4 text-right text-slate-400 line-through font-mono">
+                        {formatCurrency(computedMrp)}
+                      </td>
+                      <td className="p-4 text-right font-bold text-emerald-400 font-mono">
+                        {orderSavings > 0 ? `-${formatCurrency(orderSavings)}` : '—'}
+                      </td>
+                      <td className="p-4 text-right font-black text-amber-400 text-sm font-mono">
+                        {formatCurrency(finalTotal)}
                       </td>
                       <td className="p-4 text-center">
-                        <span className={`text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${statusClass}`}>
+                        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${statusClass}`}>
                           {o.status}
                         </span>
                       </td>
@@ -486,7 +500,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                           {/* Direct WhatsApp Confirmation Button */}
                           <button
                             onClick={() => openWhatsAppModal(o)}
-                            className="px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-bold flex items-center gap-1 transition-all shadow-sm"
+                            className="px-2 py-1 rounded-lg bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/40 text-emerald-300 hover:text-white text-xs font-bold flex items-center gap-1 transition-all shadow-sm cursor-pointer"
                             title="WhatsApp Order Confirmation"
                           >
                             <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
@@ -494,13 +508,13 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                           </button>
                           <button
                             onClick={() => openDetails(o)}
-                            className="px-3 py-1.5 rounded-lg bg-festival-dark hover:bg-festival-cardHover border border-amber-500/30 text-amber-300 text-xs font-bold"
+                            className="px-2.5 py-1 rounded-lg bg-festival-dark hover:bg-festival-cardHover border border-amber-500/30 text-amber-300 text-xs font-bold cursor-pointer"
                           >
                             Manage
                           </button>
                           <button
                             onClick={() => openInvoice(o)}
-                            className="p-1.5 rounded-lg bg-festival-dark hover:bg-white/10 text-slate-300"
+                            className="p-1 rounded-lg bg-festival-dark hover:bg-white/10 text-slate-300 cursor-pointer"
                             title="Print Invoice"
                           >
                             <Printer className="w-4 h-4 text-amber-400" />
@@ -905,28 +919,95 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                 />
               </div>
 
-              {/* Items List */}
+              {/* Items List with Full Pricing Transparency */}
               <div className="space-y-3 text-xs">
-                <h4 className="font-bold text-white uppercase pb-1 border-b border-festival-border">
-                  Ordered Fireworks ({selectedOrder.items?.length} varieties)
+                <h4 className="font-bold text-white uppercase pb-1 border-b border-festival-border flex items-center justify-between">
+                  <span>Ordered Fireworks ({selectedOrder.items?.length} varieties)</span>
+                  <span className="text-slate-400 font-normal">
+                    {selectedOrder.items?.reduce((acc, i) => acc + (i.quantity || 0), 0)} boxes total
+                  </span>
                 </h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between p-2 rounded-xl bg-festival-dark">
-                      <div>
-                        <p className="font-bold text-white">{item.name}</p>
-                        <p className="text-[10px] text-slate-400">{item.quantity} × {formatCurrency(item.price)}</p>
+                <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                  {selectedOrder.items?.map((item, idx) => {
+                    const itemMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
+                    const itemSelling = item.sellingPrice !== undefined ? item.sellingPrice : item.price;
+                    const itemDiscountPercent = item.discountPercent !== undefined
+                      ? item.discountPercent
+                      : (itemMrp > 0 ? Math.round(((itemMrp - itemSelling) / itemMrp) * 100) : 0);
+                    const itemLineSavings = item.lineSavings !== undefined
+                      ? item.lineSavings
+                      : Math.max(0, (itemMrp - itemSelling) * item.quantity);
+                    const itemSubtotal = item.subtotal !== undefined ? item.subtotal : itemSelling * item.quantity;
+
+                    return (
+                      <div key={idx} className="flex items-start justify-between p-2.5 rounded-xl bg-festival-dark gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-white truncate">{item.name}</p>
+                            {item.productCode && (
+                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded border border-amber-500/20">
+                                {formatProductCode(item.productCode)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[10px] text-slate-400 space-y-0.5 mt-0.5">
+                            <div>
+                              <span>MRP: </span>
+                              <span className="line-through">{formatCurrency(itemMrp)}</span> × {item.quantity}
+                              {itemDiscountPercent > 0 && (
+                                <span className="text-[9px] font-extrabold text-emerald-400 bg-emerald-950/70 px-1 rounded ml-1">
+                                  {itemDiscountPercent}% OFF
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-amber-300 font-semibold">
+                              <span>Rate: </span>
+                              <span>{formatCurrency(itemSelling)}</span> × {item.quantity}
+                            </div>
+                            {itemLineSavings > 0 && (
+                              <div className="text-emerald-400 font-bold">
+                                Save {formatCurrency(itemLineSavings)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        <span className="font-black text-amber-400 font-mono flex-shrink-0">
+                          {formatCurrency(itemSubtotal)}
+                        </span>
                       </div>
-                      <span className="font-black text-amber-400">{formatCurrency(item.subtotal || item.price * item.quantity)}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
-                <div className="pt-2 border-t border-festival-border space-y-1 text-right font-semibold">
-                  <p className="text-slate-300">Subtotal: {formatCurrency(selectedOrder.subtotal)}</p>
-                  <p className="text-slate-300">Delivery Fee: {formatCurrency(selectedOrder.deliveryFee)}</p>
-                  <p className="text-sm font-black text-amber-400">Total Amount: {formatCurrency(selectedOrder.totalAmount)}</p>
-                </div>
+                {/* Financial Summary Breakdown */}
+                {(() => {
+                  const computedMrp = selectedOrder.orderMrpTotal || (selectedOrder.items || []).reduce((acc, it) => {
+                    const unitMrp = it.mrpPrice !== undefined ? it.mrpPrice : (it.originalPrice !== undefined ? it.originalPrice : it.price);
+                    return acc + unitMrp * (it.quantity || 1);
+                  }, 0);
+                  const itemsSubtotal = selectedOrder.orderItemsSubtotal || selectedOrder.subtotal || selectedOrder.totalAmount || 0;
+                  const finalTotal = selectedOrder.orderFinalTotal || selectedOrder.totalAmount || 0;
+                  const orderSavings = selectedOrder.orderSavingsTotal !== undefined
+                    ? selectedOrder.orderSavingsTotal
+                    : Math.max(0, computedMrp - itemsSubtotal + (selectedOrder.discountAmount || 0));
+
+                  return (
+                    <div className="pt-2 border-t border-festival-border space-y-1.5 text-right font-semibold">
+                      <p className="text-slate-400">Total MRP Value: <span className="line-through font-mono">{formatCurrency(computedMrp)}</span></p>
+                      <p className="text-slate-300">Items Factory Price: <span className="font-mono">{formatCurrency(itemsSubtotal)}</span></p>
+                      {selectedOrder.discountAmount > 0 && (
+                        <p className="text-amber-300">Special Discount ({selectedOrder.discountPercentage || 0}%): <span className="font-mono">-{formatCurrency(selectedOrder.discountAmount)}</span></p>
+                      )}
+                      {orderSavings > 0 && (
+                        <p className="text-emerald-400 font-bold">Total Discount Savings: <span className="font-mono">Save {formatCurrency(orderSavings)}</span></p>
+                      )}
+                      <p className="text-slate-300">Delivery Fee: <span className="font-mono">{selectedOrder.deliveryFee === 0 ? 'FREE' : formatCurrency(selectedOrder.deliveryFee)}</span></p>
+                      <p className="text-sm font-black text-amber-400 pt-1 border-t border-festival-border">
+                        Final Amount Payable: <span className="text-base font-mono">{formatCurrency(finalTotal)}</span>
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* Customer Details */}
@@ -945,14 +1026,14 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                 <button
                   type="button"
                   onClick={() => openWhatsAppModal(selectedOrder)}
-                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow"
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4" />
                   WhatsApp Confirmation
                 </button>
                 <button
                   onClick={() => openInvoice(selectedOrder)}
-                  className="px-5 py-2.5 bg-festival-cardHover border border-amber-500/30 text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5"
+                  className="px-5 py-2.5 bg-festival-cardHover border border-amber-500/30 text-amber-300 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Printer className="w-4 h-4" />
                   Print Formal Invoice
@@ -992,7 +1073,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                 </div>
                 <button
                   onClick={() => !cancellingOrder && setIsCancelModalOpen(false)}
-                  className="text-slate-400 hover:text-white"
+                  className="text-slate-400 hover:text-white cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1014,7 +1095,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                   <select
                     value={cancelReasonType}
                     onChange={(e) => setCancelReasonType(e.target.value)}
-                    className="w-full bg-festival-dark border border-festival-border rounded-xl p-3 text-white text-xs sm:text-sm focus:outline-none focus:border-rose-500"
+                    className="w-full bg-festival-dark border border-festival-border rounded-xl p-3 text-white text-xs sm:text-sm focus:outline-none focus:border-rose-500 cursor-pointer"
                   >
                     {CANCELLATION_REASONS.map((r) => (
                       <option key={r} value={r}>
@@ -1045,14 +1126,14 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                     type="button"
                     disabled={cancellingOrder}
                     onClick={() => setIsCancelModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-festival-border text-slate-300 hover:text-white font-bold text-xs transition-colors"
+                    className="px-4 py-2.5 rounded-xl border border-festival-border text-slate-300 hover:text-white font-bold text-xs transition-colors cursor-pointer"
                   >
                     Keep Order Active
                   </button>
                   <button
                     type="submit"
                     disabled={cancellingOrder}
-                    className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-950/50 transition-all flex items-center gap-2 disabled:opacity-50"
+                    className="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-950/50 transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
                   >
                     {cancellingOrder ? (
                       <>
@@ -1095,12 +1176,12 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => window.print()}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow cursor-pointer"
                   >
                     <Printer className="w-4 h-4" />
                     Print Invoice
                   </button>
-                  <button onClick={() => setIsInvoiceModalOpen(false)} className="text-slate-500">
+                  <button onClick={() => setIsInvoiceModalOpen(false)} className="text-slate-500 cursor-pointer">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
@@ -1132,62 +1213,116 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                   </div>
                 </div>
 
-                {/* Bill to */}
-                <div className="grid grid-cols-2 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                  <div>
-                    <h4 className="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1">Billed & Delivered To:</h4>
-                    <p className="font-bold text-sm text-slate-900">{selectedOrder.customerDetails?.name}</p>
-                    <p>{selectedOrder.customerDetails?.address}</p>
-                    {selectedOrder.customerDetails?.landmark && <p>Landmark: {selectedOrder.customerDetails.landmark}</p>}
-                    <p>{selectedOrder.customerDetails?.city}, {selectedOrder.customerDetails?.state} - <strong>{selectedOrder.customerDetails?.pincode}</strong></p>
-                    <p className="pt-1">Phone: <strong>{selectedOrder.customerDetails?.phone}</strong></p>
-                    {selectedOrder.customerDetails?.email && <p>Email: {selectedOrder.customerDetails.email}</p>}
-                  </div>
-                  <div className="text-right space-y-1">
-                    <h4 className="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1">Dispatch Details:</h4>
-                    <p>Payment Mode: <strong className="text-emerald-700">Door Delivery Available</strong></p>
-                    <p>Dispatch Hub: <strong>Sivakasi Factory Center</strong></p>
-                    <p>Status: <strong>{selectedOrder.status}</strong></p>
-                  </div>
-                </div>
+                {/* Savings Banner Highlight on Invoice */}
+                {(() => {
+                  const computedMrp = selectedOrder.orderMrpTotal || (selectedOrder.items || []).reduce((acc, it) => {
+                    const unitMrp = it.mrpPrice !== undefined ? it.mrpPrice : (it.originalPrice !== undefined ? it.originalPrice : it.price);
+                    return acc + unitMrp * (it.quantity || 1);
+                  }, 0);
+                  const itemsSubtotal = selectedOrder.orderItemsSubtotal || selectedOrder.subtotal || selectedOrder.totalAmount || 0;
+                  const finalTotal = selectedOrder.orderFinalTotal || selectedOrder.totalAmount || 0;
+                  const orderSavings = selectedOrder.orderSavingsTotal !== undefined
+                    ? selectedOrder.orderSavingsTotal
+                    : Math.max(0, computedMrp - itemsSubtotal + (selectedOrder.discountAmount || 0));
 
-                {/* Items Table */}
-                <table className="w-full text-xs text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-900 text-white font-bold uppercase text-[10px]">
-                      <th className="p-2.5">#</th>
-                      <th className="p-2.5">Product Description</th>
-                      <th className="p-2.5 text-center">Qty (Boxes)</th>
-                      <th className="p-2.5 text-right">Rate (₹)</th>
-                      <th className="p-2.5 text-right">Amount (₹)</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200">
-                    {selectedOrder.items?.map((item, i) => (
-                      <tr key={i}>
-                        <td className="p-2.5 text-slate-500">{i + 1}</td>
-                        <td className="p-2.5 font-bold text-slate-900">{item.name}</td>
-                        <td className="p-2.5 text-center font-semibold">{item.quantity}</td>
-                        <td className="p-2.5 text-right text-slate-600">₹{item.price}</td>
-                        <td className="p-2.5 text-right font-bold text-slate-900">₹{item.subtotal || item.price * item.quantity}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot className="border-t-2 border-slate-900 font-bold">
-                    <tr>
-                      <td colSpan="4" className="p-2 text-right">Subtotal:</td>
-                      <td className="p-2 text-right">₹{selectedOrder.subtotal}</td>
-                    </tr>
-                    <tr>
-                      <td colSpan="4" className="p-2 text-right">Shipping & Delivery:</td>
-                      <td className="p-2 text-right">{selectedOrder.deliveryFee === 0 ? 'FREE' : `₹${selectedOrder.deliveryFee}`}</td>
-                    </tr>
-                    <tr className="text-sm font-black bg-slate-100">
-                      <td colSpan="4" className="p-3 text-right text-red-700">Total Order Amount:</td>
-                      <td className="p-3 text-right text-red-700 text-base">₹{selectedOrder.totalAmount}</td>
-                    </tr>
-                  </tfoot>
-                </table>
+                  return (
+                    <>
+                      {orderSavings > 0 && (
+                        <div className="p-3 bg-emerald-50 border-2 border-emerald-600 rounded-xl text-center text-emerald-900 font-extrabold text-sm">
+                          🎉 You Saved {formatCurrency(orderSavings)} On This Festival Order (Factory Direct Discount)!
+                        </div>
+                      )}
+
+                      {/* Bill to */}
+                      <div className="grid grid-cols-2 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <div>
+                          <h4 className="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1">Billed & Delivered To:</h4>
+                          <p className="font-bold text-sm text-slate-900">{selectedOrder.customerDetails?.name}</p>
+                          <p>{selectedOrder.customerDetails?.address}</p>
+                          {selectedOrder.customerDetails?.landmark && <p>Landmark: {selectedOrder.customerDetails.landmark}</p>}
+                          <p>{selectedOrder.customerDetails?.city}, {selectedOrder.customerDetails?.state} - <strong>{selectedOrder.customerDetails?.pincode}</strong></p>
+                          <p className="pt-1">Phone: <strong>{selectedOrder.customerDetails?.phone}</strong></p>
+                          {selectedOrder.customerDetails?.email && <p>Email: {selectedOrder.customerDetails.email}</p>}
+                        </div>
+                        <div className="text-right space-y-1">
+                          <h4 className="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1">Dispatch Details:</h4>
+                          <p>Payment Mode: <strong className="text-emerald-700">Door Delivery Available</strong></p>
+                          <p>Dispatch Hub: <strong>Sivakasi Factory Center</strong></p>
+                          <p>Status: <strong>{selectedOrder.status}</strong></p>
+                        </div>
+                      </div>
+
+                      {/* Items Table with Full Pricing Breakdown */}
+                      <table className="w-full text-xs text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-900 text-white font-bold uppercase text-[10px]">
+                            <th className="p-2">#</th>
+                            <th className="p-2">Code</th>
+                            <th className="p-2">Product Description</th>
+                            <th className="p-2 text-center">Qty</th>
+                            <th className="p-2 text-right">MRP (₹)</th>
+                            <th className="p-2 text-center">Disc %</th>
+                            <th className="p-2 text-right">Rate (₹)</th>
+                            <th className="p-2 text-right">Total (₹)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {selectedOrder.items?.map((item, i) => {
+                            const itemMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
+                            const itemSelling = item.sellingPrice !== undefined ? item.sellingPrice : item.price;
+                            const itemDiscountPercent = item.discountPercent !== undefined
+                              ? item.discountPercent
+                              : (itemMrp > 0 ? Math.round(((itemMrp - itemSelling) / itemMrp) * 100) : 0);
+                            const itemSubtotal = item.subtotal !== undefined ? item.subtotal : itemSelling * item.quantity;
+
+                            return (
+                              <tr key={i}>
+                                <td className="p-2 text-slate-500">{i + 1}</td>
+                                <td className="p-2 font-mono font-bold text-slate-700">{item.productCode ? formatProductCode(item.productCode) : `CRK-${i + 1}`}</td>
+                                <td className="p-2 font-bold text-slate-900">{item.name}</td>
+                                <td className="p-2 text-center font-semibold">{item.quantity}</td>
+                                <td className="p-2 text-right text-slate-500 line-through">₹{itemMrp}</td>
+                                <td className="p-2 text-center font-bold text-emerald-700">{itemDiscountPercent > 0 ? `${itemDiscountPercent}%` : '—'}</td>
+                                <td className="p-2 text-right text-slate-800 font-semibold">₹{itemSelling}</td>
+                                <td className="p-2 text-right font-bold text-slate-900">₹{itemSubtotal}</td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        <tfoot className="border-t-2 border-slate-900 font-bold">
+                          <tr>
+                            <td colSpan="7" className="p-2 text-right text-slate-600">Total MRP Value:</td>
+                            <td className="p-2 text-right text-slate-600 line-through">₹{computedMrp}</td>
+                          </tr>
+                          <tr>
+                            <td colSpan="7" className="p-2 text-right">Factory Subtotal:</td>
+                            <td className="p-2 text-right">₹{itemsSubtotal}</td>
+                          </tr>
+                          {selectedOrder.discountAmount > 0 && (
+                            <tr className="text-amber-700">
+                              <td colSpan="7" className="p-2 text-right">Special Tier Discount ({selectedOrder.discountPercentage || 0}%):</td>
+                              <td className="p-2 text-right">-₹{selectedOrder.discountAmount}</td>
+                            </tr>
+                          )}
+                          {orderSavings > 0 && (
+                            <tr className="text-emerald-700 bg-emerald-50">
+                              <td colSpan="7" className="p-2 text-right font-extrabold">Total Discount Savings:</td>
+                              <td className="p-2 text-right font-extrabold">Save ₹{orderSavings}</td>
+                            </tr>
+                          )}
+                          <tr>
+                            <td colSpan="7" className="p-2 text-right">Shipping & Delivery:</td>
+                            <td className="p-2 text-right">{selectedOrder.deliveryFee === 0 ? 'FREE' : `₹${selectedOrder.deliveryFee}`}</td>
+                          </tr>
+                          <tr className="text-sm font-black bg-slate-100">
+                            <td colSpan="7" className="p-3 text-right text-red-700 text-sm">Net Payable Amount:</td>
+                            <td className="p-3 text-right text-red-700 text-base">₹{finalTotal}</td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </>
+                  );
+                })()}
 
                 {/* Footer notes */}
                 <div className="pt-4 border-t border-slate-300 flex justify-between items-end text-[10px] text-slate-500">

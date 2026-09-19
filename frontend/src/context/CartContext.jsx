@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './ToastContext';
 import { getProductImage } from '../utils/imageUrlUtils';
+import { calculateItemPricing, calculateOrderPricing } from '../utils/pricing';
 
 const CartContext = createContext(null);
 
@@ -15,10 +16,14 @@ export const CartProvider = ({ children }) => {
       if (!saved) return [];
       const parsed = JSON.parse(saved);
       return Array.isArray(parsed)
-        ? parsed.map((item) => ({
-            ...item,
-            image: getProductImage(item.image || item),
-          }))
+        ? parsed.map((item) => {
+            const pricing = calculateItemPricing(item, item.quantity || 1);
+            return {
+              ...item,
+              ...pricing,
+              image: getProductImage(item.image || item),
+            };
+          })
         : [];
     } catch {
       return [];
@@ -41,6 +46,7 @@ export const CartProvider = ({ children }) => {
     setCartItems((prevItems) => {
       const existingIndex = prevItems.findIndex((item) => item.productId === product._id);
       const productImg = getProductImage(product);
+      const pricing = calculateItemPricing(product, quantity);
 
       if (existingIndex > -1) {
         const currentQty = prevItems[existingIndex].quantity;
@@ -51,12 +57,15 @@ export const CartProvider = ({ children }) => {
           return prevItems;
         }
 
+        const updatedPricing = calculateItemPricing(product, newQty);
         const updated = [...prevItems];
         updated[existingIndex] = {
           ...updated[existingIndex],
+          ...updatedPricing,
           quantity: newQty,
           maxStock: product.stockQuantity,
           price: product.price,
+          originalPrice: product.originalPrice || product.price,
         };
         toastSuccess(`Added "${product.name}" to cart (${newQty} in cart)`, 2000);
         return updated;
@@ -71,14 +80,19 @@ export const CartProvider = ({ children }) => {
           ...prevItems,
           {
             productId: product._id,
+            productCode: product.productCode || '',
             name: product.name,
             price: product.price,
+            sellingPrice: product.price,
             originalPrice: product.originalPrice || product.price,
+            mrpPrice: product.originalPrice || product.price,
+            discountPercentage: product.discountPercentage || 0,
             quantity: quantity,
             maxStock: product.stockQuantity,
             image: productImg,
             packSize: product.packSize || '1 Box',
             category: product.category?.name || 'Crackers',
+            ...pricing,
           },
         ];
       }
@@ -100,11 +114,16 @@ export const CartProvider = ({ children }) => {
     setCartItems((prevItems) =>
       prevItems.map((item) => {
         if (item.productId === productId) {
+          const qty = Math.min(newQuantity, item.maxStock || 999);
           if (newQuantity > item.maxStock) {
             toastWarning(`Only ${item.maxStock} box(es) available in stock.`);
-            return { ...item, quantity: item.maxStock };
           }
-          return { ...item, quantity: newQuantity };
+          const itemPricing = calculateItemPricing(item, qty);
+          return {
+            ...item,
+            ...itemPricing,
+            quantity: qty,
+          };
         }
         return item;
       })
@@ -128,22 +147,13 @@ export const CartProvider = ({ children }) => {
     localStorage.removeItem(CART_STORAGE_KEY);
   };
 
-  // Calculations (Defensive against null/undefined/NaN)
-  const cartSubtotal = cartItems.reduce((sum, item) => {
-    const price = typeof item?.price === 'number' ? item.price : parseFloat(item?.price) || 0;
-    const qty = Math.max(1, parseInt(item?.quantity, 10) || 1);
-    return sum + (price * qty);
-  }, 0);
+  // Unified Pricing Model for Cart Totals
+  const orderPricing = calculateOrderPricing(cartItems);
 
-  const totalOriginalPrice = cartItems.reduce((sum, item) => {
-    const origPrice = typeof item?.originalPrice === 'number'
-      ? item.originalPrice
-      : (parseFloat(item?.originalPrice) || (typeof item?.price === 'number' ? item.price : parseFloat(item?.price) || 0));
-    const qty = Math.max(1, parseInt(item?.quantity, 10) || 1);
-    return sum + (origPrice * qty);
-  }, 0);
-
-  const totalSavings = Math.max(0, totalOriginalPrice - cartSubtotal);
+  const cartSubtotal = orderPricing.orderItemsSubtotal;
+  const totalOriginalPrice = orderPricing.orderMrpTotal;
+  const totalMrp = orderPricing.orderMrpTotal;
+  const totalSavings = orderPricing.orderItemSavingsTotal;
   const totalItemsCount = cartItems.reduce((sum, item) => {
     const qty = Math.max(0, parseInt(item?.quantity, 10) || 0);
     return sum + qty;
@@ -155,6 +165,7 @@ export const CartProvider = ({ children }) => {
         cartItems,
         cartSubtotal,
         totalOriginalPrice,
+        totalMrp,
         totalSavings,
         totalItemsCount,
         isCartOpen,

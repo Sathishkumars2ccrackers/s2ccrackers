@@ -74,12 +74,26 @@ const getDashboardSummary = async (req, res, next) => {
       Product.countDocuments({ stockQuantity: { $lte: 0 } }),
       Order.aggregate([
         { $match: { status: { $ne: 'Cancelled' } } },
-        { $group: { _id: null, totalRevenue: { $sum: '$totalAmount' } } },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$totalAmount' },
+            totalMrpSold: { $sum: { $ifNull: ['$orderMrpTotal', '$subtotal'] } },
+            totalDiscountGiven: { $sum: { $ifNull: ['$orderSavingsTotal', '$discountAmount'] } },
+          },
+        },
       ]),
       Order.countDocuments({ createdAt: { $gte: today } }),
       Order.aggregate([
         { $match: { createdAt: { $gte: today }, status: { $ne: 'Cancelled' } } },
-        { $group: { _id: null, todayRevenue: { $sum: '$totalAmount' } } },
+        {
+          $group: {
+            _id: null,
+            todayRevenue: { $sum: '$totalAmount' },
+            todayMrpSold: { $sum: { $ifNull: ['$orderMrpTotal', '$subtotal'] } },
+            todayDiscountGiven: { $sum: { $ifNull: ['$orderSavingsTotal', '$discountAmount'] } },
+          },
+        },
       ]),
       Order.find().sort({ createdAt: -1 }).limit(6).lean(),
       Product.find({ isActive: true }).sort({ totalSold: -1 }).limit(5).populate('category', 'name').lean(),
@@ -87,7 +101,12 @@ const getDashboardSummary = async (req, res, next) => {
     ]);
 
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].totalRevenue : 0;
+    const totalMrpSold = revenueResult.length > 0 ? (revenueResult[0].totalMrpSold || totalRevenue) : 0;
+    const totalDiscountGiven = revenueResult.length > 0 ? (revenueResult[0].totalDiscountGiven || Math.max(0, totalMrpSold - totalRevenue)) : 0;
+
     const todayRevenue = todayRevenueResult.length > 0 ? todayRevenueResult[0].todayRevenue : 0;
+    const todayMrpSold = todayRevenueResult.length > 0 ? (todayRevenueResult[0].todayMrpSold || todayRevenue) : 0;
+    const todayDiscountGiven = todayRevenueResult.length > 0 ? (todayRevenueResult[0].todayDiscountGiven || Math.max(0, todayMrpSold - todayRevenue)) : 0;
 
     // 7-day sales trend aggregation
     const sevenDaysAgo = new Date();
@@ -106,6 +125,8 @@ const getDashboardSummary = async (req, res, next) => {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
           ordersCount: { $sum: 1 },
           revenue: { $sum: '$totalAmount' },
+          mrpSold: { $sum: { $ifNull: ['$orderMrpTotal', '$subtotal'] } },
+          discountGiven: { $sum: { $ifNull: ['$orderSavingsTotal', '$discountAmount'] } },
         },
       },
       { $sort: { _id: 1 } },
@@ -115,7 +136,11 @@ const getDashboardSummary = async (req, res, next) => {
       success: true,
       summary: {
         totalRevenue,
+        totalMrpSold,
+        totalDiscountGiven,
         todayRevenue,
+        todayMrpSold,
+        todayDiscountGiven,
         totalOrders,
         todayOrders,
         pendingOrders,
@@ -197,23 +222,33 @@ const exportData = async (req, res, next) => {
         sheetName = 'Orders';
         fileName = `s2c-orders-${Date.now()}`;
         const orders = await Order.find().sort({ createdAt: -1 }).lean();
-        exportData = orders.map((o) => ({
-          'Order ID': o.orderId,
-          'Order Date': new Date(o.createdAt).toLocaleString('en-IN'),
-          'Customer Name': o.customerDetails.name,
-          'Customer Phone': o.customerDetails.phone,
-          'Customer Email': o.customerDetails.email || '',
-          'Delivery Address': o.customerDetails.address,
-          'City': o.customerDetails.city,
-          'PIN Code': o.customerDetails.pincode,
-          'Items Ordered': o.items.map((i) => `${i.quantity}x ${i.name}`).join(' | '),
-          'Total Items Qty': o.items.reduce((sum, i) => sum + i.quantity, 0),
-          'Subtotal (INR)': o.subtotal,
-          'Delivery Fee (INR)': o.deliveryFee,
-          'Grand Total (INR)': o.totalAmount,
-          'Payment Mode': o.paymentMethod,
-          'Order Status': o.status,
-        }));
+        exportData = orders.map((o) => {
+          const mrpTotal = o.orderMrpTotal || (o.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0);
+          const savingsTotal = o.orderSavingsTotal !== undefined
+            ? o.orderSavingsTotal
+            : Math.max(0, mrpTotal - (o.totalAmount - (o.deliveryFee || 0)));
+
+          return {
+            'Order ID': o.orderId,
+            'Order Date': new Date(o.createdAt).toLocaleString('en-IN'),
+            'Customer Name': o.customerDetails.name,
+            'Customer Phone': o.customerDetails.phone,
+            'Customer Email': o.customerDetails.email || '',
+            'Delivery Address': o.customerDetails.address,
+            'City': o.customerDetails.city,
+            'PIN Code': o.customerDetails.pincode,
+            'Items Ordered': o.items.map((i) => `${i.quantity}x ${i.name} (MRP: ₹${i.mrpPrice || i.price}, Rate: ₹${i.sellingPrice || i.price})`).join(' | '),
+            'Total Items Qty': o.items.reduce((sum, i) => sum + i.quantity, 0),
+            'Total MRP (INR)': mrpTotal,
+            'Total Discount Savings (INR)': savingsTotal,
+            'Subtotal / Selling Price (INR)': o.subtotal,
+            'Special Slab Discount (INR)': o.discountAmount || 0,
+            'Delivery Fee (INR)': o.deliveryFee,
+            'Grand Total / Collected (INR)': o.totalAmount,
+            'Payment Mode': o.paymentMethod,
+            'Order Status': o.status,
+          };
+        });
         break;
 
       case 'customers':

@@ -20,12 +20,28 @@ const DashboardOverviewWidget = ({ data, onNavigateTab }) => {
 
   const statCards = [
     {
-      title: 'Total Revenue (Confirmed Orders)',
+      title: 'Actual Revenue Collected',
       value: formatCurrency(summary?.totalRevenue || 0),
       subtitle: `Today: ${formatCurrency(summary?.todayRevenue || 0)}`,
       icon: TrendingUp,
       color: 'from-amber-500 to-yellow-600',
       textColor: 'text-amber-400',
+    },
+    {
+      title: 'Total MRP Value Sold',
+      value: formatCurrency(summary?.totalMrpSold || 0),
+      subtitle: `Today: ${formatCurrency(summary?.todayMrpSold || 0)}`,
+      icon: ShoppingBag,
+      color: 'from-blue-600 to-indigo-600',
+      textColor: 'text-blue-300',
+    },
+    {
+      title: 'Total Discount Given',
+      value: formatCurrency(summary?.totalDiscountGiven || 0),
+      subtitle: `Today: ${formatCurrency(summary?.todayDiscountGiven || 0)}`,
+      icon: Sparkles,
+      color: 'from-emerald-600 to-teal-600',
+      textColor: 'text-emerald-400',
     },
     {
       title: 'Total Orders',
