@@ -249,17 +249,17 @@ const CartPage = () => {
 
             <div className="space-y-3 text-xs">
               <div className="flex justify-between text-slate-300">
-                <span>Total MRP Value:</span>
-                <span className="font-semibold text-slate-400 line-through">{formatCurrency(totalMrp)}</span>
+                <span className="font-medium">Total MRP Value:</span>
+                <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
               </div>
               <div className="flex justify-between text-slate-300">
                 <span>Items Factory Price:</span>
-                <span className="font-bold text-white">{formatCurrency(cartSubtotal)}</span>
+                <span className="font-bold text-white font-mono">{formatCurrency(cartSubtotal)}</span>
               </div>
               {totalSavings > 0 && (
                 <div className="flex justify-between text-emerald-400 font-bold">
                   <span>Product Discount Savings:</span>
-                  <span>-{formatCurrency(totalSavings)}</span>
+                  <span className="font-mono">-{formatCurrency(totalSavings)}</span>
                 </div>
               )}
               {discountAmount > 0 && (
@@ -268,22 +268,30 @@ const CartPage = () => {
                     <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                     <span>Special Discount ({discountPercentage}%):</span>
                   </span>
-                  <span>-{formatCurrency(discountAmount)}</span>
+                  <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
+
+              {/* Prominent Green Savings Card */}
               {totalCombinedSavings > 0 && (
-                <div className="flex justify-between text-emerald-300 font-extrabold bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-500/30">
-                  <span>Total Savings on this Order:</span>
-                  <span>Save {formatCurrency(totalCombinedSavings)}</span>
+                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-950/90 to-festival-card border-2 border-emerald-500/50 text-center space-y-1 shadow-md">
+                  <div className="flex items-center justify-center gap-1.5 text-emerald-300 font-black text-sm">
+                    <Sparkles className="w-4 h-4 fill-emerald-400 text-emerald-400" />
+                    <span>Total Savings: {formatCurrency(totalCombinedSavings)}</span>
+                  </div>
+                  <p className="text-[11px] text-emerald-200/80">
+                    Direct Sivakasi factory discounts applied!
+                  </p>
                 </div>
               )}
+
               <div className="flex justify-between text-slate-300">
                 <span>Estimated Shipping:</span>
-                <span>{isFreeDeliveryUnlocked ? 'FREE' : 'Calculated at checkout'}</span>
+                <span className="font-semibold text-white">{isFreeDeliveryUnlocked ? <span className="text-emerald-400 font-black">FREE</span> : 'Calculated at checkout'}</span>
               </div>
               <div className="pt-3 border-t border-festival-border flex justify-between text-base font-black text-white">
-                <span>Final Payable Amount:</span>
-                <span className="text-amber-400 text-lg">{formatCurrency(finalCartTotal)}</span>
+                <span className="text-amber-400">Final Payable Amount:</span>
+                <span className="text-amber-400 text-xl font-mono">{formatCurrency(finalCartTotal)}</span>
               </div>
             </div>
 

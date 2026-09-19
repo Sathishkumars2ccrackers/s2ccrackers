@@ -554,32 +554,45 @@ const CheckoutPage = () => {
                 })}
               </div>
 
+              {/* Premium Savings Banner */}
+              {totalCombinedSavings > 0 && (
+                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950 via-festival-card to-emerald-900/80 border-2 border-emerald-500/50 shadow-xl text-center space-y-1">
+                  <div className="flex items-center justify-center gap-2 text-emerald-300 font-black text-sm sm:text-base">
+                    <Sparkles className="w-5 h-5 text-emerald-400 fill-emerald-400 animate-pulse" />
+                    <span>🎉 Congratulations!</span>
+                  </div>
+                  <p className="text-xs sm:text-sm font-bold text-white">
+                    You saved <span className="text-emerald-400 font-black text-base">{formatCurrency(totalCombinedSavings)}</span> through factory-direct Sivakasi pricing.
+                  </p>
+                </div>
+              )}
+
               {/* Bill breakdown */}
-              <div className="space-y-2 text-xs pt-2 border-t border-festival-border">
+              <div className="space-y-2.5 text-xs pt-2 border-t border-festival-border">
                 <div className="flex justify-between text-slate-300">
-                  <span>Order Value (Total MRP):</span>
-                  <span className="font-semibold text-slate-400 line-through">{formatCurrency(totalMrp)}</span>
+                  <span className="font-medium">Total MRP Value:</span>
+                  <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
                 </div>
                 <div className="flex justify-between text-slate-300">
                   <span>Items Factory Price:</span>
-                  <span className="font-bold text-white">{formatCurrency(cartSubtotal)}</span>
+                  <span className="font-bold text-white font-mono">{formatCurrency(cartSubtotal)}</span>
                 </div>
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-emerald-400 font-bold">
                     <span>Product Discount Savings:</span>
-                    <span>-{formatCurrency(totalSavings)}</span>
+                    <span className="font-mono">-{formatCurrency(totalSavings)}</span>
                   </div>
                 )}
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
                     <span>Special Tier Discount ({discountPercentage}%):</span>
-                    <span>-{formatCurrency(discountAmount)}</span>
+                    <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
                 {totalCombinedSavings > 0 && (
                   <div className="flex justify-between text-emerald-300 font-extrabold bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-500/30">
-                    <span>Total Discount Savings:</span>
-                    <span>Save {formatCurrency(totalCombinedSavings)}</span>
+                    <span>Total Discount Saved:</span>
+                    <span className="font-mono">Save {formatCurrency(totalCombinedSavings)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-slate-300">
@@ -589,8 +602,8 @@ const CheckoutPage = () => {
                   </span>
                 </div>
                 <div className="pt-3 border-t border-festival-border flex justify-between text-base font-black text-white">
-                  <span>Amount Payable:</span>
-                  <span className="text-amber-400 text-xl">{formatCurrency(grandTotal)}</span>
+                  <span className="text-amber-400">Final Payable Amount:</span>
+                  <span className="text-amber-400 text-xl font-mono">{formatCurrency(grandTotal)}</span>
                 </div>
               </div>
 

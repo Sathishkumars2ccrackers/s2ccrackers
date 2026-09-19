@@ -131,21 +131,33 @@
 
 /* Print Invoice Styles */
 @media print {
-  body {
+  @page {
+    margin: 12mm;
+    size: auto;
+  }
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
-  .no-print {
+  .no-print, header, footer, nav, .whatsapp-floating-btn, .fireworks-canvas {
     display: none !important;
   }
   .print-only {
     display: block !important;
   }
-  .print-card {
-    border: 1px solid #000000 !important;
+  .printable-invoice {
+    border: none !important;
     box-shadow: none !important;
-    background: transparent !important;
-    color: #000000 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    page-break-after: auto;
+  }
+  tr, .printable-invoice table {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }
 

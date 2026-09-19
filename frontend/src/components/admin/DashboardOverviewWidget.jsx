@@ -10,6 +10,7 @@ import {
   ArrowRight,
   ShieldCheck,
   RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 
@@ -17,6 +18,10 @@ const DashboardOverviewWidget = ({ data, onNavigateTab }) => {
   if (!data) return null;
 
   const { summary, dailyTrends, recentOrders, bestSellingProducts, recentLogs } = data;
+
+  const avgSavings = summary?.avgSavingsPerOrder !== undefined
+    ? summary.avgSavingsPerOrder
+    : (summary?.totalOrders > 0 ? Math.round((summary?.totalDiscountGiven || 0) / summary?.totalOrders) : 0);
 
   const statCards = [
     {
@@ -36,12 +41,20 @@ const DashboardOverviewWidget = ({ data, onNavigateTab }) => {
       textColor: 'text-blue-300',
     },
     {
-      title: 'Total Discount Given',
+      title: 'Total Customer Savings',
       value: formatCurrency(summary?.totalDiscountGiven || 0),
       subtitle: `Today: ${formatCurrency(summary?.todayDiscountGiven || 0)}`,
       icon: Sparkles,
       color: 'from-emerald-600 to-teal-600',
       textColor: 'text-emerald-400',
+    },
+    {
+      title: 'Avg Savings Per Order',
+      value: formatCurrency(avgSavings),
+      subtitle: `Across ${summary?.totalOrders || 0} order(s)`,
+      icon: Sparkles,
+      color: 'from-emerald-500 to-green-600',
+      textColor: 'text-emerald-300',
     },
     {
       title: 'Total Orders',

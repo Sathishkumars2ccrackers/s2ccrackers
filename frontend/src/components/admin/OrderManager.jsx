@@ -42,6 +42,7 @@ import {
   validateAndCleanIndianPhone,
 } from '../../utils/whatsappHelper';
 import LoadingSpinner from '../common/LoadingSpinner';
+import ProfessionalInvoice from '../invoice/ProfessionalInvoice';
 import logoSvg from '../../assets/logo.svg';
 
 const STATUS_COLORS = {
@@ -1168,173 +1169,31 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-3xl bg-white text-black rounded-3xl p-8 sm:p-10 shadow-2xl z-10 my-8 max-h-[95vh] overflow-y-auto space-y-6"
+              className="relative w-full max-w-4xl bg-white text-slate-900 rounded-3xl shadow-2xl z-10 my-8 max-h-[95vh] overflow-hidden flex flex-col"
             >
               {/* Top controls (no-print) */}
-              <div className="no-print flex items-center justify-between pb-4 border-b border-slate-200">
-                <span className="font-bold text-slate-700 text-sm">Official Packaging Tax Invoice</span>
+              <div className="no-print flex items-center justify-between px-6 py-4 bg-[#0B0718] text-white border-b border-amber-500/30">
+                <span className="font-bold text-amber-400 text-sm flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Official Packaging Tax Invoice – {selectedOrder.orderId}
+                </span>
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => window.print()}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow cursor-pointer"
+                    className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl flex items-center gap-1.5 shadow cursor-pointer"
                   >
                     <Printer className="w-4 h-4" />
                     Print Invoice
                   </button>
-                  <button onClick={() => setIsInvoiceModalOpen(false)} className="text-slate-500 cursor-pointer">
+                  <button onClick={() => setIsInvoiceModalOpen(false)} className="text-slate-400 hover:text-white cursor-pointer">
                     <X className="w-5 h-5" />
                   </button>
                 </div>
               </div>
 
               {/* Printable Invoice Sheet */}
-              <div className="space-y-6 text-xs text-slate-800">
-                {/* Header */}
-                <div className="flex justify-between items-start border-b-2 border-slate-900 pb-4">
-                  <div className="flex items-start gap-4">
-                    <div className="p-2 rounded-xl bg-[#180b27] border border-amber-500/30">
-                      <img src={logoSvg} alt="S2C Crackers" className="h-10 w-auto" />
-                    </div>
-                    <div>
-                      <h1 className="text-xl font-black tracking-tight text-red-700">S2C CRACKERS</h1>
-                      <p className="font-semibold text-slate-700">Direct Factory Sivakasi Fireworks</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5 max-w-xs">
-                        {settings?.address || 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India'}<br />
-                        Phone: {settings?.phone || '+91 99444 76516'} | Web: {settings?.businessDomain || 'www.s2ccrackers.com'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <h2 className="text-base font-black uppercase text-slate-900">TAX INVOICE</h2>
-                    <p className="font-mono font-bold text-sm text-red-700 mt-0.5">#{selectedOrder.orderId}</p>
-                    <p className="text-[11px] text-slate-500 mt-1">
-                      Date: {formatDate(selectedOrder.createdAt, true)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Savings Banner Highlight on Invoice */}
-                {(() => {
-                  const computedMrp = selectedOrder.orderMrpTotal || (selectedOrder.items || []).reduce((acc, it) => {
-                    const unitMrp = it.mrpPrice !== undefined ? it.mrpPrice : (it.originalPrice !== undefined ? it.originalPrice : it.price);
-                    return acc + unitMrp * (it.quantity || 1);
-                  }, 0);
-                  const itemsSubtotal = selectedOrder.orderItemsSubtotal || selectedOrder.subtotal || selectedOrder.totalAmount || 0;
-                  const finalTotal = selectedOrder.orderFinalTotal || selectedOrder.totalAmount || 0;
-                  const orderSavings = selectedOrder.orderSavingsTotal !== undefined
-                    ? selectedOrder.orderSavingsTotal
-                    : Math.max(0, computedMrp - itemsSubtotal + (selectedOrder.discountAmount || 0));
-
-                  return (
-                    <>
-                      {orderSavings > 0 && (
-                        <div className="p-3 bg-emerald-50 border-2 border-emerald-600 rounded-xl text-center text-emerald-900 font-extrabold text-sm">
-                          🎉 You Saved {formatCurrency(orderSavings)} On This Festival Order (Factory Direct Discount)!
-                        </div>
-                      )}
-
-                      {/* Bill to */}
-                      <div className="grid grid-cols-2 gap-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <div>
-                          <h4 className="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1">Billed & Delivered To:</h4>
-                          <p className="font-bold text-sm text-slate-900">{selectedOrder.customerDetails?.name}</p>
-                          <p>{selectedOrder.customerDetails?.address}</p>
-                          {selectedOrder.customerDetails?.landmark && <p>Landmark: {selectedOrder.customerDetails.landmark}</p>}
-                          <p>{selectedOrder.customerDetails?.city}, {selectedOrder.customerDetails?.state} - <strong>{selectedOrder.customerDetails?.pincode}</strong></p>
-                          <p className="pt-1">Phone: <strong>{selectedOrder.customerDetails?.phone}</strong></p>
-                          {selectedOrder.customerDetails?.email && <p>Email: {selectedOrder.customerDetails.email}</p>}
-                        </div>
-                        <div className="text-right space-y-1">
-                          <h4 className="font-bold text-slate-900 uppercase text-[10px] tracking-wider mb-1">Dispatch Details:</h4>
-                          <p>Payment Mode: <strong className="text-emerald-700">Door Delivery Available</strong></p>
-                          <p>Dispatch Hub: <strong>Sivakasi Factory Center</strong></p>
-                          <p>Status: <strong>{selectedOrder.status}</strong></p>
-                        </div>
-                      </div>
-
-                      {/* Items Table with Full Pricing Breakdown */}
-                      <table className="w-full text-xs text-left border-collapse">
-                        <thead>
-                          <tr className="bg-slate-900 text-white font-bold uppercase text-[10px]">
-                            <th className="p-2">#</th>
-                            <th className="p-2">Code</th>
-                            <th className="p-2">Product Description</th>
-                            <th className="p-2 text-center">Qty</th>
-                            <th className="p-2 text-right">MRP (₹)</th>
-                            <th className="p-2 text-center">Disc %</th>
-                            <th className="p-2 text-right">Rate (₹)</th>
-                            <th className="p-2 text-right">Total (₹)</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-200">
-                          {selectedOrder.items?.map((item, i) => {
-                            const itemMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
-                            const itemSelling = item.sellingPrice !== undefined ? item.sellingPrice : item.price;
-                            const itemDiscountPercent = item.discountPercent !== undefined
-                              ? item.discountPercent
-                              : (itemMrp > 0 ? Math.round(((itemMrp - itemSelling) / itemMrp) * 100) : 0);
-                            const itemSubtotal = item.subtotal !== undefined ? item.subtotal : itemSelling * item.quantity;
-
-                            return (
-                              <tr key={i}>
-                                <td className="p-2 text-slate-500">{i + 1}</td>
-                                <td className="p-2 font-mono font-bold text-slate-700">{item.productCode ? formatProductCode(item.productCode) : `CRK-${i + 1}`}</td>
-                                <td className="p-2 font-bold text-slate-900">{item.name}</td>
-                                <td className="p-2 text-center font-semibold">{item.quantity}</td>
-                                <td className="p-2 text-right text-slate-500 line-through">₹{itemMrp}</td>
-                                <td className="p-2 text-center font-bold text-emerald-700">{itemDiscountPercent > 0 ? `${itemDiscountPercent}%` : '—'}</td>
-                                <td className="p-2 text-right text-slate-800 font-semibold">₹{itemSelling}</td>
-                                <td className="p-2 text-right font-bold text-slate-900">₹{itemSubtotal}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                        <tfoot className="border-t-2 border-slate-900 font-bold">
-                          <tr>
-                            <td colSpan="7" className="p-2 text-right text-slate-600">Total MRP Value:</td>
-                            <td className="p-2 text-right text-slate-600 line-through">₹{computedMrp}</td>
-                          </tr>
-                          <tr>
-                            <td colSpan="7" className="p-2 text-right">Factory Subtotal:</td>
-                            <td className="p-2 text-right">₹{itemsSubtotal}</td>
-                          </tr>
-                          {selectedOrder.discountAmount > 0 && (
-                            <tr className="text-amber-700">
-                              <td colSpan="7" className="p-2 text-right">Special Tier Discount ({selectedOrder.discountPercentage || 0}%):</td>
-                              <td className="p-2 text-right">-₹{selectedOrder.discountAmount}</td>
-                            </tr>
-                          )}
-                          {orderSavings > 0 && (
-                            <tr className="text-emerald-700 bg-emerald-50">
-                              <td colSpan="7" className="p-2 text-right font-extrabold">Total Discount Savings:</td>
-                              <td className="p-2 text-right font-extrabold">Save ₹{orderSavings}</td>
-                            </tr>
-                          )}
-                          <tr>
-                            <td colSpan="7" className="p-2 text-right">Shipping & Delivery:</td>
-                            <td className="p-2 text-right">{selectedOrder.deliveryFee === 0 ? 'FREE' : `₹${selectedOrder.deliveryFee}`}</td>
-                          </tr>
-                          <tr className="text-sm font-black bg-slate-100">
-                            <td colSpan="7" className="p-3 text-right text-red-700 text-sm">Net Payable Amount:</td>
-                            <td className="p-3 text-right text-red-700 text-base">₹{finalTotal}</td>
-                          </tr>
-                        </tfoot>
-                      </table>
-                    </>
-                  );
-                })()}
-
-                {/* Footer notes */}
-                <div className="pt-4 border-t border-slate-300 flex justify-between items-end text-[10px] text-slate-500">
-                  <div className="space-y-0.5">
-                    <p>⭐ 100% Genuine Sivakasi Quality Verified.</p>
-                    <p>⭐ Safe handling: Light fireworks only under adult supervision with agarbatti.</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-slate-800">For S2C CRACKERS, SIVAKASI</p>
-                    <p className="pt-6">Authorized Signatory</p>
-                  </div>
-                </div>
+              <div className="p-4 sm:p-6 overflow-y-auto">
+                <ProfessionalInvoice order={selectedOrder} onPrint={() => window.print()} isModal={true} />
               </div>
             </motion.div>
           </div>

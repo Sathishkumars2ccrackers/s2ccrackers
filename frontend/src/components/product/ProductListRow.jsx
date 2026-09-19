@@ -196,8 +196,8 @@ const ProductListRow = memo(({ product, index }) => {
               )}
             </div>
             {pricing.discountAmount > 0 && (
-              <span className="text-[10px] font-bold text-emerald-400 mt-0.5">
-                Save {formatCurrency(pricing.discountAmount)}
+              <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-1.5 py-0.5 rounded mt-0.5">
+                You Save: {formatCurrency(pricing.discountAmount)}
               </span>
             )}
             {isOutOfStock ? (

@@ -169,17 +169,17 @@ const ProductCard = memo(({ product, index, priority = false }) => {
 
         {/* Price & Stock Status Strip */}
         <div className="pt-2 border-t border-festival-border/50 space-y-1.5">
-          {/* MRP & Savings Row */}
-          <div className="flex items-center justify-between text-[11px]">
+          {/* MRP & Discount & Savings Row */}
+          <div className="flex items-center justify-between text-[11px] flex-wrap gap-1">
             <div className="flex items-center gap-1.5">
               <span className="text-slate-400 font-medium">MRP:</span>
-              <span className="text-slate-500 line-through font-semibold">
+              <span className="text-slate-500 line-through font-semibold font-mono">
                 {formatCurrency(itemPricing.mrpPrice)}
               </span>
             </div>
             {itemPricing.discountAmount > 0 && (
-              <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/70 border border-emerald-500/30 px-1.5 py-0.2 rounded">
-                Save {formatCurrency(itemPricing.discountAmount)}
+              <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/80 border border-emerald-500/30 px-1.5 py-0.5 rounded">
+                You Save: {formatCurrency(itemPricing.discountAmount)}
               </span>
             )}
           </div>
@@ -187,8 +187,8 @@ const ProductCard = memo(({ product, index, priority = false }) => {
           {/* Our Price & Stock Status */}
           <div className="flex items-center justify-between gap-1">
             <div className="flex items-baseline gap-1">
-              <span className="text-[11px] font-bold text-slate-300">Price:</span>
-              <span className="text-sm sm:text-base font-black text-amber-400">
+              <span className="text-[11px] font-bold text-amber-300">Our Price:</span>
+              <span className="text-sm sm:text-base font-black text-amber-400 font-mono">
                 {formatCurrency(itemPricing.sellingPrice)}
               </span>
             </div>

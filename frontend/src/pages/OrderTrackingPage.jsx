@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
   Truck,
@@ -16,12 +16,16 @@ import {
   Lock,
   UserCheck,
   CreditCard,
+  FileText,
+  X,
 } from 'lucide-react';
 import { orderService } from '../services/api';
+import { formatCurrency, formatDate, formatProductCode } from '../utils/formatters';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ProductImage from '../components/common/ProductImage';
 import SEO from '../components/common/SEO';
 import Breadcrumbs from '../components/common/Breadcrumbs';
+import ProfessionalInvoice from '../components/invoice/ProfessionalInvoice';
 
 const trackBreadcrumbs = [
   { label: 'Home', path: '/' },
@@ -46,6 +50,7 @@ const OrderTrackingPage = () => {
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   const validateInputs = (id, ph) => {
     const errors = {};
@@ -281,44 +286,114 @@ const OrderTrackingPage = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
           >
-            {/* Main Status & Stepper Card */}
-            <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl space-y-6">
-              {/* Card Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-festival-border gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest flex items-center gap-1">
-                      <UserCheck className="w-3.5 h-3.5" />
-                      Verified Customer Order
-                    </span>
-                  </div>
-                  <h2 className="text-2xl font-black text-amber-400 font-mono tracking-wide">{order.orderId}</h2>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Customer: <strong className="text-white">{order.customerName || order.customerDetails?.name}</strong> • Placed On: {formatDate(order.orderDate || order.createdAt, true)}
-                  </p>
-                </div>
+          {(() => {
+            const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
+              const unitMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
+              return acc + unitMrp * (item.quantity || 1);
+            }, 0);
+            const itemsSubtotal = order.orderItemsSubtotal || order.subtotal || order.totalAmount || 0;
+            const finalTotal = order.orderFinalTotal || order.totalAmount || 0;
+            const totalSavings = order.orderSavingsTotal !== undefined
+              ? order.orderSavingsTotal
+              : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
 
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase ${
-                      order.status === 'Delivered'
-                        ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
-                        : order.status === 'Cancelled'
-                        ? 'bg-rose-950 text-rose-300 border border-rose-500/40'
-                        : 'bg-amber-950 text-amber-300 border border-amber-500/40 animate-pulse'
-                    }`}
-                  >
-                    Status: {order.status || order.orderStatus}
-                  </span>
-                  <button
-                    onClick={() => window.print()}
-                    className="no-print px-3.5 py-1.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <Printer className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Print</span>
-                  </button>
-                </div>
-              </div>
+            return (
+              <>
+                {/* Main Status & Stepper Card */}
+                <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl space-y-6">
+                  {/* Card Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-festival-border gap-4">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest flex items-center gap-1">
+                          <UserCheck className="w-3.5 h-3.5" />
+                          Verified Customer Order
+                        </span>
+                      </div>
+                      <h2 className="text-2xl font-black text-amber-400 font-mono tracking-wide">{order.orderId}</h2>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Customer: <strong className="text-white">{order.customerName || order.customerDetails?.name}</strong> • Placed On: {formatDate(order.orderDate || order.createdAt, true)}
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase ${
+                          order.status === 'Delivered'
+                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                            : order.status === 'Cancelled'
+                            ? 'bg-rose-950 text-rose-300 border border-rose-500/40'
+                            : 'bg-amber-950 text-amber-300 border border-amber-500/40 animate-pulse'
+                        }`}
+                      >
+                        Status: {order.status || order.orderStatus}
+                      </span>
+                      <button
+                        onClick={() => setIsInvoiceModalOpen(true)}
+                        className="no-print px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5" />
+                        <span>View Tax Invoice</span>
+                      </button>
+                      <button
+                        onClick={() => window.print()}
+                        className="no-print px-3.5 py-1.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Print</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Top Green Savings Badge */}
+                  {totalSavings > 0 && (
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-festival-card to-emerald-950 border-2 border-emerald-500/50 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                          <Sparkles className="w-5 h-5 fill-emerald-400" />
+                        </div>
+                        <div>
+                          <div className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide">
+                            YOU SAVED {formatCurrency(totalSavings)}
+                          </div>
+                          <p className="text-[11px] text-emerald-200/80">
+                            Factory-direct Sivakasi discount applied to your order.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="px-3 py-1 rounded-full bg-emerald-950 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
+                        Total MRP: {formatCurrency(computedMrpTotal)}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 4-Stat Pricing Transparency Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Order Total (MRP)</span>
+                      <span className="text-sm font-bold text-slate-400 line-through font-mono mt-0.5 block">
+                        {formatCurrency(computedMrpTotal)}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Discount Applied</span>
+                      <span className="text-sm font-extrabold text-emerald-400 font-mono mt-0.5 block">
+                        -{formatCurrency(totalSavings)}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/30">
+                      <span className="text-[10px] uppercase font-bold text-emerald-300 block">Amount Saved</span>
+                      <span className="text-sm font-black text-emerald-300 font-mono mt-0.5 block">
+                        Save {formatCurrency(totalSavings)}
+                      </span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-festival-dark/80 border border-amber-500/40">
+                      <span className="text-[10px] uppercase font-bold text-amber-400 block">Final Amount</span>
+                      <span className="text-sm font-black text-amber-400 font-mono mt-0.5 block">
+                        {formatCurrency(finalTotal)}
+                      </span>
+                    </div>
+                  </div>
 
               {/* Dispatch & Courier Status Badges Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-festival-dark/80 border border-festival-border">
@@ -609,9 +684,50 @@ const OrderTrackingPage = () => {
                 </div>
               </div>
             </div>
+          </>
+        );
+      })()}
           </motion.div>
         )}
       </div>
+
+      {/* Official Tax Invoice Modal */}
+      <AnimatePresence>
+        {isInvoiceModalOpen && order && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsInvoiceModalOpen(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl z-10 overflow-hidden max-h-[90vh] flex flex-col my-auto"
+            >
+              <div className="no-print flex items-center justify-between px-6 py-4 bg-[#0B0718] text-white border-b border-amber-500/30">
+                <span className="font-bold text-amber-400 text-sm flex items-center gap-2">
+                  <FileText className="w-4 h-4" />
+                  Official Tax Invoice – {order.orderId}
+                </span>
+                <button
+                  onClick={() => setIsInvoiceModalOpen(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto p-4 sm:p-6">
+                <ProfessionalInvoice order={order} onPrint={() => window.print()} isModal={true} />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

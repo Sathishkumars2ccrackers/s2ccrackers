@@ -132,12 +132,18 @@ const getDashboardSummary = async (req, res, next) => {
       { $sort: { _id: 1 } },
     ]);
 
+    const avgSavingsPerOrder = totalOrders > 0 ? Math.round(totalDiscountGiven / totalOrders) : 0;
+    const avgRevenuePerOrder = totalOrders > 0 ? Math.round(totalRevenue / totalOrders) : 0;
+
     res.status(200).json({
       success: true,
       summary: {
         totalRevenue,
         totalMrpSold,
         totalDiscountGiven,
+        totalCustomerSavings: totalDiscountGiven,
+        avgSavingsPerOrder,
+        avgRevenuePerOrder,
         todayRevenue,
         todayMrpSold,
         todayDiscountGiven,

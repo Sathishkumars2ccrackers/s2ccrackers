@@ -21,6 +21,7 @@ import { createWhatsAppOrderUrl } from '../utils/whatsappHelper';
 import FireworksCanvas from '../components/common/FireworksCanvas';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import SEO from '../components/common/SEO';
+import ProfessionalInvoice from '../components/invoice/ProfessionalInvoice';
 import logoSvg from '../assets/logo.svg';
 
 const OrderSuccessPage = () => {
@@ -152,6 +153,34 @@ const OrderSuccessPage = () => {
             </div>
           )}
 
+          {/* Financial Metrics Strip */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left pt-2">
+            <div className="p-3.5 rounded-2xl bg-festival-dark/80 border border-festival-border">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Original MRP</span>
+              <span className="text-sm sm:text-base font-bold text-slate-300 line-through font-mono">
+                {formatCurrency(computedMrpTotal)}
+              </span>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-festival-dark/80 border border-festival-border">
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">Discount Received</span>
+              <span className="text-sm sm:text-base font-extrabold text-emerald-400 font-mono">
+                -{formatCurrency(totalSavings)}
+              </span>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-emerald-950/70 border border-emerald-500/40">
+              <span className="text-[10px] uppercase font-bold text-emerald-300 block">Total Savings</span>
+              <span className="text-sm sm:text-base font-black text-emerald-300 font-mono">
+                Save {formatCurrency(totalSavings)}
+              </span>
+            </div>
+            <div className="p-3.5 rounded-2xl bg-festival-dark/80 border border-amber-500/40">
+              <span className="text-[10px] uppercase font-bold text-amber-400 block">Final Amount</span>
+              <span className="text-sm sm:text-base font-black text-amber-400 font-mono">
+                {formatCurrency(finalTotal)}
+              </span>
+            </div>
+          </div>
+
           {/* Prominent WhatsApp Click-to-Chat Button */}
           <div className="pt-2">
             <a
@@ -169,141 +198,9 @@ const OrderSuccessPage = () => {
           </div>
         </motion.div>
 
-        {/* Order Details & Summary Card (Printable) */}
-        <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl space-y-6 print-card">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-6 border-b border-festival-border gap-4">
-            <div className="flex items-center gap-3">
-              <img src={logoSvg} alt="S2C Crackers" className="h-9 w-auto" />
-              <div>
-                <h2 className="text-lg font-bold text-white">Order Summary & Tax Invoice</h2>
-                <p className="text-xs text-slate-400">
-                  Placed on: {formatDate(order.createdAt, true)} • Payment & Delivery: <strong>Door Delivery Available</strong>
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handlePrint}
-              className="no-print px-4 py-2 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs font-bold text-slate-200 hover:text-white flex items-center gap-2 transition-colors cursor-pointer"
-            >
-              <Printer className="w-4 h-4 text-amber-400" />
-              <span>Print Invoice</span>
-            </button>
-          </div>
-
-          {/* Items Table with Full Pricing Transparency */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-festival-border text-slate-400 font-bold uppercase text-[10px]">
-                  <th className="pb-3">Code</th>
-                  <th className="pb-3">Fireworks Item</th>
-                  <th className="pb-3 text-center">Qty</th>
-                  <th className="pb-3 text-right">MRP</th>
-                  <th className="pb-3 text-center">Disc %</th>
-                  <th className="pb-3 text-right">Our Rate</th>
-                  <th className="pb-3 text-right">Savings</th>
-                  <th className="pb-3 text-right">Line Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-festival-border/50">
-                {order.items?.map((item, idx) => {
-                  const itemMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
-                  const itemSelling = item.sellingPrice !== undefined ? item.sellingPrice : item.price;
-                  const itemDiscountPercent = item.discountPercent !== undefined
-                    ? item.discountPercent
-                    : (itemMrp > 0 ? Math.round(((itemMrp - itemSelling) / itemMrp) * 100) : 0);
-                  const itemLineSavings = item.lineSavings !== undefined
-                    ? item.lineSavings
-                    : Math.max(0, (itemMrp - itemSelling) * item.quantity);
-                  const itemSubtotal = item.subtotal !== undefined ? item.subtotal : itemSelling * item.quantity;
-
-                  return (
-                    <tr key={idx} className="text-slate-200">
-                      <td className="py-3 font-mono font-bold text-amber-300">
-                        {item.productCode ? formatProductCode(item.productCode) : `CRK-${idx + 1}`}
-                      </td>
-                      <td className="py-3 font-semibold text-white">{item.name}</td>
-                      <td className="py-3 text-center text-slate-300 font-bold">{item.quantity}</td>
-                      <td className="py-3 text-right text-slate-400 line-through">{formatCurrency(itemMrp)}</td>
-                      <td className="py-3 text-center">
-                        {itemDiscountPercent > 0 ? (
-                          <span className="text-[10px] font-extrabold text-emerald-400 bg-emerald-950/70 px-1.5 py-0.5 rounded border border-emerald-500/30">
-                            {itemDiscountPercent}%
-                          </span>
-                        ) : (
-                          <span className="text-slate-500">—</span>
-                        )}
-                      </td>
-                      <td className="py-3 text-right font-semibold text-amber-300">{formatCurrency(itemSelling)}</td>
-                      <td className="py-3 text-right text-emerald-400 font-medium">
-                        {itemLineSavings > 0 ? formatCurrency(itemLineSavings) : '—'}
-                      </td>
-                      <td className="py-3 text-right font-bold text-white">
-                        {formatCurrency(itemSubtotal)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t border-festival-border text-xs text-slate-300">
-                  <td colSpan="7" className="pt-4 text-right">Total MRP Value:</td>
-                  <td className="pt-4 text-right font-semibold text-slate-400 line-through">{formatCurrency(computedMrpTotal)}</td>
-                </tr>
-                <tr className="text-xs text-slate-300">
-                  <td colSpan="7" className="py-1 text-right">Items Factory Price:</td>
-                  <td className="py-1 text-right font-bold text-white">{formatCurrency(itemsSubtotal)}</td>
-                </tr>
-                {order.discountAmount > 0 && (
-                  <tr className="text-xs text-amber-300">
-                    <td colSpan="7" className="py-1 text-right">Special Discount ({order.discountPercentage || 0}%):</td>
-                    <td className="py-1 text-right font-bold text-amber-400">-{formatCurrency(order.discountAmount)}</td>
-                  </tr>
-                )}
-                {totalSavings > 0 && (
-                  <tr className="text-xs text-emerald-400 font-bold bg-emerald-950/30">
-                    <td colSpan="7" className="py-2 text-right">Total Discount Savings:</td>
-                    <td className="py-2 text-right font-extrabold text-emerald-400">Save {formatCurrency(totalSavings)}</td>
-                  </tr>
-                )}
-                <tr className="text-xs text-slate-300">
-                  <td colSpan="7" className="py-1 text-right">Delivery Charge:</td>
-                  <td className="py-1 text-right font-bold text-white">
-                    {order.deliveryFee === 0 ? <span className="text-emerald-400 font-bold">FREE</span> : formatCurrency(order.deliveryFee)}
-                  </td>
-                </tr>
-                <tr className="text-sm font-black text-white border-t border-festival-border">
-                  <td colSpan="7" className="pt-3 text-right text-amber-400 text-base">Final Amount Payable:</td>
-                  <td className="pt-3 text-right text-amber-400 text-lg font-black">{formatCurrency(finalTotal)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-
-          {/* Delivery Address Block */}
-          <div className="pt-4 border-t border-festival-border grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs text-slate-300">
-            <div className="space-y-1">
-              <h4 className="font-bold text-white uppercase text-[11px] flex items-center gap-1.5 text-amber-400">
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Delivery Address</span>
-              </h4>
-              <p className="font-semibold text-white">{order.customerDetails?.name}</p>
-              <p>{order.customerDetails?.address}</p>
-              {order.customerDetails?.landmark && <p>Landmark: {order.customerDetails.landmark}</p>}
-              <p>{order.customerDetails?.city}, {order.customerDetails?.state} - <strong>{order.customerDetails?.pincode}</strong></p>
-              <p className="pt-1">📞 Phone: {order.customerDetails?.phone} {order.customerDetails?.altPhone ? `| Alt: ${order.customerDetails.altPhone}` : ''}</p>
-            </div>
-
-            <div className="space-y-1 sm:text-right">
-              <h4 className="font-bold text-white uppercase text-[11px] flex items-center sm:justify-end gap-1.5 text-emerald-400">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Delivery Guarantee</span>
-              </h4>
-              <p>Direct dispatch from Sivakasi factory outlet.</p>
-              <p>Packaging compliant with PESO safety regulations.</p>
-              <p className="text-emerald-300 font-semibold pt-1">Door Delivery Available across India.</p>
-            </div>
-          </div>
+        {/* 2. Professional Tax Invoice Sheet */}
+        <div className="rounded-3xl overflow-hidden shadow-2xl border border-festival-border">
+          <ProfessionalInvoice order={order} onPrint={handlePrint} />
         </div>
 
         {/* Action Buttons */}

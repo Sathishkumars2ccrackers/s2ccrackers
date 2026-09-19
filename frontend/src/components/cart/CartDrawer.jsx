@@ -236,19 +236,19 @@ const CartDrawer = () => {
               {cartItems.length > 0 && (
                 <div className="p-5 border-t border-festival-border bg-festival-dark/95 space-y-3.5">
                   {/* Summary Breakdown */}
-                  <div className="space-y-1.5 text-xs">
+                  <div className="space-y-2 text-xs">
                     <div className="flex justify-between text-slate-300">
-                      <span>Total MRP Value:</span>
-                      <span className="font-semibold text-slate-400 line-through">{formatCurrency(totalMrp)}</span>
+                      <span className="font-medium">Total MRP Value:</span>
+                      <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
                     </div>
                     <div className="flex justify-between text-slate-300">
                       <span>Factory Price Subtotal:</span>
-                      <span className="font-bold text-white">{formatCurrency(cartSubtotal)}</span>
+                      <span className="font-bold text-white font-mono">{formatCurrency(cartSubtotal)}</span>
                     </div>
                     {totalSavings > 0 && (
-                      <div className="flex justify-between text-emerald-400 font-medium">
-                        <span>Direct Factory Savings:</span>
-                        <span>-{formatCurrency(totalSavings)}</span>
+                      <div className="flex justify-between text-emerald-400 font-bold">
+                        <span>Product Discount Savings:</span>
+                        <span className="font-mono">-{formatCurrency(totalSavings)}</span>
                       </div>
                     )}
                     {discountAmount > 0 && (
@@ -257,22 +257,25 @@ const CartDrawer = () => {
                           <Sparkles className="w-3 h-3 text-amber-400" />
                           <span>Special Discount ({discountPercentage}%):</span>
                         </span>
-                        <span>-{formatCurrency(discountAmount)}</span>
+                        <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                       </div>
                     )}
                     {totalCombinedSavings > 0 && (
-                      <div className="flex justify-between text-emerald-300 font-bold bg-emerald-950/60 px-2 py-1 rounded-lg border border-emerald-500/30">
-                        <span>Total Savings:</span>
-                        <span>Save {formatCurrency(totalCombinedSavings)}</span>
+                      <div className="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-center space-y-0.5">
+                        <div className="flex items-center justify-center gap-1 text-emerald-300 font-extrabold text-xs">
+                          <Sparkles className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
+                          <span>Total Savings: {formatCurrency(totalCombinedSavings)}</span>
+                        </div>
+                        <p className="text-[10px] text-emerald-200/70">Factory Direct Sivakasi Pricing</p>
                       </div>
                     )}
                     <div className="flex justify-between text-slate-300">
                       <span>Estimated Shipping:</span>
-                      <span>{isFreeDeliveryUnlocked ? 'FREE' : 'Calculated at checkout'}</span>
+                      <span className="font-semibold text-white">{isFreeDeliveryUnlocked ? <span className="text-emerald-400 font-black">FREE</span> : 'Calculated at checkout'}</span>
                     </div>
-                    <div className="pt-2 border-t border-festival-border flex justify-between text-sm font-bold text-white">
-                      <span>Final Payable Amount:</span>
-                      <span className="text-amber-400 text-base">{formatCurrency(finalCartTotal)}</span>
+                    <div className="pt-2 border-t border-festival-border flex justify-between text-sm font-black text-white">
+                      <span className="text-amber-400">Final Payable Amount:</span>
+                      <span className="text-amber-400 text-lg font-mono">{formatCurrency(finalCartTotal)}</span>
                     </div>
                   </div>
 
