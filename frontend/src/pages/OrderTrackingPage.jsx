@@ -16,7 +16,6 @@ import {
   Lock,
   UserCheck,
   CreditCard,
-  FileText,
   X,
 } from 'lucide-react';
 import { orderService } from '../services/api';
@@ -25,7 +24,6 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import ProductImage from '../components/common/ProductImage';
 import SEO from '../components/common/SEO';
 import Breadcrumbs from '../components/common/Breadcrumbs';
-import InvoicePDF from '../components/invoice/InvoicePDF';
 import { printInvoiceDocument } from '../utils/printInvoice';
 
 const trackBreadcrumbs = [
@@ -51,7 +49,6 @@ const OrderTrackingPage = () => {
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
-  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
 
   const validateInputs = (id, ph) => {
     const errors = {};
@@ -330,18 +327,11 @@ const OrderTrackingPage = () => {
                         Status: {order.status || order.orderStatus}
                       </span>
                       <button
-                        onClick={() => setIsInvoiceModalOpen(true)}
-                        className="no-print px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>View Tax Invoice</span>
-                      </button>
-                      <button
                         onClick={() => printInvoiceDocument(order)}
-                        className="no-print px-3.5 py-1.5 rounded-xl bg-festival-dark hover:bg-festival-cardHover border border-festival-border text-xs text-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="no-print px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 transition-all shadow-lg hover:shadow-amber-500/20 transform hover:scale-105 cursor-pointer"
                       >
-                        <Printer className="w-3.5 h-3.5 text-amber-400" />
-                        <span>Print Invoice (PDF)</span>
+                        <Printer className="w-4 h-4" />
+                        <span>Download Official Tax Invoice (PDF)</span>
                       </button>
                     </div>
                   </div>
@@ -691,44 +681,6 @@ const OrderTrackingPage = () => {
           </motion.div>
         )}
       </div>
-
-      {/* Official Tax Invoice Modal */}
-      <AnimatePresence>
-        {isInvoiceModalOpen && order && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsInvoiceModalOpen(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl z-10 overflow-hidden max-h-[90vh] flex flex-col my-auto"
-            >
-              <div className="no-print flex items-center justify-between px-6 py-4 bg-[#0B0718] text-white border-b border-amber-500/30">
-                <span className="font-bold text-amber-400 text-sm flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  Official Tax Invoice – {order.orderId}
-                </span>
-                <button
-                  onClick={() => setIsInvoiceModalOpen(false)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="overflow-y-auto p-4 sm:p-6">
-                <InvoicePDF order={order} onPrint={() => printInvoiceDocument(order)} isStandalone={false} />
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

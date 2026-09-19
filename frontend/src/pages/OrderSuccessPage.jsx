@@ -14,8 +14,6 @@ import {
   ArrowRight,
   ShieldCheck,
   Tag,
-  FileText,
-  Download,
 } from 'lucide-react';
 import { orderService } from '../services/api';
 import { formatCurrency, formatDate, formatProductCode } from '../utils/formatters';
@@ -205,15 +203,6 @@ const OrderSuccessPage = () => {
               <Printer className="w-5 h-5" />
               <span>Download Official Tax Invoice (PDF)</span>
             </button>
-
-            <Link
-              to={`/invoice/${order.orderId}`}
-              target="_blank"
-              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-festival-dark hover:bg-festival-cardHover text-amber-300 hover:text-white font-bold text-xs border border-festival-border transition-colors cursor-pointer"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Open Full Invoice Tab</span>
-            </Link>
           </div>
           <p className="text-[11px] text-emerald-300/80 mt-1 text-center">
             Your official GST-ready factory tax invoice is ready for download and print.
