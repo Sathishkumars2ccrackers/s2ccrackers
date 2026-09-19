@@ -326,7 +326,7 @@ const AdminDashboardPage = () => {
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-white truncate">{admin?.name || 'Administrator'}</p>
-              <p className="text-[10px] text-slate-400 truncate">{admin?.email || 'admin@s2ccrackers.com'}</p>
+              <p className="text-[10px] text-slate-400 truncate">{admin?.email || 'Authorized Administrator'}</p>
             </div>
           </div>
 

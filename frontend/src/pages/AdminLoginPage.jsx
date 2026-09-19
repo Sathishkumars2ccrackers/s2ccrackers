@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, Mail, KeyRound, ShieldAlert, ArrowRight, Loader2, Sparkles } from 'lucide-react';
+import { Lock, Mail, KeyRound, ShieldAlert, ShieldCheck, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import SEO from '../components/common/SEO';
 import logoSvg from '../assets/logo.svg';
@@ -12,6 +12,7 @@ const AdminLoginPage = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -74,43 +75,59 @@ const AdminLoginPage = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+            <label htmlFor="admin-email" className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
               Admin Email
             </label>
             <div className="relative">
               <input
+                id="admin-email"
+                name="email"
                 type="email"
                 required
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck="false"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@s2ccrackers.com"
-                className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                placeholder="Enter administrative email"
+                className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
+            <label htmlFor="admin-password" className="block text-xs font-bold text-slate-300 uppercase mb-1.5">
               Password
             </label>
             <div className="relative">
               <input
-                type="password"
+                id="admin-password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
                 required
+                autoComplete="current-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••••••"
-                className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-4 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                className="w-full bg-festival-dark border border-festival-border rounded-xl pl-10 pr-11 py-3 text-xs sm:text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500 transition-colors"
               />
               <KeyRound className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-400 transition-colors cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             {loading ? (
               <>
@@ -126,9 +143,14 @@ const AdminLoginPage = () => {
           </button>
         </form>
 
-        <div className="pt-2 text-center">
+        {/* Security & Access Notice */}
+        <div className="pt-4 mt-2 border-t border-festival-border/60 text-center space-y-1">
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400/90 tracking-wide">
+            <ShieldCheck className="w-4 h-4 text-amber-400" />
+            <span>Authorized Personnel Only</span>
+          </div>
           <p className="text-[11px] text-slate-400">
-            Default credentials: <code className="text-amber-300 font-mono">admin@s2ccrackers.com</code> / <code className="text-amber-300 font-mono">admin123@s2c</code>
+            Contact System Administrator for Access
           </p>
         </div>
       </motion.div>
