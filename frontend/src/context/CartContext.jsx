@@ -15,16 +15,18 @@ export const CartProvider = ({ children }) => {
       const saved = localStorage.getItem(CART_STORAGE_KEY);
       if (!saved) return [];
       const parsed = JSON.parse(saved);
-      return Array.isArray(parsed)
-        ? parsed.map((item) => {
-            const pricing = calculateItemPricing(item, item.quantity || 1);
-            return {
-              ...item,
-              ...pricing,
-              image: getProductImage(item.image || item),
-            };
-          })
-        : [];
+      if (!Array.isArray(parsed)) return [];
+      return parsed
+        .filter((item) => item && typeof item === 'object' && (item.productId || item._id || item.id))
+        .map((item) => {
+          const pricing = calculateItemPricing(item, item.quantity || 1);
+          return {
+            ...item,
+            productId: (item.productId || item._id || item.id).toString(),
+            ...pricing,
+            image: getProductImage(item.image || item),
+          };
+        });
     } catch {
       return [];
     }

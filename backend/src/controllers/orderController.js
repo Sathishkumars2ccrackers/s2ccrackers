@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Customer = require('../models/Customer');
@@ -14,15 +15,19 @@ const calculateDiscount = (subtotal, slabs = []) => {
     return { discountPercentage: 0, discountAmount: 0 };
   }
 
-  const matchingSlabs = slabs.filter((s) => subtotal >= s.minAmount && s.discountPercentage > 0);
+  const matchingSlabs = slabs.filter(
+    (s) => s && typeof s.minAmount === 'number' && subtotal >= s.minAmount && (s.discountPercentage || 0) > 0
+  );
   if (matchingSlabs.length === 0) {
     return { discountPercentage: 0, discountAmount: 0 };
   }
 
   // Pick highest matching minimum amount slab (or highest discount %)
-  matchingSlabs.sort((a, b) => b.minAmount - a.minAmount || b.discountPercentage - a.discountPercentage);
+  matchingSlabs.sort(
+    (a, b) => (b.minAmount || 0) - (a.minAmount || 0) || (b.discountPercentage || 0) - (a.discountPercentage || 0)
+  );
   const bestSlab = matchingSlabs[0];
-  const discountPercentage = bestSlab.discountPercentage;
+  const discountPercentage = bestSlab.discountPercentage || 0;
   const discountAmount = Math.round((subtotal * discountPercentage) / 100);
 
   return { discountPercentage, discountAmount };
@@ -79,7 +84,7 @@ const placeOrder = async (req, res, next) => {
 
     // 1. Validate Items & Stock Availability
     const validRawItems = rawItems.filter(
-      (item) => item && (item.productId || item._id || item.id)
+      (item) => item && typeof item === 'object' && (item.productId || item._id || item.id)
     );
 
     if (validRawItems.length === 0) {
@@ -89,8 +94,17 @@ const placeOrder = async (req, res, next) => {
       });
     }
 
-    const productIds = validRawItems.map((item) => (item.productId || item._id || item.id).toString());
-    const products = await Product.find({ _id: { $in: productIds } });
+    const rawProductIds = validRawItems.map((item) => (item.productId || item._id || item.id).toString());
+    const validProductObjectIds = rawProductIds.filter((id) => mongoose.Types.ObjectId.isValid(id));
+
+    if (validProductObjectIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Selected items in cart are no longer valid. Please refresh and re-add items.',
+      });
+    }
+
+    const products = await Product.find({ _id: { $in: validProductObjectIds } });
     const productMap = new Map(products.map((p) => [p._id.toString(), p]));
 
     let calculatedSubtotal = 0;

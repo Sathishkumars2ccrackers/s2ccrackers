@@ -14,26 +14,38 @@
  * @returns {Object} Complete item pricing breakdown
  */
 const calculateItemPricing = (item = {}, quantity = 1) => {
-  const qty = Math.max(1, parseInt(quantity, 10) || 1);
+  const safeItem = item && typeof item === 'object' ? item : {};
+  const rawQty = parseInt(quantity, 10);
+  const qty = isNaN(rawQty) || rawQty < 1 ? 1 : rawQty;
 
   // Selling price (current discounted offer price)
-  const sellingPrice = typeof item.price === 'number'
-    ? Math.max(0, item.price)
-    : Math.max(0, parseFloat(item.price) || 0);
+  let sellingPrice = 0;
+  if (typeof safeItem.sellingPrice === 'number' && !isNaN(safeItem.sellingPrice)) {
+    sellingPrice = Math.max(0, safeItem.sellingPrice);
+  } else if (typeof safeItem.price === 'number' && !isNaN(safeItem.price)) {
+    sellingPrice = Math.max(0, safeItem.price);
+  } else {
+    const parsed = parseFloat(safeItem.sellingPrice || safeItem.price || 0);
+    sellingPrice = isNaN(parsed) ? 0 : Math.max(0, parsed);
+  }
 
   // MRP (Original factory catalog price)
-  const rawMrp = item.mrpPrice !== undefined
-    ? item.mrpPrice
-    : (item.originalPrice !== undefined ? item.originalPrice : sellingPrice);
+  let mrpPrice = sellingPrice;
+  const rawMrp = safeItem.mrpPrice !== undefined
+    ? safeItem.mrpPrice
+    : (safeItem.originalPrice !== undefined ? safeItem.originalPrice : sellingPrice);
 
-  const mrpPrice = typeof rawMrp === 'number'
-    ? Math.max(sellingPrice, rawMrp)
-    : Math.max(sellingPrice, parseFloat(rawMrp) || sellingPrice);
+  if (typeof rawMrp === 'number' && !isNaN(rawMrp)) {
+    mrpPrice = Math.max(sellingPrice, rawMrp);
+  } else {
+    const parsedMrp = parseFloat(rawMrp);
+    mrpPrice = isNaN(parsedMrp) ? sellingPrice : Math.max(sellingPrice, parsedMrp);
+  }
 
   // Discount calculations per single unit
   const discountAmount = Math.max(0, Math.round((mrpPrice - sellingPrice) * 100) / 100);
   const discountPercent = mrpPrice > 0
-    ? Math.round(((mrpPrice - sellingPrice) / mrpPrice) * 100)
+    ? Math.max(0, Math.min(100, Math.round(((mrpPrice - sellingPrice) / mrpPrice) * 100)))
     : 0;
 
   // Line totals for given quantity
@@ -42,8 +54,9 @@ const calculateItemPricing = (item = {}, quantity = 1) => {
   const lineSavings = Math.round(discountAmount * qty * 100) / 100;
 
   return {
-    productCode: (item.productCode || item.code || '').toString().trim(),
-    name: (item.name || 'Cracker Item').toString().trim(),
+    productId: (safeItem.productId || safeItem._id || safeItem.id || '').toString(),
+    productCode: (safeItem.productCode || safeItem.code || '').toString().trim(),
+    name: (safeItem.name || 'Cracker Item').toString().trim(),
     quantity: qty,
     mrpPrice,
     sellingPrice,
@@ -63,24 +76,26 @@ const calculateItemPricing = (item = {}, quantity = 1) => {
  * @returns {Object} Complete order pricing breakdown
  */
 const calculateOrderPricing = (items = [], options = {}) => {
+  const safeOptions = options && typeof options === 'object' ? options : {};
   const {
-    deliveryFee = 0,
     discountSlabs = [],
     freeDeliveryThreshold = 3000,
     defaultDeliveryFee = 150,
-  } = options;
+  } = safeOptions;
 
   let orderMrpTotal = 0;
   let orderItemsSubtotal = 0;
   let orderItemSavingsTotal = 0;
 
-  const processedItems = (Array.isArray(items) ? items : []).map((item) => {
-    const itemPricing = calculateItemPricing(item, item.quantity || 1);
+  const validItemsArray = Array.isArray(items) ? items : [];
+
+  const processedItems = validItemsArray.map((item) => {
+    const itemPricing = calculateItemPricing(item, item?.quantity || 1);
     orderMrpTotal += itemPricing.lineMrp;
     orderItemsSubtotal += itemPricing.lineSellingPrice;
     orderItemSavingsTotal += itemPricing.lineSavings;
     return {
-      ...item,
+      ...(item && typeof item === 'object' ? item : {}),
       ...itemPricing,
     };
   });
@@ -95,21 +110,24 @@ const calculateOrderPricing = (items = [], options = {}) => {
 
   if (Array.isArray(discountSlabs) && discountSlabs.length > 0 && orderItemsSubtotal > 0) {
     const matchingSlabs = discountSlabs.filter(
-      (s) => orderItemsSubtotal >= s.minAmount && s.discountPercentage > 0
+      (s) => s && typeof s.minAmount === 'number' && orderItemsSubtotal >= s.minAmount && (s.discountPercentage || 0) > 0
     );
     if (matchingSlabs.length > 0) {
       matchingSlabs.sort(
-        (a, b) => b.minAmount - a.minAmount || b.discountPercentage - a.discountPercentage
+        (a, b) => (b.minAmount || 0) - (a.minAmount || 0) || (b.discountPercentage || 0) - (a.discountPercentage || 0)
       );
-      slabDiscountPercentage = matchingSlabs[0].discountPercentage;
+      slabDiscountPercentage = matchingSlabs[0].discountPercentage || 0;
       slabDiscountAmount = Math.round((orderItemsSubtotal * slabDiscountPercentage) / 100);
     }
   }
 
   // Final Shipping / Delivery Fee calculation
-  const calculatedDeliveryFee = typeof options.deliveryFee === 'number'
-    ? Math.max(0, options.deliveryFee)
-    : (orderItemsSubtotal >= freeDeliveryThreshold ? 0 : defaultDeliveryFee);
+  let calculatedDeliveryFee = 0;
+  if (typeof safeOptions.deliveryFee === 'number' && !isNaN(safeOptions.deliveryFee)) {
+    calculatedDeliveryFee = Math.max(0, safeOptions.deliveryFee);
+  } else {
+    calculatedDeliveryFee = orderItemsSubtotal >= (Number(freeDeliveryThreshold) || 3000) ? 0 : (Number(defaultDeliveryFee) || 150);
+  }
 
   // Total Savings achieved by customer across all item discounts + order slab discounts
   const orderSavingsTotal = Math.round((orderItemSavingsTotal + slabDiscountAmount) * 100) / 100;

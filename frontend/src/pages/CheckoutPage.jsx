@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   ShieldCheck,
@@ -16,25 +16,30 @@ import {
   Truck,
   Home,
   ShoppingBag,
+  Sparkles,
+  Tag,
+  Percent,
+  RefreshCw,
+  ArrowLeft,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useSettings } from '../context/SettingsContext';
 import { orderService } from '../services/api';
 import { formatCurrency, formatProductCode } from '../utils/formatters';
-import { calculateItemPricing } from '../utils/pricing';
+import { calculateItemPricing, calculateOrderPricing } from '../utils/pricing';
 import ProductImage from '../components/common/ProductImage';
 import SEO from '../components/common/SEO';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { cartItems, cartSubtotal, totalMrp, totalSavings, totalItemsCount, clearCart } = useCart();
+  const { cartItems = [], cartSubtotal = 0, totalMrp = 0, totalSavings = 0, totalItemsCount = 0, clearCart } = useCart() || {};
   const {
-    minimumOrderAmount,
-    freeDeliveryThreshold,
-    defaultDeliveryFee,
-    deliveryMessage,
+    minimumOrderAmount = 500,
+    freeDeliveryThreshold = 3000,
+    defaultDeliveryFee = 150,
+    deliveryMessage = 'Door Delivery Available',
     calculateDiscount,
-  } = useSettings();
+  } = useSettings() || {};
 
   const [formData, setFormData] = useState({
     name: '',
@@ -58,10 +63,20 @@ const CheckoutPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const { discountPercentage, discountAmount } = calculateDiscount(cartSubtotal);
-  const deliveryFee = cartSubtotal >= freeDeliveryThreshold ? 0 : defaultDeliveryFee;
-  const grandTotal = Math.max(0, cartSubtotal - discountAmount + deliveryFee);
-  const totalCombinedSavings = totalSavings + discountAmount;
+  // Safe pricing calculation fallbacks
+  const safeSubtotal = Math.max(0, Number(cartSubtotal) || 0);
+  const discountResult = typeof calculateDiscount === 'function'
+    ? calculateDiscount(safeSubtotal)
+    : { discountPercentage: 0, discountAmount: 0 };
+
+  const discountPercentage = Number(discountResult?.discountPercentage) || 0;
+  const discountAmount = Number(discountResult?.discountAmount) || 0;
+
+  const threshold = Number(freeDeliveryThreshold) || 3000;
+  const standardFee = Number(defaultDeliveryFee) || 150;
+  const deliveryFee = safeSubtotal >= threshold ? 0 : standardFee;
+  const grandTotal = Math.max(0, safeSubtotal - discountAmount + deliveryFee);
+  const totalCombinedSavings = Math.max(0, (Number(totalSavings) || 0) + discountAmount);
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
@@ -69,7 +84,7 @@ const CheckoutPage = () => {
 
     // Defensive cart validation
     if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
-      setError('Your cart is empty.');
+      setError('Your cart is empty. Please add cracker items before checking out.');
       return;
     }
 
@@ -78,9 +93,9 @@ const CheckoutPage = () => {
       .map((item) => {
         const itemPricing = calculateItemPricing(item, item.quantity || 1);
         return {
-          productId: (item.productId || item._id || item.id).toString(),
-          productCode: itemPricing.productCode,
-          name: itemPricing.name,
+          productId: (item.productId || item._id || item.id || '').toString(),
+          productCode: itemPricing.productCode || '',
+          name: itemPricing.name || item.name || 'Sivakasi Fireworks Item',
           price: itemPricing.sellingPrice,
           mrpPrice: itemPricing.mrpPrice,
           sellingPrice: itemPricing.sellingPrice,
@@ -94,7 +109,7 @@ const CheckoutPage = () => {
       });
 
     if (sanitizedItems.length === 0) {
-      setError('Your cart is empty.');
+      setError('Your cart is empty. Please add items to proceed.');
       return;
     }
 
@@ -104,9 +119,25 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (!formData.phone.trim() || !/^[6-9]\d{9}$/.test(formData.phone.trim())) {
-      setError('Please enter a valid 10-digit Indian mobile number.');
+    const cleanPhone = formData.phone.trim().replace(/\D/g, '');
+    if (!cleanPhone || cleanPhone.length !== 10 || !/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setError('Please enter a valid 10-digit Indian mobile number (e.g. 9876543210).');
       return;
+    }
+
+    if (formData.altPhone && formData.altPhone.trim()) {
+      const cleanAlt = formData.altPhone.trim().replace(/\D/g, '');
+      if (cleanAlt.length !== 10) {
+        setError('Alternate phone number must be 10 digits if provided.');
+        return;
+      }
+    }
+
+    if (formData.email && formData.email.trim()) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+        setError('Please enter a valid email address (e.g. name@gmail.com).');
+        return;
+      }
     }
 
     if (!formData.doorNo.trim()) {
@@ -129,15 +160,17 @@ const CheckoutPage = () => {
       return;
     }
 
-    if (!formData.pincode.trim() || !/^\d{6}$/.test(formData.pincode.trim())) {
+    const cleanPincode = formData.pincode.trim().replace(/\D/g, '');
+    if (!cleanPincode || cleanPincode.length !== 6 || !/^\d{6}$/.test(cleanPincode)) {
       setError('Please enter a valid 6-digit postal PIN code.');
       return;
     }
 
-    const calculatedCartSubtotal = sanitizedItems.reduce((acc, curr) => acc + curr.subtotal, 0);
+    const calculatedCartSubtotal = sanitizedItems.reduce((acc, curr) => acc + (curr.subtotal || 0), 0);
+    const minOrder = Number(minimumOrderAmount) || 500;
 
-    if (calculatedCartSubtotal < minimumOrderAmount) {
-      setError(`Minimum order amount is ₹${minimumOrderAmount}. Please add more items to place your order.`);
+    if (calculatedCartSubtotal < minOrder) {
+      setError(`Minimum order amount is ₹${minOrder}. Please add more items to place your order.`);
       return;
     }
 
@@ -149,34 +182,59 @@ const CheckoutPage = () => {
       const orderPayload = {
         customerDetails: {
           name: formData.name.trim(),
-          phone: formData.phone.trim(),
-          altPhone: formData.altPhone.trim(),
-          email: formData.email.trim(),
+          phone: cleanPhone,
+          altPhone: formData.altPhone ? formData.altPhone.trim().replace(/\D/g, '') : '',
+          email: formData.email ? formData.email.trim() : '',
           address: fullStreetAddress,
           city: formData.city.trim(),
-          pincode: formData.pincode.trim(),
-          landmark: formData.landmark.trim(),
-          state: formData.state.trim(),
+          pincode: cleanPincode,
+          landmark: formData.landmark ? formData.landmark.trim() : '',
+          state: formData.state ? formData.state.trim() : 'Tamil Nadu',
         },
         items: sanitizedItems,
-        notes: formData.notes.trim(),
+        notes: formData.notes ? formData.notes.trim() : '',
       };
 
       // Submit order directly to backend
       const res = await orderService.placeOrder(orderPayload);
 
       if (res.data?.success && res.data.orderId) {
+        const orderData = res.data.order || {
+          orderId: res.data.orderId,
+          customerDetails: orderPayload.customerDetails,
+          items: sanitizedItems,
+          orderMrpTotal: totalMrp,
+          orderSavingsTotal: totalCombinedSavings,
+          orderFinalTotal: grandTotal,
+          subtotal: safeSubtotal,
+          discountAmount,
+          discountPercentage,
+          deliveryFee,
+          totalAmount: grandTotal,
+          createdAt: new Date().toISOString(),
+          status: 'Pending',
+        };
+
+        // Save order in session storage for instant reload safety
+        try {
+          sessionStorage.setItem(`s2c_order_${res.data.orderId}`, JSON.stringify(orderData));
+        } catch {
+          // ignore quota issues
+        }
+
         clearCart();
         navigate(`/order-success/${res.data.orderId}`, {
-          state: { order: res.data.order, whatsapp: res.data.whatsapp },
+          state: { order: orderData, whatsapp: res.data.whatsapp },
         });
       } else {
         setError(res.data?.message || 'Failed to submit order. Please check your details and try again.');
       }
     } catch (err) {
+      console.error('Checkout submission error:', err);
       setError(
         err.response?.data?.message ||
-        'Unable to process your order at this moment. Please check your connection or contact us on WhatsApp.'
+        err.message ||
+        'Unable to process your order at this moment. Please check your connection or contact us on WhatsApp (+91 99444 76516).'
       );
     } finally {
       setSubmitting(false);
@@ -184,7 +242,7 @@ const CheckoutPage = () => {
   };
 
   // If cart is empty, show dedicated user-friendly empty cart UI
-  if (!cartItems || cartItems.length === 0) {
+  if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
     return (
       <div className="min-h-screen bg-festival-dark flex items-center justify-center px-4 py-16">
         <SEO
@@ -222,14 +280,23 @@ const CheckoutPage = () => {
         canonical="https://www.s2ccrackers.com/checkout"
       />
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Page Title */}
+        {/* Page Title & Back Link */}
         <div className="pb-6 border-b border-festival-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
-              <Lock className="w-7 h-7 text-amber-400" />
-              <span>Direct Guest Checkout</span>
-            </h1>
-            <p className="text-xs text-slate-400 mt-1">
+            <div className="flex items-center gap-3">
+              <Link
+                to="/cart"
+                className="p-2 rounded-xl bg-festival-card border border-festival-border text-slate-400 hover:text-white hover:border-amber-400 transition-colors"
+                title="Back to Cart"
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+              <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
+                <Lock className="w-7 h-7 text-amber-400" />
+                <span>Direct Guest Checkout</span>
+              </h1>
+            </div>
+            <p className="text-xs text-slate-400 mt-1.5 ml-11">
               Zero prepayment risk! Complete your shipping details to receive direct factory dispatch across India.
             </p>
           </div>
@@ -253,10 +320,18 @@ const CheckoutPage = () => {
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs sm:text-sm font-semibold flex items-center gap-3"
+            className="p-4 rounded-2xl bg-rose-950/80 border border-rose-500/50 text-rose-200 text-xs sm:text-sm font-semibold flex items-center justify-between gap-3"
           >
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400" />
-            <span>{error}</span>
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-rose-400" />
+              <span>{error}</span>
+            </div>
+            <button
+              onClick={() => setError('')}
+              className="text-xs text-rose-300 hover:text-white underline cursor-pointer flex-shrink-0"
+            >
+              Dismiss
+            </button>
           </motion.div>
         )}
 
@@ -504,15 +579,16 @@ const CheckoutPage = () => {
 
               {/* Items List preview */}
               <div className="max-h-64 overflow-y-auto space-y-3 pr-1 text-xs">
-                {cartItems.map((item) => {
-                  const itemPricing = calculateItemPricing(item, item.quantity);
+                {cartItems.map((item, idx) => {
+                  const itemPricing = calculateItemPricing(item, item?.quantity || 1);
+                  const itemKey = item?.productId || item?._id || item?.id || idx;
                   return (
-                    <div key={item.productId} className="flex items-start justify-between gap-3 pb-2.5 border-b border-festival-border/50">
+                    <div key={itemKey} className="flex items-start justify-between gap-3 pb-2.5 border-b border-festival-border/50">
                       <div className="flex items-start gap-2.5 min-w-0">
                         <ProductImage
                           product={item}
-                          src={item.image}
-                          alt={item.name}
+                          src={item?.image || item?.imageUrl || ''}
+                          alt={itemPricing.name}
                           optimizedWidth={100}
                           optimizedHeight={100}
                           componentName="CheckoutPage"
@@ -522,21 +598,21 @@ const CheckoutPage = () => {
                         />
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="font-bold text-white truncate max-w-full">{item.name}</p>
-                            {item.productCode && (
+                            <p className="font-bold text-white truncate max-w-full">{itemPricing.name}</p>
+                            {itemPricing.productCode && (
                               <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded">
-                                {formatProductCode(item.productCode)}
+                                {formatProductCode(itemPricing.productCode)}
                               </span>
                             )}
                           </div>
                           <div className="text-[10px] text-slate-400 space-y-0.5 mt-0.5">
                             <div>
                               <span>MRP: </span>
-                              <span className="line-through">{formatCurrency(itemPricing.mrpPrice)}</span> × {item.quantity}
+                              <span className="line-through">{formatCurrency(itemPricing.mrpPrice)}</span> × {itemPricing.quantity}
                             </div>
                             <div className="text-amber-300 font-semibold">
                               <span>Rate: </span>
-                              <span>{formatCurrency(itemPricing.sellingPrice)}</span> × {item.quantity}
+                              <span>{formatCurrency(itemPricing.sellingPrice)}</span> × {itemPricing.quantity}
                             </div>
                             {itemPricing.lineSavings > 0 && (
                               <div className="text-emerald-400 font-bold">
@@ -575,7 +651,7 @@ const CheckoutPage = () => {
                 </div>
                 <div className="flex justify-between text-slate-300">
                   <span>Items Factory Price:</span>
-                  <span className="font-bold text-white font-mono">{formatCurrency(cartSubtotal)}</span>
+                  <span className="font-bold text-white font-mono">{formatCurrency(safeSubtotal)}</span>
                 </div>
                 {totalSavings > 0 && (
                   <div className="flex justify-between text-emerald-400 font-bold">
