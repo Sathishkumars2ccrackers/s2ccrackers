@@ -81,17 +81,17 @@ const HeroSlider = ({ banners = [] }) => {
       </div>
 
       {/* Main Content Container */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-        <div className="max-w-2xl space-y-6">
+      <div className="relative z-10 max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-12 sm:py-24">
+        <div className="max-w-2xl space-y-4 sm:space-y-6">
           {/* Badge */}
           <motion.div
             key={`badge-${current}`}
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-200 text-xs font-extrabold tracking-wide uppercase shadow-lg shadow-red-950/50 backdrop-blur-md"
+            className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-red-950/80 border border-red-500/40 text-red-200 text-[11px] sm:text-xs font-extrabold tracking-wide uppercase shadow-lg shadow-red-950/50 backdrop-blur-md"
           >
-            <Flame className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
+            <Flame className="w-3.5 h-3.5 text-amber-400 fill-amber-400 animate-pulse flex-shrink-0" />
             <span>{slide.badge || 'MEGA SIVAKASI FESTIVAL SALE'}</span>
           </motion.div>
 
@@ -101,7 +101,7 @@ const HeroSlider = ({ banners = [] }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-3xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-lg"
+            className="text-2xl sm:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight drop-shadow-lg"
           >
             {slide.title?.toLowerCase().includes('s2c crackers')
               ? slide.title
@@ -114,7 +114,7 @@ const HeroSlider = ({ banners = [] }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-base sm:text-lg text-slate-200 font-normal leading-relaxed drop-shadow"
+            className="text-sm sm:text-lg text-slate-200 font-normal leading-relaxed drop-shadow"
           >
             {slide.subtitle}
           </motion.p>
@@ -128,9 +128,9 @@ const HeroSlider = ({ banners = [] }) => {
               transition={{ duration: 0.5, delay: 0.25 }}
               className="inline-block"
             >
-              <div className="shimmer-badge px-4 py-1.5 rounded-xl text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shadow-xl flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                <span>{slide.discountTag}</span>
+              <div className="shimmer-badge px-3.5 py-1.5 rounded-xl text-slate-950 font-black text-xs sm:text-sm tracking-wider uppercase shadow-xl flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="truncate">{slide.discountTag}</span>
               </div>
             </motion.div>
           )}
@@ -141,33 +141,33 @@ const HeroSlider = ({ banners = [] }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex flex-wrap items-center gap-3.5 pt-2"
+            className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2"
           >
             <Link
               to={slide.linkUrl || '/products'}
-              className="px-7 py-4 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-sm sm:text-base shadow-2xl shadow-amber-950/60 transition-all transform hover:scale-105 flex items-center gap-2 border border-amber-300/40"
+              className="px-6 sm:px-7 py-3.5 sm:py-4 rounded-full bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-base shadow-2xl shadow-amber-950/60 transition-all transform hover:scale-105 flex items-center justify-center gap-2 border border-amber-300/40"
             >
               <span>{slide.buttonText || 'Shop Crackers Now'}</span>
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
             </Link>
 
             <Link
               to={slide.secondaryLinkUrl || '/products?category=deluxe-gift-boxes'}
-              className="px-6 py-4 rounded-full bg-festival-card/90 hover:bg-festival-cardHover text-white font-bold text-sm sm:text-base border border-amber-500/30 hover:border-amber-400 transition-all flex items-center gap-2 backdrop-blur-md"
+              className="px-5 sm:px-6 py-3.5 sm:py-4 rounded-full bg-festival-card/90 hover:bg-festival-cardHover text-white font-bold text-xs sm:text-base border border-amber-500/30 hover:border-amber-400 transition-all flex items-center justify-center gap-2 backdrop-blur-md"
             >
-              <Gift className="w-4 h-4 text-amber-400" />
+              <Gift className="w-4 h-4 text-amber-400 flex-shrink-0" />
               <span>{slide.secondaryButtonText || 'Family Gift Boxes'}</span>
             </Link>
           </motion.div>
 
           {/* Trust points */}
-          <div className="pt-4 flex flex-wrap items-center gap-6 text-xs text-slate-300 font-medium">
-            <div className="flex items-center gap-2 text-emerald-400">
-              <ShieldCheck className="w-4 h-4" />
+          <div className="pt-2 sm:pt-4 flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-slate-300 font-medium">
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <ShieldCheck className="w-4 h-4 flex-shrink-0" />
               <span>{deliveryMessage || 'Door Delivery Available'}</span>
             </div>
-            <div className="flex items-center gap-2 text-amber-400">
-              <Truck className="w-4 h-4" />
+            <div className="flex items-center gap-1.5 text-amber-400">
+              <Truck className="w-4 h-4 flex-shrink-0" />
               <span>Direct Factory Dispatch</span>
             </div>
           </div>

@@ -42,9 +42,9 @@ const REVIEWS = [
 
 const CustomerReviewsSection = () => {
   return (
-    <section className="py-16 bg-festival-dark border-t border-festival-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
+    <section className="py-10 sm:py-16 bg-festival-dark border-t border-festival-border">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
             <Star className="w-3.5 h-3.5 fill-amber-400" />
             <span>Verified Customer Reviews</span>
@@ -57,20 +57,20 @@ const CustomerReviewsSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {REVIEWS.map((item, index) => (
             <div
               key={index}
-              className="p-5 rounded-2xl bg-festival-card border border-festival-border hover:border-amber-500/40 shadow-lg flex flex-col justify-between space-y-4 transition-all duration-300 group"
+              className="p-4 sm:p-5 rounded-2xl bg-festival-card border border-festival-border hover:border-amber-500/40 shadow-lg flex flex-col justify-between space-y-4 transition-all duration-300 group"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 text-amber-400">
                     {[...Array(item.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400" />
+                      <Star key={i} className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400" />
                     ))}
                   </div>
-                  <Quote className="w-5 h-5 text-slate-600 group-hover:text-amber-500/40 transition-colors" />
+                  <Quote className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 group-hover:text-amber-500/40 transition-colors" />
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed italic">"{item.review}"</p>
               </div>

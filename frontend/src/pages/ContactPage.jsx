@@ -25,7 +25,7 @@ const ContactPage = () => {
   const whatsappChatUrl = createWhatsAppGeneralChatUrl('919944476516');
 
   return (
-    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-festival-dark py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
       <SEO
         title="Contact S2C Crackers | Sivakasi Office & WhatsApp Support"
         description="Get in touch with S2C Crackers Sivakasi for festival orders, wholesale price lists, and instant WhatsApp support. Fast dispatch and customer assistance."
@@ -33,26 +33,26 @@ const ContactPage = () => {
         canonical="https://www.s2ccrackers.com/contact"
       />
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Breadcrumb Bar */}
         <Breadcrumbs items={contactBreadcrumbs} />
 
         {/* Header */}
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
-            <MessageCircle className="w-4 h-4" />
+        <div className="text-center space-y-2.5 max-w-2xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
+            <MessageCircle className="w-4 h-4 flex-shrink-0" />
             <span>Customer Support & Factory Outlet</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white">Contact S2C Crackers</h1>
-          <p className="text-xs sm:text-sm text-slate-300">
+          <h1 className="text-2xl sm:text-5xl font-black text-white">Contact S2C Crackers</h1>
+          <p className="text-xs sm:text-sm text-slate-300 px-1">
             Have questions about festival bulk discounts, wholesale supply, or dispatch status? Reach our Sivakasi factory customer team.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Contact Details & Info Cards */}
           <div className="space-y-4">
-            <div className="p-6 rounded-3xl bg-festival-card border border-festival-border space-y-3">
+            <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-festival-card border border-festival-border space-y-3">
               <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
                 <MapPin className="w-5 h-5" />
               </div>

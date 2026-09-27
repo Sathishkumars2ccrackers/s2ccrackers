@@ -56,19 +56,19 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
   const slabDiscount = order.discountAmount || 0;
 
   return (
-    <div className={`invoice-document-root font-sans text-slate-900 bg-white ${isStandalone ? 'min-h-screen py-6 px-4 sm:px-8' : 'p-0'}`}>
+    <div className={`invoice-document-root font-sans text-slate-900 bg-white ${isStandalone ? 'min-h-screen py-4 sm:py-6 px-2 sm:px-8' : 'p-0'}`}>
       {/* Top Action Toolbar (Hidden during print) */}
-      <div className="no-print flex items-center justify-between gap-4 pb-4 mb-6 border-b border-slate-200 max-w-4xl mx-auto">
+      <div className="no-print flex items-center justify-between gap-3 pb-3 sm:pb-4 mb-4 sm:mb-6 border-b border-slate-200 max-w-4xl mx-auto flex-wrap">
         <div className="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
-          <FileText className="w-4 h-4 text-amber-500" />
+          <FileText className="w-4 h-4 text-amber-500 flex-shrink-0" />
           <span>Official Tax Invoice Document</span>
         </div>
         <button
           type="button"
           onClick={handlePrint}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shadow-md hover:shadow-lg transition-all cursor-pointer"
         >
-          <Printer className="w-4 h-4" />
+          <Printer className="w-4 h-4 flex-shrink-0" />
           <span>Print / Save as PDF</span>
         </button>
       </div>
@@ -76,22 +76,22 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
       {/* Main Printable A4 Invoice Sheet */}
       <div
         id="printable-invoice-doc"
-        className="printable-invoice-doc bg-white border border-slate-300 rounded-xl p-6 sm:p-10 shadow-sm max-w-4xl mx-auto space-y-6"
+        className="printable-invoice-doc bg-white border border-slate-300 rounded-xl p-3 sm:p-10 shadow-sm max-w-4xl mx-auto space-y-5 sm:space-y-6"
         style={{ colorScheme: 'light' }}
       >
         {/* =========================================================================
             1. PAGE HEADER & INVOICE DETAILS
             ========================================================================= */}
-        <div className="flex flex-col sm:flex-row justify-between items-start gap-6 pb-6 border-b-2 border-amber-500">
+        <div className="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-6 pb-5 sm:pb-6 border-b-2 border-amber-500">
           {/* Company Info */}
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-3">
-              <img src={logoSvg} alt="S2C Crackers" className="h-12 w-auto object-contain" />
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-[#0B0718] uppercase">
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex items-center gap-2.5 sm:gap-3">
+              <img src={logoSvg} alt="S2C Crackers" className="h-10 sm:h-12 w-auto object-contain flex-shrink-0" />
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-3xl font-black tracking-tight text-[#0B0718] uppercase truncate sm:overflow-visible">
                   S2C <span className="text-amber-500">CRACKERS</span>
                 </h1>
-                <p className="text-xs font-bold text-slate-700 tracking-wide uppercase">
+                <p className="text-[11px] sm:text-xs font-bold text-slate-700 tracking-wide uppercase truncate sm:overflow-visible">
                   Sivakasi Direct Factory Fireworks
                 </p>
               </div>
@@ -114,7 +114,7 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
           </div>
 
           {/* Invoice Details Box */}
-          <div className="bg-[#0B0718] text-white p-4 rounded-xl min-w-[230px] shadow-sm self-stretch sm:self-auto sm:text-right">
+          <div className="bg-[#0B0718] text-white p-3.5 sm:p-4 rounded-xl min-w-0 w-full sm:w-auto sm:min-w-[220px] shadow-sm self-stretch sm:self-auto sm:text-right">
             <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 block mb-1.5">
               TAX INVOICE
             </span>
@@ -184,8 +184,8 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
         {/* =========================================================================
             3. PRODUCT TABLE
             ========================================================================= */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs text-left border-collapse">
+        <div className="overflow-x-auto w-full -mx-1 sm:mx-0 border border-slate-200 rounded-xl">
+          <table className="w-full min-w-[600px] text-xs text-left border-collapse">
             <thead>
               <tr className="bg-[#0B0718] text-white uppercase text-[10px] font-bold tracking-wider">
                 <th className="p-3 text-center w-10">#</th>
@@ -260,33 +260,33 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
         {/* =========================================================================
             4. SAVINGS SECTION & PRICING SUMMARY
             ========================================================================= */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-2 items-start">
           {/* SAVINGS SECTION (Left) */}
-          <div className="bg-emerald-50 border-2 border-emerald-500/40 rounded-2xl p-5 text-emerald-950 space-y-2 shadow-sm">
-            <div className="flex items-center gap-2 text-emerald-800 font-black text-base">
-              <Sparkles className="w-5 h-5 text-emerald-600 fill-emerald-500" />
+          <div className="bg-emerald-50 border-2 border-emerald-500/40 rounded-2xl p-4 sm:p-5 text-emerald-950 space-y-2 shadow-sm">
+            <div className="flex items-center gap-2 text-emerald-800 font-black text-sm sm:text-base">
+              <Sparkles className="w-5 h-5 text-emerald-600 fill-emerald-500 flex-shrink-0" />
               <span>Congratulations!</span>
             </div>
-            <p className="text-sm font-bold text-emerald-900">
-              You saved <span className="text-emerald-700 font-black text-lg underline decoration-emerald-500">{formatCurrency(totalSavings)}</span> through factory-direct Sivakasi pricing.
+            <p className="text-xs sm:text-sm font-bold text-emerald-900">
+              You saved <span className="text-emerald-700 font-black text-base sm:text-lg underline decoration-emerald-500">{formatCurrency(totalSavings)}</span> through factory-direct Sivakasi pricing.
             </p>
-            <p className="text-xs text-emerald-800/90 pt-1">
+            <p className="text-[11px] sm:text-xs text-emerald-800/90 pt-1">
               Thank you for choosing S2C Crackers. 100% genuine Sivakasi factory-direct quality.
             </p>
           </div>
 
           {/* PRICING SUMMARY (Right) */}
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-2.5 text-xs">
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-2.5 text-xs">
             <div className="flex justify-between items-center text-slate-600">
               <span className="font-medium">Total MRP Value:</span>
-              <span className="font-mono font-bold text-slate-500 line-through text-sm">
+              <span className="font-mono font-bold text-slate-500 line-through text-xs sm:text-sm">
                 {formatCurrency(computedMrpTotal)}
               </span>
             </div>
 
             <div className="flex justify-between items-center text-emerald-700 bg-emerald-100/70 p-2 rounded-lg font-bold">
               <span>Total Discount Saved:</span>
-              <span className="font-mono font-black text-sm text-emerald-800">
+              <span className="font-mono font-black text-xs sm:text-sm text-emerald-800">
                 - {formatCurrency(totalSavings)}
               </span>
             </div>
@@ -305,9 +305,9 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
               </span>
             </div>
 
-            <div className="pt-3 border-t-2 border-slate-300 flex justify-between items-center text-slate-950">
-              <span className="text-sm font-black uppercase">Final Payable Amount:</span>
-              <span className="text-xl font-black text-amber-600 font-mono">
+            <div className="pt-3 border-t-2 border-slate-300 flex justify-between items-center flex-wrap gap-2 text-slate-950">
+              <span className="text-xs sm:text-sm font-black uppercase">Final Payable Amount:</span>
+              <span className="text-lg sm:text-xl font-black text-amber-600 font-mono">
                 {formatCurrency(finalPayable)}
               </span>
             </div>

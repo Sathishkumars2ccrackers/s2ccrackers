@@ -208,7 +208,7 @@ const AdminDashboardPage = () => {
       />
 
       {/* Mobile Header */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-festival-card border-b border-festival-border sticky top-0 z-40">
+      <div className="lg:hidden flex items-center justify-between p-3 sm:p-4 bg-festival-card border-b border-festival-border sticky top-0 z-40">
         <div className="flex items-center gap-2">
           <img src={logoSvg} alt="S2C Crackers" className="h-7 w-auto" />
           <span className="text-xs font-bold text-amber-400">Admin Control</span>
@@ -227,7 +227,7 @@ const AdminDashboardPage = () => {
               className="px-2.5 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-bold text-[11px] flex items-center gap-1 shadow-md"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>Install App</span>
+              <span>Install</span>
             </button>
           )}
 
@@ -242,7 +242,7 @@ const AdminDashboardPage = () => {
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-festival-card border-r border-festival-border p-6 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 lg:static lg:h-screen lg:sticky lg:top-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] bg-festival-card border-r border-festival-border p-4 sm:p-6 flex flex-col justify-between transition-transform duration-300 lg:translate-x-0 lg:static lg:h-screen lg:sticky lg:top-0 ${
           isMobileNavOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -352,7 +352,7 @@ const AdminDashboardPage = () => {
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-4 sm:p-8 lg:p-10 max-w-7xl mx-auto overflow-y-auto">
+      <main className="flex-1 p-3 sm:p-8 lg:p-10 max-w-7xl mx-auto overflow-y-auto w-full min-w-0">
         {activeTab === 'overview' && (
           <DashboardOverviewWidget data={dashboardData} onNavigateTab={(tab) => handleTabChange(tab)} />
         )}

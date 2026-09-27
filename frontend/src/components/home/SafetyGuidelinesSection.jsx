@@ -20,14 +20,14 @@ const SafetyGuidelinesSection = () => {
   ];
 
   return (
-    <section className="py-16 bg-[#0f0a18] border-t border-festival-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12">
+    <section className="py-10 sm:py-16 bg-[#0f0a18] border-t border-festival-border">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs font-bold uppercase tracking-wider mb-3">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
             <span>Safety First • Festival of Lights</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white">
+          <h2 className="text-xl sm:text-3xl font-extrabold text-white">
             Essential Fireworks Safety Precautions
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 mt-2">
@@ -35,16 +35,16 @@ const SafetyGuidelinesSection = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
           {/* DO's Card */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-emerald-950/20 border border-emerald-500/30 shadow-xl space-y-4">
-            <div className="flex items-center gap-3 text-emerald-400 pb-3 border-b border-emerald-500/20">
-              <CheckCircle2 className="w-6 h-6" />
-              <h3 className="text-lg font-bold text-white">Safety Do's (செய்ய வேண்டியவை)</h3>
+          <div className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-emerald-950/20 border border-emerald-500/30 shadow-xl space-y-4">
+            <div className="flex items-center gap-2.5 sm:gap-3 text-emerald-400 pb-3 border-b border-emerald-500/20">
+              <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <h3 className="text-base sm:text-lg font-bold text-white">Safety Do's (செய்ய வேண்டியவை)</h3>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-2.5 sm:space-y-3">
               {dos.map((item, index) => (
-                <li key={index} className="flex items-start gap-3 text-xs sm:text-sm text-slate-300">
+                <li key={index} className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-slate-300">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>
@@ -53,14 +53,14 @@ const SafetyGuidelinesSection = () => {
           </div>
 
           {/* DONT's Card */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-rose-950/20 border border-rose-500/30 shadow-xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-400 pb-3 border-b border-rose-500/20">
-              <XCircle className="w-6 h-6" />
-              <h3 className="text-lg font-bold text-white">Safety Don'ts (செய்யக் கூடாதவை)</h3>
+          <div className="p-4 sm:p-8 rounded-2xl sm:rounded-3xl bg-rose-950/20 border border-rose-500/30 shadow-xl space-y-4">
+            <div className="flex items-center gap-2.5 sm:gap-3 text-rose-400 pb-3 border-b border-rose-500/20">
+              <XCircle className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+              <h3 className="text-base sm:text-lg font-bold text-white">Safety Don'ts (செய்யக் கூடாதவை)</h3>
             </div>
-            <ul className="space-y-3">
+            <ul className="space-y-2.5 sm:space-y-3">
               {donts.map((item, index) => (
-                <li key={index} className="flex items-start gap-3 text-xs sm:text-sm text-slate-300">
+                <li key={index} className="flex items-start gap-2.5 sm:gap-3 text-xs sm:text-sm text-slate-300">
                   <XCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
                   <span>{item}</span>
                 </li>

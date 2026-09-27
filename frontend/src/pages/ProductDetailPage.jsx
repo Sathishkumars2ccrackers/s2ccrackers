@@ -194,7 +194,7 @@ const ProductDetailPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-festival-dark py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-festival-dark py-6 sm:py-8 px-3 sm:px-6 lg:px-8">
       {/* Dynamic SEO Meta & Product Schema */}
       <SEO
         title={seoTitle}
@@ -206,12 +206,12 @@ const ProductDetailPage = () => {
         structuredData={productStructuredData}
       />
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Breadcrumb Bar */}
         <Breadcrumbs items={breadcrumbItems} />
 
         {/* Product Main Container */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 bg-festival-card border border-festival-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-2xl">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-12 bg-festival-card border border-festival-border rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 shadow-2xl">
           {/* Left Column: Image Gallery (5 Cols) */}
           <div className="lg:col-span-5 space-y-4">
             <motion.div
@@ -353,24 +353,24 @@ const ProductDetailPage = () => {
             </div>
 
             {/* Specifications Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
                 <span className="text-[10px] text-slate-400 uppercase font-bold">Pack Contents</span>
-                <p className="font-bold text-white">{product.packSize || '1 Box'}</p>
+                <p className="font-bold text-white truncate">{product.packSize || '1 Box'}</p>
               </div>
 
-              <div className="p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
                 <span className="text-[10px] text-slate-400 uppercase font-bold">Sound Level</span>
-                <p className="font-bold text-amber-300 flex items-center gap-1">
-                  <Volume2 className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{product.soundLevel || 'Medium'}</span>
+                <p className="font-bold text-amber-300 flex items-center gap-1 truncate">
+                  <Volume2 className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                  <span className="truncate">{product.soundLevel || 'Medium'}</span>
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
                 <span className="text-[10px] text-slate-400 uppercase font-bold">Stock Availability</span>
                 <p
-                  className={`font-bold ${
+                  className={`font-bold truncate ${
                     isOutOfStock
                       ? 'text-rose-400'
                       : product.stockQuantity <= 10
@@ -378,15 +378,15 @@ const ProductDetailPage = () => {
                       : 'text-emerald-400'
                   }`}
                 >
-                  {isOutOfStock ? 'Out of Stock' : `${product.stockQuantity} boxes ready`}
+                  {isOutOfStock ? 'Out of Stock' : `${product.stockQuantity} ready`}
                 </p>
               </div>
 
-              <div className="p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/50 border border-festival-border text-xs space-y-0.5">
                 <span className="text-[10px] text-slate-400 uppercase font-bold">Dispatch Status</span>
-                <p className="font-bold text-white flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Fast Dispatch</span>
+                <p className="font-bold text-white flex items-center gap-1 truncate">
+                  <Clock className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                  <span className="truncate">Fast Dispatch</span>
                 </p>
               </div>
             </div>
@@ -401,9 +401,9 @@ const ProductDetailPage = () => {
 
             {/* Safety Guidelines */}
             {product.safetyTips && (
-              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-1">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-1">
                 <span className="font-bold text-amber-300 uppercase tracking-wider flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
                   Safety Instructions
                 </span>
                 <p className="text-slate-300">{product.safetyTips}</p>
@@ -413,21 +413,21 @@ const ProductDetailPage = () => {
             {/* Purchasing Controls */}
             <div className="space-y-4 pt-2">
               {/* Quantity Selector */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                 <span className="text-xs font-bold text-slate-300 uppercase">Quantity (Boxes):</span>
                 <div className="flex items-center bg-festival-dark border border-festival-border rounded-xl p-1">
                   <button
                     onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
                     disabled={quantity <= 1 || isOutOfStock}
-                    className="p-1.5 hover:bg-white/10 rounded-lg text-slate-300 disabled:opacity-30"
+                    className="p-1.5 hover:bg-white/10 rounded-lg text-slate-300 disabled:opacity-30 cursor-pointer"
                   >
                     <Minus className="w-4 h-4" />
                   </button>
-                  <span className="w-12 text-center font-bold text-sm text-white">{quantity}</span>
+                  <span className="w-10 sm:w-12 text-center font-bold text-sm text-white">{quantity}</span>
                   <button
                     onClick={() => setQuantity((prev) => Math.min(product.stockQuantity, prev + 1))}
                     disabled={quantity >= product.stockQuantity || isOutOfStock}
-                    className="p-1.5 hover:bg-white/10 rounded-lg text-slate-300 disabled:opacity-30"
+                    className="p-1.5 hover:bg-white/10 rounded-lg text-slate-300 disabled:opacity-30 cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -435,8 +435,8 @@ const ProductDetailPage = () => {
               </div>
 
               {/* Dynamic Quantity Calculation Box */}
-              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-festival-border space-y-2">
-                <div className="text-xs font-bold text-slate-300 uppercase flex items-center justify-between">
+              <div className="p-3 sm:p-3.5 rounded-xl bg-slate-950/80 border border-festival-border space-y-2">
+                <div className="text-xs font-bold text-slate-300 uppercase flex items-center justify-between flex-wrap gap-1">
                   <span>Price Calculation ({quantity} {quantity === 1 ? 'box' : 'boxes'})</span>
                   {pricing.discountPercent > 0 && (
                     <span className="text-emerald-400 font-extrabold">{pricing.discountPercent}% Savings</span>
@@ -445,17 +445,17 @@ const ProductDetailPage = () => {
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between text-slate-400">
                     <span>Total MRP ({quantity} × {formatCurrency(pricing.mrpPrice)}):</span>
-                    <span className="line-through">{formatCurrency(pricing.lineMrp)}</span>
+                    <span className="line-through font-mono">{formatCurrency(pricing.lineMrp)}</span>
                   </div>
                   {pricing.lineSavings > 0 && (
                     <div className="flex justify-between text-emerald-400 font-semibold">
                       <span>Total Discount Saved:</span>
-                      <span>- {formatCurrency(pricing.lineSavings)}</span>
+                      <span className="font-mono">- {formatCurrency(pricing.lineSavings)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-amber-400 font-black text-sm pt-1 border-t border-festival-border">
+                  <div className="flex justify-between items-center text-amber-400 font-black text-sm pt-1 border-t border-festival-border flex-wrap gap-1">
                     <span>Final Payable Amount:</span>
-                    <span>{formatCurrency(pricing.lineSellingPrice)}</span>
+                    <span className="text-base font-mono">{formatCurrency(pricing.lineSellingPrice)}</span>
                   </div>
                 </div>
               </div>
@@ -465,25 +465,25 @@ const ProductDetailPage = () => {
                 <button
                   disabled={isOutOfStock}
                   onClick={() => handleAddToCart(false)}
-                  className="py-3.5 px-4 rounded-xl bg-festival-card hover:bg-festival-cardHover border border-amber-500/40 text-amber-300 hover:text-white font-bold text-sm shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-40"
+                  className="py-3.5 px-4 rounded-xl bg-festival-card hover:bg-festival-cardHover border border-amber-500/40 text-amber-300 hover:text-white font-bold text-xs sm:text-sm shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-40 cursor-pointer"
                 >
-                  <ShoppingBag className="w-4 h-4" />
+                  <ShoppingBag className="w-4 h-4 flex-shrink-0" />
                   <span>Add to Festival Cart</span>
                 </button>
                 <button
                   disabled={isOutOfStock}
                   onClick={handleBuyNow}
-                  className="py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 disabled:opacity-40"
+                  className="py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 disabled:opacity-40 cursor-pointer"
                 >
-                  <Flame className="w-4 h-4 text-slate-950 fill-slate-950" />
+                  <Flame className="w-4 h-4 text-slate-950 fill-slate-950 flex-shrink-0" />
                   <span>Buy Now (Door Delivery)</span>
                 </button>
               </div>
 
               {/* Nationwide All-India Delivery Banner */}
-              <div className="p-4 rounded-2xl bg-festival-dark/80 border border-emerald-500/30 space-y-1.5 mt-4">
+              <div className="p-3.5 sm:p-4 rounded-2xl bg-festival-dark/80 border border-emerald-500/30 space-y-1 mt-4">
                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                  <Truck className="w-4 h-4 text-emerald-400" />
+                  <Truck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                   <span>All-India Delivery Available</span>
                 </div>
                 <p className="text-[11px] text-slate-300 leading-relaxed">
@@ -495,15 +495,15 @@ const ProductDetailPage = () => {
             {/* Safety & Factory Guarantee Bar */}
             <div className="pt-4 border-t border-festival-border/60 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
               <div className="flex items-center gap-1.5 text-emerald-400">
-                <ShieldCheck className="w-4 h-4" />
-                <span>{deliveryMessage || 'Door Delivery Available'}</span>
+                <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+                <span className="truncate">{deliveryMessage || 'Door Delivery Available'}</span>
               </div>
               <div className="flex items-center gap-1.5 text-amber-400">
-                <Award className="w-4 h-4" />
+                <Award className="w-4 h-4 flex-shrink-0" />
                 <span>PESO Safety Approved</span>
               </div>
               <div className="flex items-center gap-1.5 text-slate-300">
-                <Truck className="w-4 h-4" />
+                <Truck className="w-4 h-4 flex-shrink-0" />
                 <span>Factory Packed in Sivakasi</span>
               </div>
             </div>
@@ -512,9 +512,9 @@ const ProductDetailPage = () => {
 
         {/* Related Products Carousel */}
         {relatedProducts.length > 0 && (
-          <div className="space-y-6 pt-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl sm:text-2xl font-extrabold text-white">
+          <div className="space-y-4 sm:space-y-6 pt-4 sm:pt-6">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-lg sm:text-2xl font-extrabold text-white">
                 Similar Sivakasi Fireworks
               </h2>
               <Link
@@ -524,7 +524,7 @@ const ProductDetailPage = () => {
                 View More in {product.category?.name || 'Category'} →
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {relatedProducts.map((p) => (
                 <ProductCard key={p._id} product={p} />
               ))}

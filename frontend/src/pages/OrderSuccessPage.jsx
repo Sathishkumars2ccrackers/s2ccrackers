@@ -99,7 +99,7 @@ const OrderSuccessPage = () => {
     : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
 
   return (
-    <div className="min-h-screen bg-festival-dark py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen bg-festival-dark py-6 sm:py-12 px-3 sm:px-6 lg:px-8 relative overflow-hidden">
       <SEO
         title="Order Placed Successfully | S2C Crackers Sivakasi"
         description="Your festival crackers order has been received at S2C Crackers. Confirm via WhatsApp and track dispatch."
@@ -108,100 +108,100 @@ const OrderSuccessPage = () => {
       {/* Background Visual Fireworks */}
       <FireworksCanvas className="absolute inset-0 pointer-events-none opacity-40 z-0" autoLaunch={true} />
 
-      <div className="max-w-3xl mx-auto space-y-8 relative z-10">
+      <div className="max-w-3xl mx-auto space-y-6 sm:space-y-8 relative z-10">
         {/* Celebration Banner Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          className="p-6 sm:p-10 rounded-3xl bg-gradient-to-br from-emerald-950/90 via-festival-card to-amber-950/80 border border-amber-500/40 shadow-2xl text-center space-y-4"
+          className="p-4 sm:p-10 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-950/90 via-festival-card to-amber-950/80 border border-amber-500/40 shadow-2xl text-center space-y-4"
         >
           {/* S2C Official Brand Logo */}
           <div className="flex justify-center pb-2">
-            <img src={logoSvg} alt="S2C Crackers" className="h-12 sm:h-14 w-auto object-contain" />
+            <img src={logoSvg} alt="S2C Crackers" className="h-10 sm:h-14 w-auto object-contain" />
           </div>
 
-          <div className="w-16 h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 mx-auto flex items-center justify-center text-emerald-400">
-            <CheckCircle2 className="w-9 h-9" />
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/20 border-2 border-emerald-400 mx-auto flex items-center justify-center text-emerald-400">
+            <CheckCircle2 className="w-8 h-8 sm:w-9 sm:h-9" />
           </div>
 
           <div>
-            <span className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center justify-center gap-1.5 mb-1">
-              <Sparkles className="w-4 h-4 fill-amber-400" />
+            <span className="text-[11px] sm:text-xs font-black uppercase tracking-widest text-amber-400 flex items-center justify-center gap-1.5 mb-1">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-400" />
               Order Booked Successfully
             </span>
-            <h1 className="text-2xl sm:text-4xl font-black text-white">
+            <h1 className="text-xl sm:text-4xl font-black text-white break-words">
               Thank You, {order.customerDetails?.name}!
             </h1>
-            <p className="text-xs sm:text-sm text-slate-300 mt-2 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-slate-300 mt-1.5 max-w-md mx-auto">
               Your festival cracker order has been received at our Sivakasi packaging warehouse.
             </p>
           </div>
 
           {/* Unique Order ID Box */}
-          <div className="p-4 rounded-2xl bg-festival-dark/90 border border-amber-500/40 inline-block shadow-inner">
+          <div className="p-3.5 sm:p-4 rounded-2xl bg-festival-dark/90 border border-amber-500/40 inline-block max-w-full shadow-inner">
             <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Your Unique Order ID</span>
-            <span className="text-xl sm:text-2xl font-black text-amber-400 font-mono tracking-wide">{order.orderId}</span>
+            <span className="text-lg sm:text-2xl font-black text-amber-400 font-mono tracking-wide break-all">{order.orderId}</span>
           </div>
 
           {/* Savings Highlight Banner */}
           {totalSavings > 0 && (
-            <div className="p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 max-w-md mx-auto text-center shadow-lg">
-              <div className="flex items-center justify-center gap-2 text-emerald-300 font-extrabold text-sm sm:text-base">
-                <Sparkles className="w-5 h-5 text-emerald-400 fill-emerald-400" />
-                <span>🎉 You Saved {formatCurrency(totalSavings)} On This Festival Order!</span>
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-emerald-950/80 border border-emerald-500/40 max-w-md mx-auto text-center shadow-lg">
+              <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-emerald-300 font-extrabold text-xs sm:text-base flex-wrap">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 fill-emerald-400 flex-shrink-0" />
+                <span>🎉 You Saved {formatCurrency(totalSavings)} On This Order!</span>
               </div>
-              <p className="text-[11px] text-emerald-200/80 mt-0.5">
+              <p className="text-[10px] sm:text-[11px] text-emerald-200/80 mt-0.5">
                 Total MRP: {formatCurrency(computedMrpTotal)} • Direct Sivakasi Factory Rate Applied
               </p>
             </div>
           )}
 
           {/* Financial Metrics Strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left pt-2">
-            <div className="p-3.5 rounded-2xl bg-festival-dark/80 border border-festival-border">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Original MRP</span>
-              <span className="text-sm sm:text-base font-bold text-slate-300 line-through font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-left pt-2">
+            <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-festival-dark/80 border border-festival-border">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Original MRP</span>
+              <span className="text-xs sm:text-base font-bold text-slate-300 line-through font-mono block truncate">
                 {formatCurrency(computedMrpTotal)}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-festival-dark/80 border border-festival-border">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">Discount Received</span>
-              <span className="text-sm sm:text-base font-extrabold text-emerald-400 font-mono">
+            <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-festival-dark/80 border border-festival-border">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Discount</span>
+              <span className="text-xs sm:text-base font-extrabold text-emerald-400 font-mono block truncate">
                 -{formatCurrency(totalSavings)}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-emerald-950/70 border border-emerald-500/40">
-              <span className="text-[10px] uppercase font-bold text-emerald-300 block">Total Savings</span>
-              <span className="text-sm sm:text-base font-black text-emerald-300 font-mono">
+            <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-emerald-950/70 border border-emerald-500/40">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-300 block truncate">Total Savings</span>
+              <span className="text-xs sm:text-base font-black text-emerald-300 font-mono block truncate">
                 Save {formatCurrency(totalSavings)}
               </span>
             </div>
-            <div className="p-3.5 rounded-2xl bg-festival-dark/80 border border-amber-500/40">
-              <span className="text-[10px] uppercase font-bold text-amber-400 block">Final Amount</span>
-              <span className="text-sm sm:text-base font-black text-amber-400 font-mono">
+            <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-festival-dark/80 border border-amber-500/40">
+              <span className="text-[9px] sm:text-[10px] uppercase font-bold text-amber-400 block truncate">Final Amount</span>
+              <span className="text-xs sm:text-base font-black text-amber-400 font-mono block truncate">
                 {formatCurrency(finalTotal)}
               </span>
             </div>
           </div>
 
           {/* Action Buttons: WhatsApp & Direct Invoice Download */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+          <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3">
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm shadow-xl shadow-emerald-950/80 border border-emerald-300/50 transform hover:scale-105 transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-5 sm:px-6 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-950/80 border border-emerald-300/50 transition-all cursor-pointer"
             >
-              <MessageCircle className="w-5 h-5 fill-white text-emerald-600" />
+              <MessageCircle className="w-5 h-5 fill-white text-emerald-600 flex-shrink-0" />
               <span>Send Order via WhatsApp</span>
             </a>
 
             <button
               onClick={handlePrint}
-              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm shadow-xl shadow-amber-950/60 border border-amber-300/60 transform hover:scale-105 transition-all cursor-pointer"
+              className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-5 sm:px-6 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/60 border border-amber-300/60 transition-all cursor-pointer"
             >
-              <Printer className="w-5 h-5" />
-              <span>Download Official Tax Invoice (PDF)</span>
+              <Printer className="w-5 h-5 flex-shrink-0" />
+              <span>Download Tax Invoice (PDF)</span>
             </button>
           </div>
           <p className="text-[11px] text-emerald-300/80 mt-1 text-center">
@@ -210,27 +210,27 @@ const OrderSuccessPage = () => {
         </motion.div>
 
         {/* 2. Dedicated Standalone Tax Invoice Document */}
-        <div className="rounded-3xl overflow-hidden shadow-2xl border border-festival-border">
+        <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-festival-border">
           <InvoicePDF order={order} onPrint={handlePrint} />
         </div>
 
         {/* Navigation CTAs */}
-        <div className="no-print flex flex-wrap items-center justify-between gap-4">
+        <div className="no-print flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
           <Link
             to={`/track-order?orderId=${order.orderId}&phone=${order.customerDetails?.phone}`}
-            className="px-6 py-3.5 rounded-xl bg-festival-card hover:bg-festival-cardHover border border-amber-500/40 text-amber-300 hover:text-white font-bold text-xs transition-colors flex items-center gap-2"
+            className="px-5 py-3.5 rounded-xl bg-festival-card hover:bg-festival-cardHover border border-amber-500/40 text-amber-300 hover:text-white font-bold text-xs transition-colors flex items-center justify-center gap-2"
           >
-            <Truck className="w-4 h-4" />
+            <Truck className="w-4 h-4 flex-shrink-0" />
             <span>Track Order Status</span>
           </Link>
 
           <Link
             to="/products"
-            className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs transition-colors flex items-center gap-2"
+            className="px-5 py-3.5 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2"
           >
-            <ShoppingBag className="w-4 h-4" />
+            <ShoppingBag className="w-4 h-4 flex-shrink-0" />
             <span>Continue Shopping</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4 flex-shrink-0" />
           </Link>
         </div>
       </div>

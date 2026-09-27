@@ -14,7 +14,7 @@ const AboutPage = () => {
   const whatsappUrl = createWhatsAppGeneralChatUrl('919944476516', 'Hello S2C Crackers, I would like to place an order.');
 
   return (
-    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-festival-dark py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
       <SEO
         title="About S2C Crackers | Authentic Sivakasi Fireworks Manufacturer"
         description="Learn about S2C Crackers, Sivakasi's trusted fireworks manufacturer and online distributor. 100% genuine crackers at direct factory wholesale rates."
@@ -22,24 +22,24 @@ const AboutPage = () => {
         canonical="https://www.s2ccrackers.com/about"
       />
 
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         {/* Breadcrumb Bar */}
         <Breadcrumbs items={aboutBreadcrumbs} />
 
         {/* Header */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
-            <Building2 className="w-4 h-4" />
+        <div className="text-center space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
+            <Building2 className="w-4 h-4 flex-shrink-0" />
             <span>Sivakasi Factory Heritage</span>
           </div>
-          <h1 className="text-3xl sm:text-5xl font-black text-white">About S2C Crackers</h1>
-          <p className="text-sm text-slate-300 max-w-xl mx-auto">
+          <h1 className="text-2xl sm:text-5xl font-black text-white">About S2C Crackers</h1>
+          <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto px-1">
             Bringing authentic, radiant, and safe fireworks directly from the heart of Sivakasi to thousands of homes across South India.
           </p>
         </div>
 
         {/* Story Card */}
-        <div className="bg-festival-card border border-festival-border p-6 sm:p-10 rounded-3xl space-y-6 leading-relaxed text-slate-300 text-sm">
+        <div className="bg-festival-card border border-festival-border p-4 sm:p-10 rounded-2xl sm:rounded-3xl space-y-5 sm:space-y-6 leading-relaxed text-slate-300 text-xs sm:text-sm">
           <h2 className="text-xl font-bold text-white text-gold-gradient">
             Direct-to-Consumer Fireworks Innovation
           </h2>

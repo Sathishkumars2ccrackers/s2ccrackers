@@ -74,10 +74,10 @@ const CATEGORY_META = {
 
 const CategoryBrowser = ({ categories = [] }) => {
   return (
-    <section className="py-16 bg-festival-dark relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-10 sm:py-16 bg-festival-dark relative">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Section Heading */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 sm:mb-10 gap-3 sm:gap-4">
           <div>
             <div className="flex items-center gap-2 text-amber-400 text-xs font-extrabold uppercase tracking-widest mb-1.5">
               <Sparkles className="w-4 h-4" />
@@ -97,7 +97,7 @@ const CategoryBrowser = ({ categories = [] }) => {
         </div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
           {Object.entries(CATEGORY_META).map(([slug, meta], index) => {
             const IconComponent = meta.icon;
             return (
@@ -113,25 +113,25 @@ const CategoryBrowser = ({ categories = [] }) => {
                 <Link
                   to={`/products?category=${slug}`}
                   onClick={() => console.log(`[Category Browser] Clicked Category: "${meta.name}" (Slug: "${slug}")`)}
-                  className="block h-full p-5 rounded-2xl bg-festival-card border border-festival-border hover:border-amber-500/50 transition-all duration-300 group shadow-lg hover:shadow-2xl hover:shadow-amber-950/20 flex flex-col justify-between cursor-pointer select-none"
+                  className="block h-full p-3.5 sm:p-5 rounded-2xl bg-festival-card border border-festival-border hover:border-amber-500/50 transition-all duration-300 group shadow-lg hover:shadow-2xl hover:shadow-amber-950/20 flex flex-col justify-between cursor-pointer select-none"
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3 sm:mb-4">
                     <div
-                      className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${meta.color} flex items-center justify-center text-slate-950 shadow-md group-hover:scale-110 transition-transform duration-300`}
+                      className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br ${meta.color} flex items-center justify-center text-slate-950 shadow-md group-hover:scale-110 transition-transform duration-300`}
                     >
-                      <IconComponent className="w-6 h-6" />
+                      <IconComponent className="w-5 h-5 sm:w-6 sm:h-6" />
                     </div>
-                    <span className="text-[11px] font-bold text-amber-400/80 group-hover:text-amber-300 flex items-center gap-1">
-                      Explore <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                    <span className="text-[10px] sm:text-[11px] font-bold text-amber-400/80 group-hover:text-amber-300 flex items-center gap-0.5 sm:gap-1">
+                      Explore <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 group-hover:translate-x-1 transition-transform" />
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="text-base font-bold text-white group-hover:text-amber-400 transition-colors">
+                    <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-amber-400 transition-colors">
                       {meta.name}
                     </h3>
-                    <p className="text-xs text-amber-400/90 font-medium mt-0.5">{meta.sub}</p>
-                    <p className="text-xs text-slate-400 mt-1.5 line-clamp-2 leading-relaxed">{meta.desc}</p>
+                    <p className="text-[11px] sm:text-xs text-amber-400/90 font-medium mt-0.5">{meta.sub}</p>
+                    <p className="text-[11px] sm:text-xs text-slate-400 mt-1 sm:mt-1.5 line-clamp-2 leading-relaxed">{meta.desc}</p>
                   </div>
                 </Link>
               </motion.div>

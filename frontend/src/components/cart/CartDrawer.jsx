@@ -55,16 +55,16 @@ const CartDrawer = () => {
             className="absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
           />
 
-          <div className="fixed inset-y-0 right-0 max-w-full flex pl-10">
+          <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10 w-full sm:w-auto">
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="w-screen max-w-md bg-festival-card border-l border-festival-gold/30 shadow-2xl flex flex-col justify-between"
+              className="w-full sm:w-screen sm:max-w-md bg-festival-card border-l border-festival-gold/30 shadow-2xl flex flex-col justify-between h-full"
             >
               {/* Drawer Header */}
-              <div className="p-5 border-b border-festival-border flex items-center justify-between bg-festival-dark/80">
+              <div className="p-4 sm:p-5 border-b border-festival-border flex items-center justify-between bg-festival-dark/80">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
                     <ShoppingBag className="w-5 h-5" />
@@ -85,8 +85,8 @@ const CartDrawer = () => {
               </div>
 
               {/* Free Delivery Progress Indicator */}
-              <div className="px-5 py-3 bg-amber-950/40 border-b border-amber-500/20">
-                <div className="flex items-center justify-between text-xs mb-1.5 font-medium">
+              <div className="px-4 sm:px-5 py-3 bg-amber-950/40 border-b border-amber-500/20">
+                <div className="flex items-center justify-between text-xs mb-1.5 font-medium flex-wrap gap-1">
                   {amountNeededForFreeDelivery > 0 ? (
                     <span className="text-amber-200">
                       Add <strong className="text-amber-400">{formatCurrency(amountNeededForFreeDelivery)}</strong> more for <strong>FREE DELIVERY</strong>!
@@ -97,7 +97,7 @@ const CartDrawer = () => {
                       Congratulations! You unlocked FREE Delivery!
                     </span>
                   )}
-                  <span className="text-slate-400 text-[11px]">{freeDeliveryProgress}%</span>
+                  <span className="text-slate-400 text-[11px] font-mono">{freeDeliveryProgress}%</span>
                 </div>
                 <div className="w-full h-1.5 bg-festival-dark rounded-full overflow-hidden">
                   <div
@@ -108,7 +108,7 @@ const CartDrawer = () => {
 
                 {/* Tiered Discount Incentive Note */}
                 {nextSlab && amountNeededForNextSlab > 0 && (
-                  <p className="text-[11px] text-purple-300/90 pt-2 flex items-center gap-1">
+                  <p className="text-[11px] text-purple-300/90 pt-2 flex items-center gap-1 break-words">
                     <Percent className="w-3 h-3 text-purple-400 flex-shrink-0" />
                     <span>
                       Add {formatCurrency(amountNeededForNextSlab)} more for <strong className="text-amber-300">{nextSlab.discountPercentage}% OFF</strong>!
@@ -118,7 +118,7 @@ const CartDrawer = () => {
               </div>
 
               {/* Drawer Content - Items List */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5">
+              <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3">
                 {cartItems.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center text-center py-12 space-y-4">
                     <div className="w-20 h-20 rounded-full bg-festival-dark border border-dashed border-festival-border flex items-center justify-center text-slate-500">
@@ -150,7 +150,7 @@ const CartDrawer = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="p-3 rounded-2xl bg-festival-dark/80 border border-festival-border flex gap-3 items-start group"
+                        className="p-3 rounded-xl sm:rounded-2xl bg-festival-dark/80 border border-festival-border flex gap-2.5 sm:gap-3 items-start group min-w-0"
                       >
                         {/* Product Image */}
                         <ProductImage
@@ -161,24 +161,24 @@ const CartDrawer = () => {
                           optimizedHeight={160}
                           componentName="CartDrawer"
                           enableZoom={true}
-                          containerClassName="w-16 h-16 rounded-xl border border-amber-500/20 flex-shrink-0 mt-0.5"
+                          containerClassName="w-14 h-14 sm:w-16 sm:h-16 rounded-xl border border-amber-500/20 flex-shrink-0 mt-0.5"
                           className="w-full h-full object-cover"
                         />
 
                         {/* Info */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <h4 className="text-white font-bold text-xs leading-snug truncate max-w-full">{item.name}</h4>
+                            <h4 className="text-white font-bold text-xs leading-snug break-words">{item.name}</h4>
                             {item.productCode && (
-                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1 rounded">
+                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 border border-amber-500/30 px-1 rounded flex-shrink-0">
                                 {formatProductCode(item.productCode)}
                               </span>
                             )}
                           </div>
 
                           {/* Pricing Breakdown */}
-                          <div className="text-[11px] space-y-0.5 mt-1">
-                            <div className="flex items-center gap-1.5 text-slate-400">
+                          <div className="text-[10px] sm:text-[11px] space-y-0.5 mt-1">
+                            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-slate-400">
                               <span>MRP:</span>
                               <span className="line-through">{formatCurrency(itemPricing.mrpPrice)} × {item.quantity}</span>
                               {itemPricing.discountPercent > 0 && (
@@ -187,7 +187,7 @@ const CartDrawer = () => {
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-1.5 text-amber-300 font-semibold">
+                            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-amber-300 font-semibold">
                               <span>Rate:</span>
                               <span>{formatCurrency(itemPricing.sellingPrice)} × {item.quantity} = <strong>{formatCurrency(itemPricing.lineSellingPrice)}</strong></span>
                             </div>
@@ -200,7 +200,7 @@ const CartDrawer = () => {
                         </div>
 
                         {/* Quantity Controls & Remove */}
-                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                        <div className="flex flex-col items-end gap-1.5 sm:gap-2 flex-shrink-0">
                           <button
                             onClick={() => removeFromCart(item.productId)}
                             className="text-slate-500 hover:text-rose-400 p-1 transition-colors cursor-pointer"
@@ -208,14 +208,14 @@ const CartDrawer = () => {
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
-                          <div className="flex items-center border border-festival-border rounded-lg bg-festival-card">
+                          <div className="flex items-center border border-festival-border rounded-lg bg-festival-card p-0.5">
                             <button
                               onClick={() => updateQuantity(item.productId, item.quantity - 1)}
                               className="p-1 text-slate-400 hover:text-white transition-colors cursor-pointer"
                             >
                               <Minus className="w-3 h-3" />
                             </button>
-                            <span className="px-2 text-xs font-bold text-white min-w-[20px] text-center">
+                            <span className="px-1.5 sm:px-2 text-xs font-bold text-white min-w-[18px] sm:min-w-[20px] text-center font-mono">
                               {item.quantity}
                             </span>
                             <button
@@ -234,9 +234,9 @@ const CartDrawer = () => {
 
               {/* Drawer Footer - Price & Checkout */}
               {cartItems.length > 0 && (
-                <div className="p-5 border-t border-festival-border bg-festival-dark/95 space-y-3.5">
+                <div className="p-4 sm:p-5 border-t border-festival-border bg-festival-dark/95 space-y-3">
                   {/* Summary Breakdown */}
-                  <div className="space-y-2 text-xs">
+                  <div className="space-y-1.5 sm:space-y-2 text-xs">
                     <div className="flex justify-between text-slate-300">
                       <span className="font-medium">Total MRP Value:</span>
                       <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
@@ -261,7 +261,7 @@ const CartDrawer = () => {
                       </div>
                     )}
                     {totalCombinedSavings > 0 && (
-                      <div className="p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-center space-y-0.5">
+                      <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-center space-y-0.5">
                         <div className="flex items-center justify-center gap-1 text-emerald-300 font-extrabold text-xs">
                           <Sparkles className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
                           <span>Total Savings: {formatCurrency(totalCombinedSavings)}</span>
@@ -273,15 +273,15 @@ const CartDrawer = () => {
                       <span>Estimated Shipping:</span>
                       <span className="font-semibold text-white">{isFreeDeliveryUnlocked ? <span className="text-emerald-400 font-black">FREE</span> : 'Calculated at checkout'}</span>
                     </div>
-                    <div className="pt-2 border-t border-festival-border flex justify-between text-sm font-black text-white">
+                    <div className="pt-2 border-t border-festival-border flex justify-between text-sm font-black text-white items-center">
                       <span className="text-amber-400">Final Payable Amount:</span>
-                      <span className="text-amber-400 text-lg font-mono">{formatCurrency(finalCartTotal)}</span>
+                      <span className="text-amber-400 text-base sm:text-lg font-mono">{formatCurrency(finalCartTotal)}</span>
                     </div>
                   </div>
 
                   {/* Min Order Warning */}
                   {!isMinOrderMet && (
-                    <div className="p-2.5 rounded-lg bg-rose-950/40 border border-rose-800/40 text-rose-300 text-xs text-center">
+                    <div className="p-2 rounded-lg bg-rose-950/40 border border-rose-800/40 text-rose-300 text-[11px] sm:text-xs text-center">
                       Minimum order amount is <strong>{formatCurrency(minimumOrderAmount)}</strong>. Add {formatCurrency(minimumOrderAmount - cartSubtotal)} more to proceed.
                     </div>
                   )}
@@ -290,14 +290,14 @@ const CartDrawer = () => {
                   <button
                     disabled={!isMinOrderMet}
                     onClick={handleCheckoutClick}
-                    className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-extrabold text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3 sm:py-3.5 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-extrabold text-xs sm:text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>Proceed to Checkout</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
 
-                  <div className="flex items-center justify-center gap-2 text-[11px] text-emerald-400 font-medium text-center">
-                    <ShieldCheck className="w-4 h-4" />
+                  <div className="flex items-center justify-center gap-2 text-[10px] sm:text-[11px] text-emerald-400 font-medium text-center">
+                    <ShieldCheck className="w-4 h-4 flex-shrink-0" />
                     <span>{deliveryMessage || 'Door Delivery Available'} • 100% Safe Factory Packaging</span>
                   </div>
                 </div>

@@ -273,37 +273,37 @@ const CheckoutPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-festival-dark py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
       <SEO
         title="Direct Factory Checkout | Door Delivery Across India - S2C Crackers"
         description="Fast direct factory checkout for Sivakasi fireworks. Complete your delivery address with zero prepayment risk and door delivery across India."
         canonical="https://www.s2ccrackers.com/checkout"
       />
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
         {/* Page Title & Back Link */}
-        <div className="pb-6 border-b border-festival-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
+        <div className="pb-4 sm:pb-6 border-b border-festival-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap sm:flex-nowrap">
               <Link
                 to="/cart"
-                className="p-2 rounded-xl bg-festival-card border border-festival-border text-slate-400 hover:text-white hover:border-amber-400 transition-colors"
+                className="p-2 rounded-xl bg-festival-card border border-festival-border text-slate-400 hover:text-white hover:border-amber-400 transition-colors flex-shrink-0"
                 title="Back to Cart"
               >
                 <ArrowLeft className="w-4 h-4" />
               </Link>
-              <h1 className="text-2xl sm:text-3xl font-black text-white flex items-center gap-3">
-                <Lock className="w-7 h-7 text-amber-400" />
-                <span>Direct Guest Checkout</span>
+              <h1 className="text-xl sm:text-3xl font-black text-white flex items-center gap-2 sm:gap-3 min-w-0">
+                <Lock className="w-6 h-6 sm:w-7 h-7 text-amber-400 flex-shrink-0" />
+                <span className="truncate sm:overflow-visible">Direct Guest Checkout</span>
               </h1>
             </div>
-            <p className="text-xs text-slate-400 mt-1.5 ml-11">
+            <p className="text-xs text-slate-400 mt-1.5 ml-0 sm:ml-11">
               Zero prepayment risk! Complete your shipping details to receive direct factory dispatch across India.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-festival-card border border-emerald-500/30 text-emerald-300 text-xs font-bold self-start sm:self-auto">
-            <Truck className="w-4 h-4 text-emerald-400" />
-            <span>All-India Delivery • Door Delivery Available</span>
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-2xl bg-festival-card border border-emerald-500/30 text-emerald-300 text-xs font-bold self-start sm:self-auto">
+            <Truck className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+            <span className="truncate sm:overflow-visible">All-India Delivery • Door Delivery</span>
           </div>
         </div>
 
@@ -335,13 +335,13 @@ const CheckoutPage = () => {
           </motion.div>
         )}
 
-        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <form onSubmit={handleSubmitOrder} className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left 2 Cols: Shipping Details Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Delivery Form Fields */}
-            <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl space-y-6">
-              <div className="flex items-center gap-2.5 pb-4 border-b border-festival-border text-amber-400 font-bold text-base">
-                <MapPin className="w-5 h-5" />
+            <div className="bg-festival-card border border-festival-border p-4 sm:p-8 rounded-2xl sm:rounded-3xl space-y-5 sm:space-y-6">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-festival-border text-amber-400 font-bold text-sm sm:text-base">
+                <MapPin className="w-5 h-5 flex-shrink-0" />
                 <h2 className="text-white">1. Delivery Address & Contact Information</h2>
               </div>
 
@@ -553,13 +553,13 @@ const CheckoutPage = () => {
             </div>
 
             {/* Payment & Delivery Banner */}
-            <div className="p-6 rounded-3xl bg-festival-card border border-emerald-500/40 space-y-3">
+            <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-festival-card border border-emerald-500/40 space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2.5 text-emerald-400 font-bold text-sm">
-                  <ShieldCheck className="w-6 h-6" />
-                  <span className="text-white text-base">{deliveryMessage || 'Door Delivery Available'}</span>
+                  <ShieldCheck className="w-6 h-6 flex-shrink-0" />
+                  <span className="text-white text-sm sm:text-base">{deliveryMessage || 'Door Delivery Available'}</span>
                 </div>
-                <span className="px-3 py-1 bg-emerald-500 text-slate-950 font-black text-xs rounded-full">
+                <span className="px-3 py-1 bg-emerald-500 text-slate-950 font-black text-[11px] sm:text-xs rounded-full">
                   SAFE DIRECT DISPATCH
                 </span>
               </div>
@@ -571,7 +571,7 @@ const CheckoutPage = () => {
 
           {/* Right Col: Order Items Summary & Submit Button */}
           <div className="space-y-6">
-            <div className="bg-festival-card border border-festival-border p-6 rounded-3xl space-y-6">
+            <div className="bg-festival-card border border-festival-border p-4 sm:p-6 rounded-2xl sm:rounded-3xl space-y-5 sm:space-y-6">
               <h3 className="text-base font-bold text-white pb-3 border-b border-festival-border flex items-center justify-between">
                 <span>Order Summary</span>
                 <span className="text-xs text-amber-400 font-medium">{totalItemsCount} items</span>
@@ -583,8 +583,8 @@ const CheckoutPage = () => {
                   const itemPricing = calculateItemPricing(item, item?.quantity || 1);
                   const itemKey = item?.productId || item?._id || item?.id || idx;
                   return (
-                    <div key={itemKey} className="flex items-start justify-between gap-3 pb-2.5 border-b border-festival-border/50">
-                      <div className="flex items-start gap-2.5 min-w-0">
+                    <div key={itemKey} className="flex items-start justify-between gap-2.5 pb-2.5 border-b border-festival-border/50">
+                      <div className="flex items-start gap-2.5 min-w-0 flex-1">
                         <ProductImage
                           product={item}
                           src={item?.image || item?.imageUrl || ''}
@@ -593,14 +593,14 @@ const CheckoutPage = () => {
                           optimizedHeight={100}
                           componentName="CheckoutPage"
                           enableZoom={true}
-                          containerClassName="w-11 h-11 rounded-lg flex-shrink-0 mt-0.5"
+                          containerClassName="w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex-shrink-0 mt-0.5"
                           className="w-full h-full object-cover rounded-lg"
                         />
-                        <div className="min-w-0">
+                        <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5 flex-wrap">
-                            <p className="font-bold text-white truncate max-w-full">{itemPricing.name}</p>
+                            <p className="font-bold text-white break-words text-xs">{itemPricing.name}</p>
                             {itemPricing.productCode && (
-                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded">
+                              <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded flex-shrink-0">
                                 {formatProductCode(itemPricing.productCode)}
                               </span>
                             )}
@@ -622,8 +622,8 @@ const CheckoutPage = () => {
                           </div>
                         </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <span className="font-bold text-white block">{formatCurrency(itemPricing.lineSellingPrice)}</span>
+                      <div className="text-right flex-shrink-0 pl-1">
+                        <span className="font-bold text-white block text-xs">{formatCurrency(itemPricing.lineSellingPrice)}</span>
                       </div>
                     </div>
                   );
@@ -632,54 +632,54 @@ const CheckoutPage = () => {
 
               {/* Premium Savings Banner */}
               {totalCombinedSavings > 0 && (
-                <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950 via-festival-card to-emerald-900/80 border-2 border-emerald-500/50 shadow-xl text-center space-y-1">
-                  <div className="flex items-center justify-center gap-2 text-emerald-300 font-black text-sm sm:text-base">
-                    <Sparkles className="w-5 h-5 text-emerald-400 fill-emerald-400 animate-pulse" />
+                <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-950 via-festival-card to-emerald-900/80 border-2 border-emerald-500/50 shadow-xl text-center space-y-1">
+                  <div className="flex items-center justify-center gap-2 text-emerald-300 font-black text-xs sm:text-base">
+                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 fill-emerald-400 animate-pulse flex-shrink-0" />
                     <span>🎉 Congratulations!</span>
                   </div>
-                  <p className="text-xs sm:text-sm font-bold text-white">
-                    You saved <span className="text-emerald-400 font-black text-base">{formatCurrency(totalCombinedSavings)}</span> through factory-direct Sivakasi pricing.
+                  <p className="text-xs sm:text-sm font-bold text-white break-words">
+                    You saved <span className="text-emerald-400 font-black text-sm sm:text-base">{formatCurrency(totalCombinedSavings)}</span> through factory-direct Sivakasi pricing.
                   </p>
                 </div>
               )}
 
               {/* Bill breakdown */}
               <div className="space-y-2.5 text-xs pt-2 border-t border-festival-border">
-                <div className="flex justify-between text-slate-300">
+                <div className="flex justify-between items-center text-slate-300">
                   <span className="font-medium">Total MRP Value:</span>
                   <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
                 </div>
-                <div className="flex justify-between text-slate-300">
+                <div className="flex justify-between items-center text-slate-300">
                   <span>Items Factory Price:</span>
                   <span className="font-bold text-white font-mono">{formatCurrency(safeSubtotal)}</span>
                 </div>
                 {totalSavings > 0 && (
-                  <div className="flex justify-between text-emerald-400 font-bold">
+                  <div className="flex justify-between items-center text-emerald-400 font-bold">
                     <span>Product Discount Savings:</span>
                     <span className="font-mono">-{formatCurrency(totalSavings)}</span>
                   </div>
                 )}
                 {discountAmount > 0 && (
-                  <div className="flex justify-between text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
+                  <div className="flex justify-between items-center text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
                     <span>Special Tier Discount ({discountPercentage}%):</span>
                     <span className="font-mono">-{formatCurrency(discountAmount)}</span>
                   </div>
                 )}
                 {totalCombinedSavings > 0 && (
-                  <div className="flex justify-between text-emerald-300 font-extrabold bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-500/30">
+                  <div className="flex justify-between items-center text-emerald-300 font-extrabold bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-500/30">
                     <span>Total Discount Saved:</span>
                     <span className="font-mono">Save {formatCurrency(totalCombinedSavings)}</span>
                   </div>
                 )}
-                <div className="flex justify-between text-slate-300">
+                <div className="flex justify-between items-center text-slate-300">
                   <span>Shipping & Delivery:</span>
                   <span className="font-bold text-white">
                     {deliveryFee === 0 ? <span className="text-emerald-400 font-black">FREE</span> : formatCurrency(deliveryFee)}
                   </span>
                 </div>
-                <div className="pt-3 border-t border-festival-border flex justify-between text-base font-black text-white">
+                <div className="pt-3 border-t border-festival-border flex justify-between items-center flex-wrap gap-2 text-base font-black text-white">
                   <span className="text-amber-400">Final Payable Amount:</span>
-                  <span className="text-amber-400 text-xl font-mono">{formatCurrency(grandTotal)}</span>
+                  <span className="text-amber-400 text-lg sm:text-xl font-mono">{formatCurrency(grandTotal)}</span>
                 </div>
               </div>
 
@@ -687,17 +687,17 @@ const CheckoutPage = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-base shadow-2xl shadow-amber-950/60 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
+                className="w-full py-3.5 sm:py-4 rounded-2xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-sm sm:text-base shadow-2xl shadow-amber-950/60 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <Loader2 className="w-5 h-5 animate-spin flex-shrink-0" />
                     <span>Booking Your Order...</span>
                   </>
                 ) : (
                   <>
                     <span>Confirm & Place Order</span>
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 flex-shrink-0" />
                   </>
                 )}
               </button>

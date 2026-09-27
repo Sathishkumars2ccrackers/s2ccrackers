@@ -122,30 +122,30 @@ const Navbar = () => {
   return (
     <header ref={headerRef} className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* Top Festival Marquee Bar */}
-      <div className="bg-gradient-to-r from-red-950 via-amber-950 to-orange-950 border-b border-amber-500/20 text-xs py-1.5 px-4 text-amber-200">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-2 overflow-hidden whitespace-nowrap">
-            <span className="bg-red-600 text-white font-extrabold text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">
-              Festival Sale 2026
+      <div className="bg-gradient-to-r from-red-950 via-amber-950 to-orange-950 border-b border-amber-500/20 text-xs py-1.5 px-3 sm:px-4 text-amber-200">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-hidden whitespace-nowrap min-w-0 flex-1">
+            <span className="bg-red-600 text-white font-extrabold text-[9px] sm:text-[10px] px-1.5 sm:px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse flex-shrink-0">
+              Sale 2026
             </span>
-            <span className="text-amber-100/90 font-medium truncate">
-              {festivalAnnouncement || '💥 Genuine Sivakasi Direct Factory Prices! Up to 80% OFF • Door Delivery Available Across India!'}
+            <span className="text-amber-100/90 font-medium truncate text-[11px] sm:text-xs min-w-0">
+              {festivalAnnouncement || '💥 Genuine Sivakasi Direct Factory Prices! Up to 80% OFF • Door Delivery Across India!'}
             </span>
           </div>
           <div className="hidden md:flex items-center gap-5 text-slate-300 text-xs flex-shrink-0">
             <div className="flex items-center gap-1.5 text-amber-400">
-              <Truck className="w-3.5 h-3.5" />
+              <Truck className="w-3.5 h-3.5 flex-shrink-0" />
               <span>{deliveryMessage || 'Door Delivery Available'}</span>
             </div>
             <div className="flex items-center gap-1.5 text-emerald-400">
-              <ShieldCheck className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-3.5 h-3.5 flex-shrink-0" />
               <span>100% Genuine Sivakasi</span>
             </div>
             <a
               href="tel:+919944476516"
               className="flex items-center gap-1 text-slate-200 hover:text-amber-400 transition-colors"
             >
-              <Phone className="w-3 h-3 text-amber-400" />
+              <Phone className="w-3 h-3 text-amber-400 flex-shrink-0" />
               <span>+91 99444 76516</span>
             </a>
           </div>
@@ -155,16 +155,16 @@ const Navbar = () => {
       {/* Main Navbar */}
       <div
         className={`glass-nav transition-all duration-300 ${
-          isScrolled ? 'py-2.5 shadow-2xl bg-festival-dark/95' : 'py-3.5'
+          isScrolled ? 'py-2 sm:py-2.5 shadow-2xl bg-festival-dark/95' : 'py-2.5 sm:py-3.5'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0 group">
             <img
               src={logoSvg}
               alt="S2C Crackers - Sivakasi"
-              className="h-9 sm:h-11 w-auto object-contain transition-transform group-hover:scale-105"
+              className="h-8 sm:h-11 w-auto object-contain transition-transform group-hover:scale-105"
             />
           </Link>
 

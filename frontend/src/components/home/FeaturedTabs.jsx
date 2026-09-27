@@ -25,22 +25,22 @@ const FeaturedTabs = ({ featured = [], bestSellers = [], allProducts = [], loadi
   }
 
   return (
-    <section className="py-16 bg-festival-dark">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-10 sm:py-16 bg-festival-dark">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 sm:mb-8 gap-4">
           <div>
             <div className="flex items-center gap-2 text-amber-400 text-xs font-extrabold uppercase tracking-widest mb-1.5">
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4 flex-shrink-0" />
               <span>Handpicked Festival Collections</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white">
+            <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-white">
               Sivakasi's Most Loved Fireworks
             </h2>
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center p-1.5 bg-festival-card border border-festival-border rounded-2xl overflow-x-auto">
+          <div className="flex items-center p-1 sm:p-1.5 bg-festival-card border border-festival-border rounded-2xl overflow-x-auto max-w-full">
             {tabs.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -48,13 +48,13 @@ const FeaturedTabs = ({ featured = [], bestSellers = [], allProducts = [], loadi
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
                     isActive
                       ? 'bg-gradient-to-r from-red-600 to-amber-600 text-white shadow-md'
                       : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-amber-200' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0 ${isActive ? 'text-amber-200' : 'text-slate-400'}`} />
                   <span>{tab.label}</span>
                 </button>
               );

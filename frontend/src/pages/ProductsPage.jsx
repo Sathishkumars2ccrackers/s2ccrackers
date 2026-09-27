@@ -761,49 +761,50 @@ const ProductsPage = ({ initialCategory }) => {
 
       {/* 4. STICKY BOTTOM FLOATING ORDER SUMMARY BAR */}
       {totalItemsCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-r from-festival-card via-[#1e1333] to-festival-card border-t border-amber-500/40 shadow-2xl backdrop-blur-xl py-2.5 px-4 sm:px-8 transition-all">
-          <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-r from-festival-card via-[#1e1333] to-festival-card border-t border-amber-500/40 shadow-2xl backdrop-blur-xl py-2 px-3 sm:px-8 transition-all">
+          <div className="max-w-7xl mx-auto flex items-center justify-between gap-2">
             {/* Left: Items & Total Amount */}
-            <div className="flex items-center gap-3 sm:gap-6">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-sm shadow">
+            <div className="flex items-center gap-2 sm:gap-6 min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-xs sm:text-sm shadow">
                   {totalItemsCount}
                 </div>
-                <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block leading-tight">
-                    Selected Items
+                <div className="hidden xs:block">
+                  <span className="text-[9px] text-slate-400 uppercase font-bold block leading-tight">
+                    Selected
                   </span>
                   <span className="text-xs sm:text-sm font-extrabold text-white">
-                    {totalItemsCount} {totalItemsCount === 1 ? 'variety' : 'varieties'}
+                    {totalItemsCount} {totalItemsCount === 1 ? 'item' : 'items'}
                   </span>
                 </div>
               </div>
 
-              <div className="border-l border-festival-border pl-3 sm:pl-6">
-                <span className="text-[10px] text-amber-300/80 uppercase font-bold block leading-tight">
-                  Total Order Amount
+              <div className="border-l border-festival-border pl-2 sm:pl-6 min-w-0">
+                <span className="text-[9px] sm:text-[10px] text-amber-300/80 uppercase font-bold block leading-tight truncate">
+                  Total Order
                 </span>
-                <span className="text-base sm:text-xl font-black text-amber-400">
+                <span className="text-sm sm:text-xl font-black text-amber-400 font-mono truncate block">
                   {formatCurrency(cartSubtotal)}
                 </span>
               </div>
             </div>
 
             {/* Right: View Cart Button */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
               <Link
                 to="/cart"
-                className="hidden sm:inline-flex items-center gap-1.5 py-2.5 px-4 rounded-xl bg-festival-dark hover:bg-white/10 text-slate-300 hover:text-white border border-festival-border text-xs font-bold transition-all cursor-pointer"
+                className="hidden md:inline-flex items-center gap-1.5 py-2 px-3 sm:py-2.5 sm:px-4 rounded-xl bg-festival-dark hover:bg-white/10 text-slate-300 hover:text-white border border-festival-border text-xs font-bold transition-all cursor-pointer"
               >
                 <span>Edit Cart</span>
               </Link>
               <button
                 onClick={openCart}
-                className="py-2.5 px-5 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/60 transition-all flex items-center gap-2 cursor-pointer transform hover:scale-105"
+                className="py-2 px-3 sm:py-2.5 sm:px-5 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/60 transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95"
               >
-                <ShoppingCart className="w-4 h-4" />
-                <span>View Cart ({formatCurrency(cartSubtotal)})</span>
-                <ArrowRight className="w-4 h-4" />
+                <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">View Cart ({formatCurrency(cartSubtotal)})</span>
+                <span className="sm:hidden">Cart ({totalItemsCount})</span>
+                <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               </button>
             </div>
           </div>

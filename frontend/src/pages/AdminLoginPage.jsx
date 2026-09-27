@@ -46,12 +46,12 @@ const AdminLoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0a0510] via-[#140b20] to-[#0a0510] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0510] via-[#140b20] to-[#0a0510] flex items-center justify-center p-3 sm:p-4">
       <SEO title="Admin Login | S2C Crackers" noindex={true} />
       <motion.div
         initial={{ opacity: 0, scale: 0.95, y: 15 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="w-full max-w-md bg-festival-card border border-amber-500/30 rounded-3xl p-8 shadow-2xl shadow-black/80 space-y-6 relative overflow-hidden"
+        className="w-full max-w-md bg-festival-card border border-amber-500/30 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-2xl shadow-black/80 space-y-5 sm:space-y-6 relative overflow-hidden"
       >
         {/* Top Gold Accent Strip */}
         <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-red-600 via-amber-500 to-orange-500" />

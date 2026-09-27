@@ -10,11 +10,11 @@ const Footer = () => {
       <div className="h-1 bg-gradient-to-r from-red-600 via-amber-500 to-orange-600" />
 
       {/* Trust Highlights Strip */}
-      <div className="border-b border-festival-border/60 py-8 bg-festival-card/40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="border-b border-festival-border/60 py-6 sm:py-8 bg-festival-card/40">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              <Truck className="w-6 h-6" />
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex-shrink-0">
+              <Truck className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Door Delivery Available</h4>
@@ -23,8 +23,8 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-orange-500/10 text-orange-400 border border-orange-500/20">
-              <MessageCircle className="w-6 h-6" />
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex-shrink-0">
+              <MessageCircle className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Order Confirmation via WhatsApp</h4>
@@ -33,8 +33,8 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20">
-              <Shield className="w-6 h-6" />
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20 flex-shrink-0">
+              <Shield className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Delivery Across India</h4>
@@ -43,8 +43,8 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              <Award className="w-6 h-6" />
+            <div className="p-2.5 sm:p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 flex-shrink-0">
+              <Award className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div>
               <h4 className="text-white font-bold text-sm">Customer Support Available</h4>
@@ -55,13 +55,13 @@ const Footer = () => {
       </div>
 
       {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-8 sm:py-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8">
         {/* Brand Column */}
         <div className="lg:col-span-2 space-y-4">
           <Link to="/">
-            <img src={logoSvg} alt="S2C Crackers" className="h-12 w-auto object-contain" />
+            <img src={logoSvg} alt="S2C Crackers" className="h-10 sm:h-12 w-auto object-contain" />
           </Link>
-          <p className="text-xs text-slate-400 leading-relaxed pr-6">
+          <p className="text-xs text-slate-400 leading-relaxed pr-0 sm:pr-6">
             <strong>S2C Crackers</strong> is Sivakasi's premier fireworks brand offering factory-direct pricing for Diwali, Weddings, New Year, and celebrations. We guarantee fresh, premium grade fireworks crafted with stringent safety standards.
           </p>
           <div className="pt-2 text-xs space-y-2 text-slate-300">
@@ -174,11 +174,11 @@ const Footer = () => {
 
       {/* Bottom Copyright Strip */}
       <div className="border-t border-festival-border/50 py-4 bg-[#050308]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-2 text-center sm:text-left">
           <div>
-            © {new Date().getFullYear()} S2C Crackers (www.s2ccrackers.com). All Rights Reserved. Tamil Nadu, India.
+            © {new Date().getFullYear()} S2C Crackers (www.s2ccrackers.com). All Rights Reserved.
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-wrap justify-center">
             <Link to="/safety" className="hover:text-slate-400">Safety Policy</Link>
             <span>•</span>
             <Link to="/contact" className="hover:text-slate-400">Terms & Delivery Policy</Link>

@@ -151,7 +151,7 @@ const OrderTrackingPage = () => {
   const currentStepIndex = order ? getStepIndex(order.status || order.orderStatus) : 0;
 
   return (
-    <div className="min-h-screen bg-festival-dark py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-festival-dark py-6 sm:py-10 px-3 sm:px-6 lg:px-8">
       <SEO
         title="Track Your Cracker Order Online | S2C Crackers Sivakasi"
         description="Track your S2C Crackers festival fireworks order live using your Order ID and mobile number. Instant factory dispatch & parcel status updates across India."
@@ -159,31 +159,31 @@ const OrderTrackingPage = () => {
         canonical="https://www.s2ccrackers.com/track-order"
       />
 
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-4xl mx-auto space-y-6 sm:space-y-8">
         {/* Breadcrumb Bar */}
         <Breadcrumbs items={trackBreadcrumbs} />
 
         {/* Header */}
-        <div className="text-center space-y-3 max-w-xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+        <div className="text-center space-y-2.5 max-w-xl mx-auto">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] sm:text-xs font-bold uppercase tracking-wider">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
             <span>Secure Order Verification</span>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold text-white">Track Your Festival Order</h1>
-          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+          <h1 className="text-xl sm:text-4xl font-extrabold text-white">Track Your Festival Order</h1>
+          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed px-1">
             For privacy and security, enter your <strong>Order ID</strong> along with your <strong>Registered Mobile Number</strong> (Primary or Alternate) to view live Sivakasi dispatch status.
           </p>
         </div>
 
         {/* Search Bar Form */}
-        <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl shadow-2xl relative overflow-hidden">
+        <div className="bg-festival-card border border-festival-border p-4 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-40 h-40 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
 
           <form onSubmit={handleSearch} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Order ID Input */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5 flex items-center justify-between flex-wrap gap-1">
                   <span>Order ID <span className="text-rose-400">*</span></span>
                   <span className="text-[10px] text-slate-400 font-normal lowercase">e.g. S2C-2026-001234</span>
                 </label>
@@ -211,7 +211,7 @@ const OrderTrackingPage = () => {
 
               {/* Phone Number Input */}
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5 flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-300 uppercase mb-1.5 flex items-center justify-between flex-wrap gap-1">
                   <span>Registered Mobile Number <span className="text-rose-400">*</span></span>
                   <span className="text-[10px] text-slate-400 font-normal lowercase">10 digits (Primary / Alt)</span>
                 </label>
@@ -240,18 +240,18 @@ const OrderTrackingPage = () => {
             </div>
 
             {/* Submit Button & Security Note */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-2 text-[11px] text-slate-400">
                 <Lock className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                <span>Protected by 2-Factor Order ID + Customer Phone Verification</span>
+                <span>Protected by Order ID + Customer Phone Verification</span>
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3.5 bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-amber-950/40 transition-all flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
               >
-                <Search className="w-4 h-4" />
+                <Search className="w-4 h-4 flex-shrink-0" />
                 <span>Verify & Track Order</span>
               </button>
             </div>
@@ -266,10 +266,10 @@ const OrderTrackingPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="p-6 rounded-3xl bg-rose-950/60 border border-rose-500/40 text-center space-y-3"
+            className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-rose-950/60 border border-rose-500/40 text-center space-y-3"
           >
-            <XCircle className="w-10 h-10 text-rose-400 mx-auto" />
-            <h3 className="text-base font-bold text-white">Tracking Verification Failed</h3>
+            <XCircle className="w-8 sm:w-10 h-8 sm:h-10 text-rose-400 mx-auto" />
+            <h3 className="text-sm sm:text-base font-bold text-white">Tracking Verification Failed</h3>
             <p className="text-xs sm:text-sm text-rose-200 max-w-md mx-auto">{error}</p>
             <p className="text-[11px] text-slate-400 pt-1">
               Please ensure your Order ID and registered phone number match the details provided during checkout.
@@ -282,7 +282,7 @@ const OrderTrackingPage = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
+            className="space-y-6 sm:space-y-8"
           >
           {(() => {
             const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
@@ -298,25 +298,25 @@ const OrderTrackingPage = () => {
             return (
               <>
                 {/* Main Status & Stepper Card */}
-                <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl space-y-6">
+                <div className="bg-festival-card border border-festival-border p-4 sm:p-8 rounded-2xl sm:rounded-3xl space-y-5 sm:space-y-6">
                   {/* Card Header */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-festival-border gap-4">
-                    <div>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 sm:pb-6 border-b border-festival-border gap-3 sm:gap-4">
+                    <div className="min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-widest flex items-center gap-1">
-                          <UserCheck className="w-3.5 h-3.5" />
+                          <UserCheck className="w-3.5 h-3.5 flex-shrink-0" />
                           Verified Customer Order
                         </span>
                       </div>
-                      <h2 className="text-2xl font-black text-amber-400 font-mono tracking-wide">{order.orderId}</h2>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <h2 className="text-xl sm:text-2xl font-black text-amber-400 font-mono tracking-wide break-all sm:break-normal">{order.orderId}</h2>
+                      <p className="text-xs text-slate-400 mt-0.5 break-words">
                         Customer: <strong className="text-white">{order.customerName || order.customerDetails?.name}</strong> • Placed On: {formatDate(order.orderDate || order.createdAt, true)}
                       </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 flex-shrink-0">
                       <span
-                        className={`px-3.5 py-1.5 rounded-full text-xs font-black uppercase ${
+                        className={`px-3 py-1.5 rounded-full text-xs font-black uppercase text-center ${
                           order.status === 'Delivered'
                             ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
                             : order.status === 'Cancelled'
@@ -328,26 +328,26 @@ const OrderTrackingPage = () => {
                       </span>
                       <button
                         onClick={() => printInvoiceDocument(order)}
-                        className="no-print px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center gap-2 transition-all shadow-lg hover:shadow-amber-500/20 transform hover:scale-105 cursor-pointer"
+                        className="no-print px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
                       >
-                        <Printer className="w-4 h-4" />
-                        <span>Download Official Tax Invoice (PDF)</span>
+                        <Printer className="w-4 h-4 flex-shrink-0" />
+                        <span>Tax Invoice (PDF)</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Top Green Savings Badge */}
                   {totalSavings > 0 && (
-                    <div className="p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-festival-card to-emerald-950 border-2 border-emerald-500/50 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                    <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-festival-card to-emerald-950 border-2 border-emerald-500/50 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400 flex-shrink-0">
-                          <Sparkles className="w-5 h-5 fill-emerald-400" />
+                        <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400 flex-shrink-0">
+                          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 fill-emerald-400" />
                         </div>
                         <div>
                           <div className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide">
                             YOU SAVED {formatCurrency(totalSavings)}
                           </div>
-                          <p className="text-[11px] text-emerald-200/80">
+                          <p className="text-[10px] sm:text-[11px] text-emerald-200/80">
                             Factory-direct Sivakasi discount applied to your order.
                           </p>
                         </div>
@@ -359,54 +359,54 @@ const OrderTrackingPage = () => {
                   )}
 
                   {/* 4-Stat Pricing Transparency Grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div className="p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Order Total (MRP)</span>
-                      <span className="text-sm font-bold text-slate-400 line-through font-mono mt-0.5 block">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs">
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Order Total (MRP)</span>
+                      <span className="text-xs sm:text-sm font-bold text-slate-400 line-through font-mono mt-0.5 block truncate">
                         {formatCurrency(computedMrpTotal)}
                       </span>
                     </div>
-                    <div className="p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Discount Applied</span>
-                      <span className="text-sm font-extrabold text-emerald-400 font-mono mt-0.5 block">
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Discount Applied</span>
+                      <span className="text-xs sm:text-sm font-extrabold text-emerald-400 font-mono mt-0.5 block truncate">
                         -{formatCurrency(totalSavings)}
                       </span>
                     </div>
-                    <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/30">
-                      <span className="text-[10px] uppercase font-bold text-emerald-300 block">Amount Saved</span>
-                      <span className="text-sm font-black text-emerald-300 font-mono mt-0.5 block">
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/30">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-300 block truncate">Amount Saved</span>
+                      <span className="text-xs sm:text-sm font-black text-emerald-300 font-mono mt-0.5 block truncate">
                         Save {formatCurrency(totalSavings)}
                       </span>
                     </div>
-                    <div className="p-3 rounded-xl bg-festival-dark/80 border border-amber-500/40">
-                      <span className="text-[10px] uppercase font-bold text-amber-400 block">Final Amount</span>
-                      <span className="text-sm font-black text-amber-400 font-mono mt-0.5 block">
+                    <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-amber-500/40">
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-amber-400 block truncate">Final Amount</span>
+                      <span className="text-xs sm:text-sm font-black text-amber-400 font-mono mt-0.5 block truncate">
                         {formatCurrency(finalTotal)}
                       </span>
                     </div>
                   </div>
 
               {/* Dispatch & Courier Status Badges Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-festival-dark/80 border border-festival-border">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 sm:p-4 rounded-2xl bg-festival-dark/80 border border-festival-border">
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Dispatch Status</span>
                   <span className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
-                    <Truck className="w-3.5 h-3.5 text-amber-400" />
-                    {order.dispatchStatus || order.status}
+                    <Truck className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                    <span className="truncate">{order.dispatchStatus || order.status}</span>
                   </span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Courier / Transport Partner</span>
                   <span className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
-                    <Package className="w-3.5 h-3.5 text-emerald-400" />
-                    {order.courierName || 'Sivakasi Surface Transport'}
+                    <Package className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                    <span className="truncate">{order.courierName || 'Sivakasi Surface Transport'}</span>
                   </span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">
                     {order.trackingNumber ? 'Tracking / Waybill #' : 'Estimated Delivery'}
                   </span>
-                  <span className="text-xs font-bold text-amber-300 font-mono mt-0.5 block">
+                  <span className="text-xs font-bold text-amber-300 font-mono mt-0.5 block truncate">
                     {order.trackingNumber || order.estimatedDelivery || '3-5 Business Days'}
                   </span>
                 </div>
@@ -414,15 +414,15 @@ const OrderTrackingPage = () => {
 
               {/* Cancelled State View */}
               {order.status === 'Cancelled' ? (
-                <div className="p-6 sm:p-8 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-center space-y-4">
-                  <XCircle className="w-10 h-10 text-rose-400 mx-auto" />
+                <div className="p-4 sm:p-8 rounded-2xl bg-rose-950/40 border border-rose-500/40 text-center space-y-4">
+                  <XCircle className="w-8 sm:w-10 h-8 sm:h-10 text-rose-400 mx-auto" />
                   <div className="space-y-1">
                     <h3 className="text-base sm:text-lg font-bold text-white">Order Cancelled</h3>
                     <p className="text-xs text-rose-200">
                       This order has been cancelled and inventory reserved for this booking has been returned to stock.
                     </p>
                   </div>
-                  <div className="p-4 rounded-xl bg-festival-dark/80 border border-rose-500/30 text-xs max-w-md mx-auto text-left space-y-1.5">
+                  <div className="p-3.5 sm:p-4 rounded-xl bg-festival-dark/80 border border-rose-500/30 text-xs max-w-md mx-auto text-left space-y-1.5">
                     <div className="flex items-center justify-between text-[11px] text-slate-400 flex-wrap gap-1">
                       <span className="font-semibold text-rose-300 uppercase tracking-wider text-[10px]">
                         Cancellation Reason
@@ -437,41 +437,80 @@ const OrderTrackingPage = () => {
                   </div>
                 </div>
               ) : (
-                /* Stepper Progress Bar */
-                <div className="py-4">
-                  <div className="relative flex items-center justify-between">
-                    {/* Background Track */}
-                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-festival-dark z-0" />
-                    <div
-                      className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-500 z-0"
-                      style={{
-                        width: `${(Math.max(0, currentStepIndex) / (STEPS.length - 1)) * 100}%`,
-                      }}
-                    />
+                /* Stepper Progress Bar - Responsive for Mobile & Desktop */
+                <div className="py-2 sm:py-4">
+                  {/* Desktop / Tablet Horizontal Stepper (>= 480px) */}
+                  <div className="hidden sm:block">
+                    <div className="relative flex items-center justify-between">
+                      {/* Background Track */}
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-festival-dark z-0" />
+                      <div
+                        className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-amber-500 to-emerald-400 transition-all duration-500 z-0"
+                        style={{
+                          width: `${(Math.max(0, currentStepIndex) / (STEPS.length - 1)) * 100}%`,
+                        }}
+                      />
 
+                      {STEPS.map((step, idx) => {
+                        const Icon = step.icon;
+                        const isCompleted = idx <= currentStepIndex;
+                        const isCurrent = idx === currentStepIndex;
+
+                        return (
+                          <div key={step.id} className="relative z-10 flex flex-col items-center">
+                            <div
+                              className={`w-10 sm:w-12 h-10 sm:h-12 rounded-2xl flex items-center justify-center transition-all ${
+                                isCompleted
+                                  ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 shadow-lg shadow-amber-950/50'
+                                  : 'bg-festival-dark text-slate-500 border border-festival-border'
+                              } ${isCurrent ? 'ring-4 ring-amber-400/30 animate-pulse' : ''}`}
+                            >
+                              <Icon className="w-5 sm:w-6 h-5 sm:h-6" />
+                            </div>
+                            <span
+                              className={`text-[10px] sm:text-xs font-bold mt-2 text-center max-w-[80px] sm:max-w-[100px] leading-tight ${
+                                isCompleted ? 'text-white' : 'text-slate-500'
+                              }`}
+                            >
+                              {step.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Mobile Vertical Stepper (< 480px) */}
+                  <div className="sm:hidden space-y-3 bg-festival-dark/60 p-3 rounded-2xl border border-festival-border">
                     {STEPS.map((step, idx) => {
                       const Icon = step.icon;
                       const isCompleted = idx <= currentStepIndex;
                       const isCurrent = idx === currentStepIndex;
 
                       return (
-                        <div key={step.id} className="relative z-10 flex flex-col items-center">
+                        <div key={step.id} className="flex items-center gap-3">
                           <div
-                            className={`w-10 sm:w-12 h-10 sm:h-12 rounded-2xl flex items-center justify-center transition-all ${
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${
                               isCompleted
-                                ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 shadow-lg shadow-amber-950/50'
-                                : 'bg-festival-dark text-slate-500 border border-festival-border'
-                            } ${isCurrent ? 'ring-4 ring-amber-400/30 animate-pulse' : ''}`}
+                                ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-slate-950 shadow-md shadow-amber-950/40'
+                                : 'bg-festival-dark text-slate-600 border border-festival-border'
+                            } ${isCurrent ? 'ring-2 ring-amber-400/50' : ''}`}
                           >
-                            <Icon className="w-5 sm:w-6 h-5 sm:h-6" />
+                            <Icon className="w-4 h-4" />
                           </div>
-                          <span
-                            className={`text-[10px] sm:text-xs font-bold mt-2 text-center max-w-[80px] sm:max-w-[100px] leading-tight ${
-                              isCompleted ? 'text-white' : 'text-slate-500'
-                            }`}
-                          >
-                            {step.label}
-                          </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center justify-between">
+                              <span className={`text-xs font-bold ${isCompleted ? 'text-white' : 'text-slate-500'}`}>
+                                {step.label}
+                              </span>
+                              {isCurrent && (
+                                <span className="text-[10px] font-extrabold text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                                  Current Status
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-slate-400 truncate">{step.desc}</p>
+                          </div>
                         </div>
                       );
                     })}
@@ -510,7 +549,7 @@ const OrderTrackingPage = () => {
             </div>
 
             {/* Ordered Products & Delivery Address Card */}
-            <div className="bg-festival-card border border-festival-border p-6 sm:p-8 rounded-3xl grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="bg-festival-card border border-festival-border p-4 sm:p-8 rounded-2xl sm:rounded-3xl grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
               {/* Products Breakdown */}
               <div className="space-y-4">
                 <h3 className="text-sm font-bold text-white uppercase border-b border-festival-border pb-2 flex items-center justify-between">
@@ -535,9 +574,9 @@ const OrderTrackingPage = () => {
                     return (
                       <div
                         key={idx}
-                        className="flex items-start justify-between text-xs pb-3 border-b border-festival-border/40 gap-3"
+                        className="flex items-start justify-between text-xs pb-3 border-b border-festival-border/40 gap-2.5"
                       >
-                        <div className="flex items-start gap-3 min-w-0">
+                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
                           <ProductImage
                             product={item}
                             src={item.image}
@@ -546,15 +585,15 @@ const OrderTrackingPage = () => {
                             optimizedHeight={100}
                             componentName="OrderTrackingPage"
                             enableZoom={true}
-                            containerClassName="w-11 h-11 rounded-lg flex-shrink-0 border border-festival-border mt-0.5"
+                            containerClassName="w-10 h-10 sm:w-11 sm:h-11 rounded-lg flex-shrink-0 border border-festival-border mt-0.5"
                             className="w-full h-full object-cover rounded-lg"
                           />
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="font-bold text-white truncate max-w-full">{item.name}</p>
+                              <p className="font-bold text-white break-words text-xs">{item.name}</p>
                               {item.productCode && (
-                                <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded border border-amber-500/20">
-                                  {item.productCode}
+                                <span className="text-[9px] font-mono font-bold text-amber-300 bg-slate-950 px-1 rounded border border-amber-500/20 flex-shrink-0">
+                                  {formatProductCode(item.productCode)}
                                 </span>
                               )}
                             </div>
@@ -580,7 +619,7 @@ const OrderTrackingPage = () => {
                             </div>
                           </div>
                         </div>
-                        <span className="font-bold text-amber-400 font-mono flex-shrink-0">
+                        <span className="font-bold text-amber-400 font-mono text-xs sm:text-sm flex-shrink-0 pl-1">
                           {formatCurrency(itemSubtotal)}
                         </span>
                       </div>
@@ -602,27 +641,27 @@ const OrderTrackingPage = () => {
 
                   return (
                     <div className="pt-3 space-y-1.5 border-t border-festival-border text-xs">
-                      <div className="flex justify-between text-slate-300">
+                      <div className="flex justify-between items-center text-slate-300">
                         <span>Original MRP Total:</span>
                         <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(computedMrpTotal)}</span>
                       </div>
-                      <div className="flex justify-between text-slate-300">
+                      <div className="flex justify-between items-center text-slate-300">
                         <span>Factory Price Subtotal:</span>
                         <span className="font-bold text-white font-mono">{formatCurrency(itemsSubtotal)}</span>
                       </div>
                       {order.discountAmount > 0 && (
-                        <div className="flex justify-between text-amber-300">
+                        <div className="flex justify-between items-center text-amber-300">
                           <span>Special Discount ({order.discountPercentage || 0}%):</span>
                           <span className="font-bold font-mono">-{formatCurrency(order.discountAmount)}</span>
                         </div>
                       )}
                       {totalSavings > 0 && (
-                        <div className="flex justify-between text-emerald-400 font-extrabold bg-emerald-950/60 p-2 rounded-xl border border-emerald-500/30">
+                        <div className="flex justify-between items-center text-emerald-400 font-extrabold bg-emerald-950/60 p-2 rounded-xl border border-emerald-500/30">
                           <span>Total Discount Savings:</span>
                           <span className="font-mono">Save {formatCurrency(totalSavings)}</span>
                         </div>
                       )}
-                      <div className="flex justify-between text-slate-300">
+                      <div className="flex justify-between items-center text-slate-300">
                         <span>Delivery Charge:</span>
                         <span className="font-bold text-white">
                           {order.deliveryFee === 0 ? (
@@ -632,7 +671,7 @@ const OrderTrackingPage = () => {
                           )}
                         </span>
                       </div>
-                      <div className="pt-2 flex justify-between text-sm font-black text-white border-t border-festival-border">
+                      <div className="pt-2 flex justify-between items-center flex-wrap gap-2 text-sm font-black text-white border-t border-festival-border">
                         <span className="text-amber-400">Final Amount Payable:</span>
                         <span className="text-amber-400 text-base font-mono">{formatCurrency(finalTotal)}</span>
                       </div>
