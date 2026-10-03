@@ -20,8 +20,10 @@ import {
 } from 'lucide-react';
 import { orderService } from '../services/api';
 import { formatCurrency, formatDate, formatProductCode } from '../utils/formatters';
+import { calculateOrderTotalsFromOrder } from '../utils/pricing';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ProductImage from '../components/common/ProductImage';
+import PricingSummary from '../components/common/PricingSummary';
 import SEO from '../components/common/SEO';
 import Breadcrumbs from '../components/common/Breadcrumbs';
 import { printInvoiceDocument } from '../utils/printInvoice';
@@ -285,15 +287,7 @@ const OrderTrackingPage = () => {
             className="space-y-6 sm:space-y-8"
           >
           {(() => {
-            const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
-              const unitMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
-              return acc + unitMrp * (item.quantity || 1);
-            }, 0);
-            const itemsSubtotal = order.orderItemsSubtotal || order.subtotal || order.totalAmount || 0;
-            const finalTotal = order.orderFinalTotal || order.totalAmount || 0;
-            const totalSavings = order.orderSavingsTotal !== undefined
-              ? order.orderSavingsTotal
-              : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
+            const orderTotals = calculateOrderTotalsFromOrder(order);
 
             return (
               <>
@@ -337,7 +331,7 @@ const OrderTrackingPage = () => {
                   </div>
 
                   {/* Top Green Savings Badge */}
-                  {totalSavings > 0 && (
+                  {orderTotals.totalSavings > 0 && (
                     <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-950 via-festival-card to-emerald-950 border-2 border-emerald-500/50 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                       <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/20 border border-emerald-400 flex items-center justify-center text-emerald-400 flex-shrink-0">
@@ -345,7 +339,7 @@ const OrderTrackingPage = () => {
                         </div>
                         <div>
                           <div className="text-xs sm:text-sm font-black text-emerald-300 uppercase tracking-wide">
-                            YOU SAVED {formatCurrency(totalSavings)}
+                            YOU SAVED {formatCurrency(orderTotals.totalSavings)}
                           </div>
                           <p className="text-[10px] sm:text-[11px] text-emerald-200/80">
                             Factory-direct Sivakasi discount applied to your order.
@@ -353,7 +347,7 @@ const OrderTrackingPage = () => {
                         </div>
                       </div>
                       <div className="px-3 py-1 rounded-full bg-emerald-950 border border-emerald-500/30 text-[11px] font-bold text-emerald-400">
-                        Total MRP: {formatCurrency(computedMrpTotal)}
+                        Total MRP: {formatCurrency(orderTotals.totalMRP)}
                       </div>
                     </div>
                   )}
@@ -361,27 +355,27 @@ const OrderTrackingPage = () => {
                   {/* 4-Stat Pricing Transparency Grid */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 text-xs">
                     <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Order Total (MRP)</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Total MRP Value</span>
                       <span className="text-xs sm:text-sm font-bold text-slate-400 line-through font-mono mt-0.5 block truncate">
-                        {formatCurrency(computedMrpTotal)}
+                        {formatCurrency(orderTotals.totalMRP)}
                       </span>
                     </div>
                     <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-festival-border">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Discount Applied</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-slate-400 block truncate">Product Discount</span>
                       <span className="text-xs sm:text-sm font-extrabold text-emerald-400 font-mono mt-0.5 block truncate">
-                        -{formatCurrency(totalSavings)}
+                        -{formatCurrency(orderTotals.totalProductDiscount)}
                       </span>
                     </div>
                     <div className="p-2.5 sm:p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/30">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-300 block truncate">Amount Saved</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-emerald-300 block truncate">Total Savings</span>
                       <span className="text-xs sm:text-sm font-black text-emerald-300 font-mono mt-0.5 block truncate">
-                        Save {formatCurrency(totalSavings)}
+                        Save {formatCurrency(orderTotals.totalSavings)}
                       </span>
                     </div>
                     <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-amber-500/40">
-                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-amber-400 block truncate">Final Amount</span>
+                      <span className="text-[9px] sm:text-[10px] uppercase font-bold text-amber-400 block truncate">Final Payable</span>
                       <span className="text-xs sm:text-sm font-black text-amber-400 font-mono mt-0.5 block truncate">
-                        {formatCurrency(finalTotal)}
+                        {formatCurrency(orderTotals.finalPayableAmount)}
                       </span>
                     </div>
                   </div>
@@ -627,57 +621,14 @@ const OrderTrackingPage = () => {
                   })}
                 </div>
 
-                {/* Amount Totals with Full Transparency */}
-                {(() => {
-                  const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
-                    const unitMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
-                    return acc + unitMrp * (item.quantity || 1);
-                  }, 0);
-                  const itemsSubtotal = order.orderItemsSubtotal || order.subtotal || order.totalAmount || 0;
-                  const finalTotal = order.orderFinalTotal || order.totalAmount || 0;
-                  const totalSavings = order.orderSavingsTotal !== undefined
-                    ? order.orderSavingsTotal
-                    : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
-
-                  return (
-                    <div className="pt-3 space-y-1.5 border-t border-festival-border text-xs">
-                      <div className="flex justify-between items-center text-slate-300">
-                        <span>Original MRP Total:</span>
-                        <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(computedMrpTotal)}</span>
-                      </div>
-                      <div className="flex justify-between items-center text-slate-300">
-                        <span>Factory Price Subtotal:</span>
-                        <span className="font-bold text-white font-mono">{formatCurrency(itemsSubtotal)}</span>
-                      </div>
-                      {order.discountAmount > 0 && (
-                        <div className="flex justify-between items-center text-amber-300">
-                          <span>Special Discount ({order.discountPercentage || 0}%):</span>
-                          <span className="font-bold font-mono">-{formatCurrency(order.discountAmount)}</span>
-                        </div>
-                      )}
-                      {totalSavings > 0 && (
-                        <div className="flex justify-between items-center text-emerald-400 font-extrabold bg-emerald-950/60 p-2 rounded-xl border border-emerald-500/30">
-                          <span>Total Discount Savings:</span>
-                          <span className="font-mono">Save {formatCurrency(totalSavings)}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between items-center text-slate-300">
-                        <span>Delivery Charge:</span>
-                        <span className="font-bold text-white">
-                          {order.deliveryFee === 0 ? (
-                            <span className="text-emerald-400 uppercase font-black text-[11px]">FREE</span>
-                          ) : (
-                            formatCurrency(order.deliveryFee)
-                          )}
-                        </span>
-                      </div>
-                      <div className="pt-2 flex justify-between items-center flex-wrap gap-2 text-sm font-black text-white border-t border-festival-border">
-                        <span className="text-amber-400">Final Amount Payable:</span>
-                        <span className="text-amber-400 text-base font-mono">{formatCurrency(finalTotal)}</span>
-                      </div>
-                    </div>
-                  );
-                })()}
+                {/* Pricing Summary Breakdown */}
+                <div className="pt-3 border-t border-festival-border">
+                  <PricingSummary
+                    order={order}
+                    amountLabel="Amount to be Paid After Discount"
+                    showProminentSavings={false}
+                  />
+                </div>
               </div>
 
               {/* Delivery Destination Address (Phone numbers withheld for privacy) */}

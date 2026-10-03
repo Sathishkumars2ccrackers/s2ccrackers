@@ -1,4 +1,5 @@
 import { formatDate, formatCurrency } from './formatters.js';
+import { calculateOrderTotalsFromOrder } from './pricing.js';
 
 const DEFAULT_STORE_PHONE = '919944476516';
 const DEFAULT_DOMAIN = 'www.s2ccrackers.com';
@@ -145,9 +146,15 @@ export const generateAdminWhatsAppConfirmationMessage = (order, storePhone = DEF
   const orderId = order.orderId;
   const orderDate = formatDate(order.createdAt || new Date(), true);
   const productList = formatProductListForWhatsApp(order.items);
-  const mrpTotal = (order.orderMrpTotal || (order.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0)).toLocaleString('en-IN');
-  const savingsTotal = (order.orderSavingsTotal !== undefined ? order.orderSavingsTotal : Math.max(0, (order.orderMrpTotal || order.subtotal) - (order.totalAmount - (order.deliveryFee || 0)))).toLocaleString('en-IN');
-  const totalAmount = (order.totalAmount || 0).toLocaleString('en-IN');
+  const totals = calculateOrderTotalsFromOrder(order);
+  const mrpTotal = totals.totalMRP.toLocaleString('en-IN');
+  const productDiscountSaved = totals.totalProductDiscount.toLocaleString('en-IN');
+  const amountAfterProductDiscount = totals.amountAfterProductDiscount.toLocaleString('en-IN');
+  const specialDiscountFormatted = totals.specialDiscount > 0 ? `- ₹${totals.specialDiscount.toLocaleString('en-IN')}` : '₹0';
+  const deliveryFormatted = totals.deliveryCharges === 0 ? 'FREE' : `₹${totals.deliveryCharges.toLocaleString('en-IN')}`;
+  const finalPayable = totals.finalPayableAmount.toLocaleString('en-IN');
+  const totalSavingsFormatted = totals.totalSavings.toLocaleString('en-IN');
+
   const deliveryAddress = formatDeliveryAddressForWhatsApp(c);
   const primaryPhone = c.phone || 'Not provided';
   const secondaryPhone = c.altPhone || c.alternatePhone || c.secondaryPhone || 'Not provided';
@@ -196,11 +203,23 @@ ORDER VALUE
 Total MRP Value:
 ₹${mrpTotal}
 
-Total Discount Savings:
-₹${savingsTotal}
+Product Discount Saved:
+- ₹${productDiscountSaved}
 
-Amount Payable:
-₹${totalAmount}
+Amount to be Paid After Discount:
+₹${amountAfterProductDiscount}
+
+Special Discount:
+${specialDiscountFormatted}
+
+Delivery Charges:
+${deliveryFormatted}
+
+FINAL PAYABLE AMOUNT:
+₹${finalPayable}
+
+TOTAL SAVINGS:
+₹${totalSavingsFormatted}
 
 ━━━━━━━━━━━━━━━
 DELIVERY ADDRESS
@@ -383,10 +402,14 @@ export const createWhatsAppOrderUrl = (order, businessPhone = DEFAULT_STORE_PHON
         .join('\n')
     : '';
 
-  const mrpTotal = order.orderMrpTotal || (order.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0);
-  const savingsTotal = order.orderSavingsTotal !== undefined
-    ? order.orderSavingsTotal
-    : Math.max(0, mrpTotal - (order.totalAmount - (order.deliveryFee || 0)));
+  const totals = calculateOrderTotalsFromOrder(order);
+  const mrpTotal = totals.totalMRP.toLocaleString('en-IN');
+  const productDiscountSaved = totals.totalProductDiscount.toLocaleString('en-IN');
+  const amountAfterProductDiscount = totals.amountAfterProductDiscount.toLocaleString('en-IN');
+  const specialDiscountFormatted = totals.specialDiscount > 0 ? `- ₹${totals.specialDiscount.toLocaleString('en-IN')}` : '₹0';
+  const deliveryFormatted = totals.deliveryCharges === 0 ? 'FREE' : `₹${totals.deliveryCharges.toLocaleString('en-IN')}`;
+  const finalPayable = totals.finalPayableAmount.toLocaleString('en-IN');
+  const totalSavingsFormatted = totals.totalSavings.toLocaleString('en-IN');
 
   const message = `Hello S2C Crackers,
 
@@ -399,9 +422,17 @@ Phone Number: ${order.customerDetails.phone}
 Ordered Items:
 ${itemsList}
 
-Order Value (MRP): ₹${mrpTotal}
-Total Discount Savings: ₹${savingsTotal}
-Amount Payable: ₹${order.totalAmount} (Door Delivery Available)
+━━━━━━━━━━━━━━━
+ORDER PRICING BREAKDOWN
+━━━━━━━━━━━━━━━
+Total MRP Value: ₹${mrpTotal}
+Product Discount Saved: - ₹${productDiscountSaved}
+Amount to be Paid After Discount: ₹${amountAfterProductDiscount}
+Special Discount: ${specialDiscountFormatted}
+Delivery Charges: ${deliveryFormatted}
+FINAL PAYABLE AMOUNT: ₹${finalPayable}
+TOTAL SAVINGS: ₹${totalSavingsFormatted}
+
 Delivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}
 
 Please confirm my order.`;

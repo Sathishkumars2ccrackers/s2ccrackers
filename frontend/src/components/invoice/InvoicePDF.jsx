@@ -12,7 +12,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { formatCurrency, formatDate, formatProductCode } from '../../utils/formatters';
-import { calculateItemPricing } from '../../utils/pricing';
+import { calculateItemPricing, calculateOrderTotalsFromOrder } from '../../utils/pricing';
 import { getProductImage, FESTIVE_PLACEHOLDER_SVG } from '../../utils/imageUrlUtils';
 import logoSvg from '../../assets/logo.svg';
 
@@ -40,20 +40,18 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
   // Generate official Invoice Number
   const invoiceNumber = order.invoiceNumber || `INV-${new Date(order.createdAt || Date.now()).getFullYear()}-${(order.orderId || '0000').replace(/\D/g, '').slice(-5).padStart(5, '0')}`;
 
-  // Computations
-  const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
-    const unitMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
-    return acc + unitMrp * (item.quantity || 1);
-  }, 0);
-
-  const itemsSubtotal = order.orderItemsSubtotal || order.subtotal || order.totalAmount || 0;
-  const finalPayable = order.orderFinalTotal || order.totalAmount || 0;
-  const totalSavings = order.orderSavingsTotal !== undefined
-    ? order.orderSavingsTotal
-    : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
-
-  const deliveryFee = order.deliveryFee !== undefined ? order.deliveryFee : 0;
-  const slabDiscount = order.discountAmount || 0;
+  // Computations using Single Source of Truth
+  const totals = calculateOrderTotalsFromOrder(order);
+  const {
+    totalMRP,
+    totalProductDiscount,
+    amountAfterProductDiscount,
+    specialDiscount,
+    specialDiscountPercent,
+    deliveryCharges,
+    finalPayableAmount,
+    totalSavings,
+  } = totals;
 
   return (
     <div className={`invoice-document-root font-sans text-slate-900 bg-white ${isStandalone ? 'min-h-screen py-4 sm:py-6 px-2 sm:px-8' : 'p-0'}`}>
@@ -277,38 +275,54 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
 
           {/* PRICING SUMMARY (Right) */}
           <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-2.5 text-xs">
-            <div className="flex justify-between items-center text-slate-600">
-              <span className="font-medium">Total MRP Value:</span>
-              <span className="font-mono font-bold text-slate-500 line-through text-xs sm:text-sm">
-                {formatCurrency(computedMrpTotal)}
+            <div className="flex justify-between items-center text-slate-700">
+              <span className="font-semibold">Total MRP Value:</span>
+              <span className="font-mono font-bold text-slate-900 text-xs sm:text-sm">
+                {formatCurrency(totalMRP)}
               </span>
             </div>
 
-            <div className="flex justify-between items-center text-emerald-700 bg-emerald-100/70 p-2 rounded-lg font-bold">
-              <span>Total Discount Saved:</span>
-              <span className="font-mono font-black text-xs sm:text-sm text-emerald-800">
-                - {formatCurrency(totalSavings)}
+            <div className="flex justify-between items-center text-emerald-700">
+              <span className="font-semibold">Product Discount Saved:</span>
+              <span className="font-mono font-bold text-xs sm:text-sm text-emerald-700">
+                - {formatCurrency(totalProductDiscount)}
               </span>
             </div>
 
-            {slabDiscount > 0 && (
-              <div className="flex justify-between items-center text-amber-800 bg-amber-50 p-2 rounded-lg font-semibold">
-                <span>Special Tier Discount ({order.discountPercentage || 0}%):</span>
-                <span className="font-mono font-bold">- {formatCurrency(slabDiscount)}</span>
-              </div>
-            )}
+            <div className="flex justify-between items-center text-slate-800 bg-slate-100/80 px-2.5 py-1.5 rounded-lg border border-slate-200">
+              <span className="font-semibold">Amount to be Paid After Discount:</span>
+              <span className="font-mono font-bold text-xs sm:text-sm text-slate-950">
+                {formatCurrency(amountAfterProductDiscount)}
+              </span>
+            </div>
 
-            <div className="flex justify-between items-center text-slate-600">
-              <span className="font-medium">Delivery Charges:</span>
+            <div className="flex justify-between items-center text-slate-700">
+              <span className="font-semibold">
+                Special Discount{specialDiscountPercent > 0 ? ` (${specialDiscountPercent}%):` : ':'}
+              </span>
+              <span className={`font-mono font-bold ${specialDiscount > 0 ? 'text-emerald-700' : 'text-slate-600'}`}>
+                {specialDiscount > 0 ? `- ${formatCurrency(specialDiscount)}` : '₹0'}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center text-slate-700">
+              <span className="font-semibold">Delivery Charges:</span>
               <span className="font-mono font-bold text-slate-900">
-                {deliveryFee === 0 ? <span className="text-emerald-700 uppercase font-black">FREE</span> : formatCurrency(deliveryFee)}
+                {deliveryCharges === 0 ? <span className="text-emerald-700 uppercase font-black">FREE</span> : formatCurrency(deliveryCharges)}
               </span>
             </div>
 
             <div className="pt-3 border-t-2 border-slate-300 flex justify-between items-center flex-wrap gap-2 text-slate-950">
-              <span className="text-xs sm:text-sm font-black uppercase">Final Payable Amount:</span>
+              <span className="text-xs sm:text-sm font-black uppercase">FINAL PAYABLE AMOUNT:</span>
               <span className="text-lg sm:text-xl font-black text-amber-600 font-mono">
-                {formatCurrency(finalPayable)}
+                {formatCurrency(finalPayableAmount)}
+              </span>
+            </div>
+
+            <div className="pt-2 border-t border-dashed border-emerald-300 flex justify-between items-center text-emerald-800 font-bold bg-emerald-50/80 px-2.5 py-1.5 rounded-lg">
+              <span className="text-[11px] uppercase tracking-wide">TOTAL SAVINGS:</span>
+              <span className="font-mono font-black text-xs sm:text-sm">
+                {formatCurrency(totalSavings)}
               </span>
             </div>
           </div>

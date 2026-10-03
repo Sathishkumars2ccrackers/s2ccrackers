@@ -165,9 +165,17 @@ export const CartProvider = ({ children }) => {
     <CartContext.Provider
       value={{
         cartItems,
+        orderTotals: orderPricing,
+        orderPricing,
         cartSubtotal,
         totalOriginalPrice,
         totalMrp,
+        totalMRP: orderPricing.totalMRP,
+        totalProductDiscount: orderPricing.totalProductDiscount,
+        amountAfterProductDiscount: orderPricing.amountAfterProductDiscount,
+        specialDiscount: orderPricing.specialDiscount,
+        deliveryCharges: orderPricing.deliveryCharges,
+        finalPayableAmount: orderPricing.finalPayableAmount,
         totalSavings,
         totalItemsCount,
         isCartOpen,

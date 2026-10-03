@@ -35,6 +35,7 @@ import { orderService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency, formatDate, formatProductCode } from '../../utils/formatters';
+import { calculateOrderTotalsFromOrder } from '../../utils/pricing';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import {
   createAdminOrderWhatsAppUrl,
@@ -42,6 +43,7 @@ import {
   validateAndCleanIndianPhone,
 } from '../../utils/whatsappHelper';
 import LoadingSpinner from '../common/LoadingSpinner';
+import PricingSummary from '../common/PricingSummary';
 import InvoicePDF from '../invoice/InvoicePDF';
 import { printInvoiceDocument } from '../../utils/printInvoice';
 import logoSvg from '../../assets/logo.svg';
@@ -423,15 +425,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                   const isContacted = !!o.whatsappConfirmationSent;
                   const isHighlighted = highlightedOrderId && (o.orderId === highlightedOrderId || o._id === highlightedOrderId);
 
-                  const computedMrp = o.orderMrpTotal || (o.items || []).reduce((acc, it) => {
-                    const unitMrp = it.mrpPrice !== undefined ? it.mrpPrice : (it.originalPrice !== undefined ? it.originalPrice : it.price);
-                    return acc + unitMrp * (it.quantity || 1);
-                  }, 0);
-                  const itemsSubtotal = o.orderItemsSubtotal || o.subtotal || o.totalAmount || 0;
-                  const finalTotal = o.orderFinalTotal || o.totalAmount || 0;
-                  const orderSavings = o.orderSavingsTotal !== undefined
-                    ? o.orderSavingsTotal
-                    : Math.max(0, computedMrp - itemsSubtotal + (o.discountAmount || 0));
+                  const totals = calculateOrderTotalsFromOrder(o);
 
                   return (
                     <tr
@@ -481,16 +475,16 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                         <p className="text-[10px] text-slate-400">PIN: {o.customerDetails?.pincode}</p>
                       </td>
                       <td className="p-4 text-center font-bold text-white">
-                        {o.items?.reduce((sum, item) => sum + item.quantity, 0)}
+                        {(o.items || []).reduce((sum, item) => sum + (item.quantity || 1), 0)}
                       </td>
                       <td className="p-4 text-right text-slate-400 line-through font-mono">
-                        {formatCurrency(computedMrp)}
+                        {formatCurrency(totals.totalMRP)}
                       </td>
                       <td className="p-4 text-right font-bold text-emerald-400 font-mono">
-                        {orderSavings > 0 ? `-${formatCurrency(orderSavings)}` : '—'}
+                        {totals.totalSavings > 0 ? `-${formatCurrency(totals.totalSavings)}` : '—'}
                       </td>
                       <td className="p-4 text-right font-black text-amber-400 text-sm font-mono">
-                        {formatCurrency(finalTotal)}
+                        {formatCurrency(totals.finalPayableAmount)}
                       </td>
                       <td className="p-4 text-center">
                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${statusClass}`}>
@@ -981,35 +975,14 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                   })}
                 </div>
 
-                {/* Financial Summary Breakdown */}
-                {(() => {
-                  const computedMrp = selectedOrder.orderMrpTotal || (selectedOrder.items || []).reduce((acc, it) => {
-                    const unitMrp = it.mrpPrice !== undefined ? it.mrpPrice : (it.originalPrice !== undefined ? it.originalPrice : it.price);
-                    return acc + unitMrp * (it.quantity || 1);
-                  }, 0);
-                  const itemsSubtotal = selectedOrder.orderItemsSubtotal || selectedOrder.subtotal || selectedOrder.totalAmount || 0;
-                  const finalTotal = selectedOrder.orderFinalTotal || selectedOrder.totalAmount || 0;
-                  const orderSavings = selectedOrder.orderSavingsTotal !== undefined
-                    ? selectedOrder.orderSavingsTotal
-                    : Math.max(0, computedMrp - itemsSubtotal + (selectedOrder.discountAmount || 0));
-
-                  return (
-                    <div className="pt-2 border-t border-festival-border space-y-1.5 text-right font-semibold">
-                      <p className="text-slate-400">Total MRP Value: <span className="line-through font-mono">{formatCurrency(computedMrp)}</span></p>
-                      <p className="text-slate-300">Items Factory Price: <span className="font-mono">{formatCurrency(itemsSubtotal)}</span></p>
-                      {selectedOrder.discountAmount > 0 && (
-                        <p className="text-amber-300">Special Discount ({selectedOrder.discountPercentage || 0}%): <span className="font-mono">-{formatCurrency(selectedOrder.discountAmount)}</span></p>
-                      )}
-                      {orderSavings > 0 && (
-                        <p className="text-emerald-400 font-bold">Total Discount Savings: <span className="font-mono">Save {formatCurrency(orderSavings)}</span></p>
-                      )}
-                      <p className="text-slate-300">Delivery Fee: <span className="font-mono">{selectedOrder.deliveryFee === 0 ? 'FREE' : formatCurrency(selectedOrder.deliveryFee)}</span></p>
-                      <p className="text-sm font-black text-amber-400 pt-1 border-t border-festival-border">
-                        Final Amount Payable: <span className="text-base font-mono">{formatCurrency(finalTotal)}</span>
-                      </p>
-                    </div>
-                  );
-                })()}
+                {/* Financial Summary Breakdown (Unified Pricing Sequence) */}
+                <div className="pt-2 border-t border-festival-border">
+                  <PricingSummary
+                    totals={calculateOrderTotalsFromOrder(selectedOrder)}
+                    variant="admin"
+                    title="Order Pricing Breakdown"
+                  />
+                </div>
               </div>
 
               {/* Customer Details */}

@@ -7,6 +7,7 @@ import { useSettings } from '../context/SettingsContext';
 import { formatCurrency, formatProductCode } from '../utils/formatters';
 import { calculateItemPricing } from '../utils/pricing';
 import ProductImage from '../components/common/ProductImage';
+import PricingSummary from '../components/common/PricingSummary';
 import SEO from '../components/common/SEO';
 
 const CartPage = () => {
@@ -241,81 +242,48 @@ const CartPage = () => {
             </Link>
           </div>
 
-          {/* Order Summary Card */}
-          <div className="bg-festival-card border border-festival-border p-4 sm:p-6 rounded-2xl sm:rounded-3xl h-fit space-y-4 sm:space-y-6">
-            <h3 className="text-sm sm:text-base font-bold text-white pb-3 border-b border-festival-border">
-              Order Summary
-            </h3>
+            {/* Order Summary Card */}
+            <div className="bg-festival-card border border-festival-border p-4 sm:p-6 rounded-2xl sm:rounded-3xl h-fit space-y-4 sm:space-y-6">
+              <h3 className="text-sm sm:text-base font-bold text-white pb-3 border-b border-festival-border">
+                Order Summary
+              </h3>
 
-            <div className="space-y-2.5 sm:space-y-3 text-xs">
-              <div className="flex justify-between text-slate-300">
-                <span className="font-medium">Total MRP Value:</span>
-                <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
-              </div>
-              <div className="flex justify-between text-slate-300">
-                <span>Items Factory Price:</span>
-                <span className="font-bold text-white font-mono">{formatCurrency(cartSubtotal)}</span>
-              </div>
-              {totalSavings > 0 && (
-                <div className="flex justify-between text-emerald-400 font-bold">
-                  <span>Product Discount Savings:</span>
-                  <span className="font-mono">-{formatCurrency(totalSavings)}</span>
-                </div>
-              )}
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
-                  <span className="flex items-center gap-1">
-                    <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
-                    <span>Special Discount ({discountPercentage}%):</span>
-                  </span>
-                  <span className="font-mono">-{formatCurrency(discountAmount)}</span>
+              <PricingSummary
+                totals={{
+                  totalMRP: totalMrp,
+                  amountAfterProductDiscount: cartSubtotal,
+                  totalProductDiscount: totalSavings,
+                  specialDiscount: discountAmount,
+                  specialDiscountPercentage: discountPercentage,
+                  deliveryCharges: isFreeDeliveryUnlocked ? 0 : 150,
+                  finalPayableAmount: Math.max(0, cartSubtotal - discountAmount + (isFreeDeliveryUnlocked ? 0 : 150)),
+                  totalSavings: totalSavings + discountAmount,
+                }}
+                amountLabel="Amount to be Paid After Discount"
+                showProminentSavings={true}
+              />
+
+              {/* Min order check */}
+              {!isMinOrderMet && (
+                <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800/50 text-rose-300 text-xs leading-relaxed">
+                  ⚠️ Minimum order amount is <strong>{formatCurrency(minimumOrderAmount)}</strong>. Please add {formatCurrency(minimumOrderAmount - cartSubtotal)} more to checkout.
                 </div>
               )}
 
-              {/* Prominent Green Savings Card */}
-              {totalCombinedSavings > 0 && (
-                <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-950/90 to-festival-card border-2 border-emerald-500/50 text-center space-y-1 shadow-md">
-                  <div className="flex items-center justify-center gap-1.5 text-emerald-300 font-black text-xs sm:text-sm">
-                    <Sparkles className="w-4 h-4 fill-emerald-400 text-emerald-400 flex-shrink-0" />
-                    <span>Total Savings: {formatCurrency(totalCombinedSavings)}</span>
-                  </div>
-                  <p className="text-[10px] sm:text-[11px] text-emerald-200/80">
-                    Direct Sivakasi factory discounts applied!
-                  </p>
-                </div>
-              )}
+              <button
+                disabled={!isMinOrderMet}
+                onClick={() => navigate('/checkout')}
+                className="w-full py-3.5 sm:py-4 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Proceed to Checkout</span>
+                <ArrowRight className="w-4 h-4" />
+              </button>
 
-              <div className="flex justify-between text-slate-300">
-                <span>Estimated Shipping:</span>
-                <span className="font-semibold text-white">{isFreeDeliveryUnlocked ? <span className="text-emerald-400 font-black">FREE</span> : 'Calculated at checkout'}</span>
-              </div>
-              <div className="pt-3 border-t border-festival-border flex items-center justify-between text-sm sm:text-base font-black text-white flex-wrap gap-1">
-                <span className="text-amber-400">Final Payable Amount:</span>
-                <span className="text-amber-400 text-lg sm:text-xl font-mono">{formatCurrency(finalCartTotal)}</span>
+              <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-emerald-500/20 text-[10px] sm:text-[11px] text-emerald-400 flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 flex-shrink-0" />
+                <span>{deliveryMessage || 'Door Delivery Available'} • Payment confirmed after order</span>
               </div>
             </div>
-
-            {/* Min order check */}
-            {!isMinOrderMet && (
-              <div className="p-3 rounded-xl bg-rose-950/50 border border-rose-800/50 text-rose-300 text-xs leading-relaxed">
-                ⚠️ Minimum order amount is <strong>{formatCurrency(minimumOrderAmount)}</strong>. Please add {formatCurrency(minimumOrderAmount - cartSubtotal)} more to checkout.
-              </div>
-            )}
-
-            <button
-              disabled={!isMinOrderMet}
-              onClick={() => navigate('/checkout')}
-              className="w-full py-3.5 sm:py-4 px-4 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/40 transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>Proceed to Checkout</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-
-            <div className="p-2.5 sm:p-3 rounded-xl bg-festival-dark/80 border border-emerald-500/20 text-[10px] sm:text-[11px] text-emerald-400 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 flex-shrink-0" />
-              <span>{deliveryMessage || 'Door Delivery Available'} • Payment confirmed after order</span>
-            </div>
-          </div>
         </div>
       </div>
     </div>

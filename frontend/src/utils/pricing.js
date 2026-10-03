@@ -5,6 +5,15 @@
  * Ensures consistent calculation and formatting of MRP, Selling Price,
  * Discount Percentage, Discount Savings, Order MRP Totals, and Order Savings
  * across Cart, Checkout, Product Cards, Detail Pages, Invoices, Tracking, and Admin.
+ *
+ * REQUIRED PRICING SEQUENCE:
+ * 1. TOTAL MRP VALUE = Sum of (Product MRP × Quantity)
+ * 2. TOTAL PRODUCT DISCOUNT SAVED = Total MRP Value - Factory Price Subtotal
+ * 3. AMOUNT TO BE PAID AFTER PRODUCT DISCOUNT = Total MRP Value - Total Product Discount Saved (= Factory Price Subtotal)
+ * 4. SPECIAL DISCOUNT = Additional order-level / tiered slab discount
+ * 5. DELIVERY CHARGES = Shipping fee (or 0 / FREE)
+ * 6. FINAL PAYABLE AMOUNT = Amount To Be Paid After Product Discount - Special Discount + Delivery Charges
+ * 7. TOTAL SAVINGS = Total Product Discount Saved + Special Discount
  */
 
 /**
@@ -18,7 +27,7 @@ export const calculateItemPricing = (item = {}, quantity = 1) => {
   const rawQty = parseInt(quantity, 10);
   const qty = isNaN(rawQty) || rawQty < 1 ? 1 : rawQty;
 
-  // Selling price (current offer price)
+  // Selling price (current offer price / factory direct rate)
   let sellingPrice = 0;
   if (typeof safeItem.sellingPrice === 'number' && !isNaN(safeItem.sellingPrice)) {
     sellingPrice = Math.max(0, safeItem.sellingPrice);
@@ -29,7 +38,7 @@ export const calculateItemPricing = (item = {}, quantity = 1) => {
     sellingPrice = isNaN(parsed) ? 0 : Math.max(0, parsed);
   }
 
-  // MRP (Original price)
+  // MRP (Original factory catalog price)
   let mrpPrice = sellingPrice;
   const rawMrp = safeItem.mrpPrice !== undefined
     ? safeItem.mrpPrice
@@ -70,10 +79,10 @@ export const calculateItemPricing = (item = {}, quantity = 1) => {
 };
 
 /**
- * Calculate pricing for an entire order or cart
+ * Calculate unified pricing totals for an entire order or cart
  * @param {Array} items Array of products or cart/order items
- * @param {Object} options Options (deliveryFee, discountSlabs, freeDeliveryThreshold, etc.)
- * @returns {Object} Complete order pricing breakdown
+ * @param {Object} options Options (deliveryFee, discountSlabs, discountPercentage, discountAmount, specialDiscount, freeDeliveryThreshold, etc.)
+ * @returns {Object} Complete unified order pricing breakdown
  */
 export const calculateOrderPricing = (items = [], options = {}) => {
   const safeOptions = options && typeof options === 'object' ? options : {};
@@ -83,79 +92,218 @@ export const calculateOrderPricing = (items = [], options = {}) => {
     defaultDeliveryFee = 150,
   } = safeOptions;
 
-  let orderMrpTotal = 0;
-  let orderItemsSubtotal = 0;
-  let orderItemSavingsTotal = 0;
+  let totalMRP = 0;
+  let factorySubtotal = 0;
+  let itemSavingsTotal = 0;
 
   const validItemsArray = Array.isArray(items) ? items : [];
 
   const processedItems = validItemsArray.map((item) => {
     const itemPricing = calculateItemPricing(item, item?.quantity || 1);
-    orderMrpTotal += itemPricing.lineMrp;
-    orderItemsSubtotal += itemPricing.lineSellingPrice;
-    orderItemSavingsTotal += itemPricing.lineSavings;
+    totalMRP += itemPricing.lineMrp;
+    factorySubtotal += itemPricing.lineSellingPrice;
+    itemSavingsTotal += itemPricing.lineSavings;
     return {
       ...(item && typeof item === 'object' ? item : {}),
       ...itemPricing,
     };
   });
 
-  orderMrpTotal = Math.round(orderMrpTotal * 100) / 100;
-  orderItemsSubtotal = Math.round(orderItemsSubtotal * 100) / 100;
-  orderItemSavingsTotal = Math.round(orderItemSavingsTotal * 100) / 100;
+  totalMRP = Math.round(totalMRP * 100) / 100;
+  factorySubtotal = Math.round(factorySubtotal * 100) / 100;
+  itemSavingsTotal = Math.round(itemSavingsTotal * 100) / 100;
 
-  // Order-level Tiered Discount Slab Calculation
-  let slabDiscountPercentage = 0;
-  let slabDiscountAmount = 0;
+  // Step 2 & 3: Total Product Discount Saved & Amount to be Paid After Product Discount
+  const totalProductDiscount = Math.max(0, Math.round((totalMRP - factorySubtotal) * 100) / 100);
+  const amountAfterProductDiscount = factorySubtotal; // Exactly equals Factory Price Subtotal
 
-  if (Array.isArray(discountSlabs) && discountSlabs.length > 0 && orderItemsSubtotal > 0) {
+  // Step 4: Special Discount (Order-level / Slab Discount)
+  let specialDiscountPercentage = 0;
+  let specialDiscount = 0;
+
+  if (typeof safeOptions.specialDiscount === 'number' && !isNaN(safeOptions.specialDiscount)) {
+    specialDiscount = Math.max(0, safeOptions.specialDiscount);
+    specialDiscountPercentage = Number(safeOptions.specialDiscountPercentage || safeOptions.discountPercentage || 0);
+  } else if (typeof safeOptions.discountAmount === 'number' && !isNaN(safeOptions.discountAmount)) {
+    specialDiscount = Math.max(0, safeOptions.discountAmount);
+    specialDiscountPercentage = Number(safeOptions.discountPercentage || 0);
+  } else if (Array.isArray(discountSlabs) && discountSlabs.length > 0 && amountAfterProductDiscount > 0) {
     const matchingSlabs = discountSlabs.filter(
-      (s) => s && typeof s.minAmount === 'number' && orderItemsSubtotal >= s.minAmount && (s.discountPercentage || 0) > 0
+      (s) => s && typeof s.minAmount === 'number' && amountAfterProductDiscount >= s.minAmount && (s.discountPercentage || 0) > 0
     );
     if (matchingSlabs.length > 0) {
       matchingSlabs.sort(
         (a, b) => (b.minAmount || 0) - (a.minAmount || 0) || (b.discountPercentage || 0) - (a.discountPercentage || 0)
       );
-      slabDiscountPercentage = matchingSlabs[0].discountPercentage || 0;
-      slabDiscountAmount = Math.round((orderItemsSubtotal * slabDiscountPercentage) / 100);
+      specialDiscountPercentage = matchingSlabs[0].discountPercentage || 0;
+      specialDiscount = Math.round((amountAfterProductDiscount * specialDiscountPercentage) / 100);
     }
+  } else if (typeof safeOptions.discountPercentage === 'number' && safeOptions.discountPercentage > 0) {
+    specialDiscountPercentage = safeOptions.discountPercentage;
+    specialDiscount = Math.round((amountAfterProductDiscount * specialDiscountPercentage) / 100);
   }
 
-  // Shipping / Delivery Fee calculation
-  let calculatedDeliveryFee = 0;
-  if (typeof safeOptions.deliveryFee === 'number' && !isNaN(safeOptions.deliveryFee)) {
-    calculatedDeliveryFee = Math.max(0, safeOptions.deliveryFee);
+  // Step 5: Delivery Charges calculation
+  let deliveryCharges = 0;
+  if (typeof safeOptions.deliveryCharges === 'number' && !isNaN(safeOptions.deliveryCharges)) {
+    deliveryCharges = Math.max(0, safeOptions.deliveryCharges);
+  } else if (typeof safeOptions.deliveryFee === 'number' && !isNaN(safeOptions.deliveryFee)) {
+    deliveryCharges = Math.max(0, safeOptions.deliveryFee);
   } else {
-    calculatedDeliveryFee = orderItemsSubtotal >= (Number(freeDeliveryThreshold) || 3000) ? 0 : (Number(defaultDeliveryFee) || 150);
+    deliveryCharges = amountAfterProductDiscount >= (Number(freeDeliveryThreshold) || 3000)
+      ? 0
+      : (Number(defaultDeliveryFee) || 150);
   }
 
-  // Total Savings across items + order slab discount
-  const orderSavingsTotal = Math.round((orderItemSavingsTotal + slabDiscountAmount) * 100) / 100;
-
-  // Final Payable Grand Total
-  const orderFinalTotal = Math.max(
+  // Step 6: Final Payable Amount
+  const finalPayableAmount = Math.max(
     0,
-    Math.round((orderItemsSubtotal - slabDiscountAmount + calculatedDeliveryFee) * 100) / 100
+    Math.round((amountAfterProductDiscount - specialDiscount + deliveryCharges) * 100) / 100
   );
 
+  // Total Savings across items + special slab discount
+  const totalSavings = Math.round((totalProductDiscount + specialDiscount) * 100) / 100;
+
   return {
+    // Primary Unified Pricing Structure
+    totalMRP,
+    totalProductDiscount,
+    productDiscountSaved: totalProductDiscount,
+    amountAfterProductDiscount,
+    specialDiscount,
+    specialDiscountPercentage,
+    deliveryCharges,
+    finalPayableAmount,
+    totalSavings,
+
+    // Backward compatibility aliases
     items: processedItems,
-    orderMrpTotal,
-    orderItemsSubtotal,
-    subtotal: orderItemsSubtotal, // backward compatibility
-    orderItemSavingsTotal,
-    slabDiscountPercentage,
-    slabDiscountAmount,
-    discountPercentage: slabDiscountPercentage, // backward compatibility
-    discountAmount: slabDiscountAmount, // backward compatibility
-    orderSavingsTotal,
-    deliveryFee: calculatedDeliveryFee,
-    orderFinalTotal,
-    totalAmount: orderFinalTotal, // backward compatibility
+    orderMrpTotal: totalMRP,
+    orderItemsSubtotal: factorySubtotal,
+    subtotal: factorySubtotal,
+    orderItemSavingsTotal: totalProductDiscount,
+    slabDiscountPercentage: specialDiscountPercentage,
+    slabDiscountAmount: specialDiscount,
+    discountPercentage: specialDiscountPercentage,
+    discountAmount: specialDiscount,
+    orderSavingsTotal: totalSavings,
+    deliveryFee: deliveryCharges,
+    orderFinalTotal: finalPayableAmount,
+    totalAmount: finalPayableAmount,
+  };
+};
+
+/**
+ * Standard alias for calculateOrderPricing to fulfill calculateOrderTotals API
+ */
+export const calculateOrderTotals = calculateOrderPricing;
+
+/**
+ * Safely parse and recalculate unified order totals from any stored Order object
+ * @param {Object} order Stored or fetched order object
+ * @returns {Object} Complete unified order pricing breakdown
+ */
+export const calculateOrderTotalsFromOrder = (order = {}) => {
+  if (!order || typeof order !== 'object') {
+    return calculateOrderTotals([]);
+  }
+
+  const items = Array.isArray(order.items) ? order.items : [];
+
+  // Calculate MRP Total
+  let totalMRP = 0;
+  if (typeof order.orderMrpTotal === 'number' && order.orderMrpTotal > 0) {
+    totalMRP = order.orderMrpTotal;
+  } else if (items.length > 0) {
+    totalMRP = items.reduce((sum, item) => {
+      const mrp = item.mrpPrice !== undefined
+        ? item.mrpPrice
+        : (item.originalPrice !== undefined ? item.originalPrice : (item.sellingPrice || item.price || 0));
+      return sum + (Number(mrp) || 0) * (Number(item.quantity) || 1);
+    }, 0);
+  }
+
+  // Calculate Amount After Product Discount (Factory Price Subtotal)
+  let amountAfterProductDiscount = 0;
+  if (typeof order.orderItemsSubtotal === 'number' && order.orderItemsSubtotal > 0) {
+    amountAfterProductDiscount = order.orderItemsSubtotal;
+  } else if (typeof order.subtotal === 'number' && order.subtotal > 0) {
+    amountAfterProductDiscount = order.subtotal;
+  } else if (items.length > 0) {
+    amountAfterProductDiscount = items.reduce((sum, item) => {
+      const rate = item.sellingPrice !== undefined ? item.sellingPrice : (item.price || 0);
+      return sum + (Number(rate) || 0) * (Number(item.quantity) || 1);
+    }, 0);
+  } else if (typeof order.totalAmount === 'number' && order.totalAmount > 0) {
+    amountAfterProductDiscount = order.totalAmount - (order.deliveryFee || 0) + (order.discountAmount || 0);
+  }
+
+  totalMRP = Math.round(totalMRP * 100) / 100;
+  amountAfterProductDiscount = Math.round(amountAfterProductDiscount * 100) / 100;
+
+  if (totalMRP < amountAfterProductDiscount) {
+    totalMRP = amountAfterProductDiscount;
+  }
+
+  // Total Product Discount Saved
+  const totalProductDiscount = Math.max(0, Math.round((totalMRP - amountAfterProductDiscount) * 100) / 100);
+
+  // Special Discount
+  const specialDiscount = Number(order.discountAmount || order.specialDiscount || 0);
+  const specialDiscountPercentage = Number(order.discountPercentage || order.specialDiscountPercentage || 0);
+
+  // Delivery Charges
+  const deliveryCharges = Number(
+    order.deliveryCharges !== undefined
+      ? order.deliveryCharges
+      : (order.deliveryFee !== undefined ? order.deliveryFee : 0)
+  );
+
+  // Final Payable Amount
+  let finalPayableAmount = 0;
+  if (typeof order.orderFinalTotal === 'number' && order.orderFinalTotal >= 0) {
+    finalPayableAmount = order.orderFinalTotal;
+  } else if (typeof order.totalAmount === 'number' && order.totalAmount >= 0) {
+    finalPayableAmount = order.totalAmount;
+  } else {
+    finalPayableAmount = Math.max(0, amountAfterProductDiscount - specialDiscount + deliveryCharges);
+  }
+  finalPayableAmount = Math.round(finalPayableAmount * 100) / 100;
+
+  // Total Savings
+  const totalSavings = Math.round((totalProductDiscount + specialDiscount) * 100) / 100;
+
+  return {
+    totalMRP,
+    totalProductDiscount,
+    productDiscountSaved: totalProductDiscount,
+    amountAfterProductDiscount,
+    specialDiscount,
+    specialDiscountPercentage,
+    deliveryCharges,
+    finalPayableAmount,
+    totalSavings,
+
+    // Backward compatibility aliases
+    items,
+    orderMrpTotal: totalMRP,
+    orderItemsSubtotal: amountAfterProductDiscount,
+    subtotal: amountAfterProductDiscount,
+    orderItemSavingsTotal: totalProductDiscount,
+    slabDiscountPercentage: specialDiscountPercentage,
+    slabDiscountAmount: specialDiscount,
+    discountPercentage: specialDiscountPercentage,
+    discountAmount: specialDiscount,
+    orderSavingsTotal: totalSavings,
+    deliveryFee: deliveryCharges,
+    orderFinalTotal: finalPayableAmount,
+    totalAmount: finalPayableAmount,
   };
 };
 
 export default {
   calculateItemPricing,
   calculateOrderPricing,
+  calculateOrderTotals,
+  calculateOrderTotalsFromOrder,
 };

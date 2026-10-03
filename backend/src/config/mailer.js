@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { calculateOrderTotalsFromOrder } = require('../utils/pricing');
 
 let transporter = null;
 
@@ -30,12 +31,9 @@ initializeMailer();
 
 // HTML email template generator for customer order confirmation
 const generateCustomerEmailHTML = (order) => {
-  const mrpTotal = order.orderMrpTotal || (order.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0);
-  const savingsTotal = order.orderSavingsTotal !== undefined
-    ? order.orderSavingsTotal
-    : Math.max(0, mrpTotal - (order.totalAmount - (order.deliveryFee || 0)));
+  const totals = calculateOrderTotalsFromOrder(order);
 
-  const itemsRows = order.items
+  const itemsRows = (order.items || [])
     .map(
       (item) => `
       <tr style="border-bottom: 1px solid #fed7aa;">
@@ -44,9 +42,9 @@ const generateCustomerEmailHTML = (order) => {
           ${item.name}
         </td>
         <td style="padding: 10px 12px; text-align: center; color: #475569;">${item.quantity}</td>
-        <td style="padding: 10px 12px; text-align: right; color: #64748b; text-decoration: line-through; font-size: 11px;">₹${item.mrpPrice || item.price}</td>
-        <td style="padding: 10px 12px; text-align: right; color: #047857; font-weight: 600;">₹${item.sellingPrice || item.price}</td>
-        <td style="padding: 10px 12px; text-align: right; font-weight: bold; color: #b91c1c;">₹${item.subtotal || item.price * item.quantity}</td>
+        <td style="padding: 10px 12px; text-align: right; color: #64748b; text-decoration: line-through; font-size: 11px;">₹${(item.mrpPrice || item.price || 0).toLocaleString('en-IN')}</td>
+        <td style="padding: 10px 12px; text-align: right; color: #047857; font-weight: 600;">₹${(item.sellingPrice || item.price || 0).toLocaleString('en-IN')}</td>
+        <td style="padding: 10px 12px; text-align: right; font-weight: bold; color: #b91c1c;">₹${(item.subtotal || (item.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}</td>
       </tr>
     `
     )
@@ -87,7 +85,7 @@ const generateCustomerEmailHTML = (order) => {
 
                 <!-- Savings Banner -->
                 <div style="background-color: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 12px 16px; margin: 16px 0; text-align: center;">
-                  <span style="color: #166534; font-weight: bold; font-size: 14px;">🎉 You Saved ₹${savingsTotal} On This Festival Order!</span>
+                  <span style="color: #166534; font-weight: bold; font-size: 14px;">🎉 TOTAL SAVINGS: ₹${totals.totalSavings.toLocaleString('en-IN')} On This Festival Order!</span>
                 </div>
 
                 <!-- Order Info Card -->
@@ -127,20 +125,32 @@ const generateCustomerEmailHTML = (order) => {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colspan="4" style="padding: 10px 12px; text-align: right; color: #475569;">Total MRP:</td>
-                      <td style="padding: 10px 12px; text-align: right; color: #64748b; text-decoration: line-through;">₹${mrpTotal}</td>
+                      <td colspan="4" style="padding: 10px 12px; text-align: right; color: #475569; font-weight: 500;">Total MRP Value:</td>
+                      <td style="padding: 10px 12px; text-align: right; color: #1e293b; font-weight: bold;">₹${totals.totalMRP.toLocaleString('en-IN')}</td>
                     </tr>
                     <tr>
-                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #047857; font-weight: 600;">Total Savings:</td>
-                      <td style="padding: 6px 12px; text-align: right; color: #047857; font-weight: 600;">-₹${savingsTotal}</td>
+                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #047857; font-weight: 600;">Product Discount Saved:</td>
+                      <td style="padding: 6px 12px; text-align: right; color: #047857; font-weight: 600;">-₹${totals.totalProductDiscount.toLocaleString('en-IN')}</td>
+                    </tr>
+                    <tr style="background-color: #f8fafc;">
+                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #1e293b; font-weight: 600;">Amount to be Paid After Discount:</td>
+                      <td style="padding: 6px 12px; text-align: right; color: #1e293b; font-weight: bold;">₹${totals.amountAfterProductDiscount.toLocaleString('en-IN')}</td>
                     </tr>
                     <tr>
-                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #475569;">Delivery Fee:</td>
-                      <td style="padding: 6px 12px; text-align: right; color: #1e293b; font-weight: 500;">${order.deliveryFee === 0 ? 'FREE' : `₹${order.deliveryFee}`}</td>
+                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #475569;">Special Discount${totals.specialDiscountPercent > 0 ? ` (${totals.specialDiscountPercent}%):` : ':'}</td>
+                      <td style="padding: 6px 12px; text-align: right; color: ${totals.specialDiscount > 0 ? '#047857' : '#64748b'}; font-weight: 600;">${totals.specialDiscount > 0 ? `-₹${totals.specialDiscount.toLocaleString('en-IN')}` : '₹0'}</td>
                     </tr>
-                    <tr style="background-color: #fef2f2;">
-                      <td colspan="4" style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 15px;">Net Amount Payable:</td>
-                      <td style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 16px;">₹${order.totalAmount}</td>
+                    <tr>
+                      <td colspan="4" style="padding: 6px 12px; text-align: right; color: #475569;">Delivery Charges:</td>
+                      <td style="padding: 6px 12px; text-align: right; color: #1e293b; font-weight: 500;">${totals.deliveryCharges === 0 ? '<strong style="color: #047857;">FREE</strong>' : `₹${totals.deliveryCharges.toLocaleString('en-IN')}`}</td>
+                    </tr>
+                    <tr style="background-color: #fef2f2; border-top: 2px solid #f87171;">
+                      <td colspan="4" style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 14px; text-transform: uppercase;">FINAL PAYABLE AMOUNT:</td>
+                      <td style="padding: 12px; text-align: right; font-weight: bold; color: #991b1b; font-size: 16px;">₹${totals.finalPayableAmount.toLocaleString('en-IN')}</td>
+                    </tr>
+                    <tr style="background-color: #f0fdf4;">
+                      <td colspan="4" style="padding: 8px 12px; text-align: right; font-weight: bold; color: #166534; font-size: 12px; text-transform: uppercase;">TOTAL SAVINGS:</td>
+                      <td style="padding: 8px 12px; text-align: right; font-weight: bold; color: #166534; font-size: 13px;">₹${totals.totalSavings.toLocaleString('en-IN')}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -190,8 +200,9 @@ const generateCustomerEmailHTML = (order) => {
 
 // Admin alert email template
 const generateAdminEmailHTML = (order) => {
-  const itemsSummary = order.items
-    .map((item) => `<li>${item.quantity}x ${item.name} - ₹${item.price * item.quantity}</li>`)
+  const totals = calculateOrderTotalsFromOrder(order);
+  const itemsSummary = (order.items || [])
+    .map((item) => `<li>${item.quantity}x ${item.name} (MRP: ₹${(item.mrpPrice || item.price || 0).toLocaleString('en-IN')}) - Rate: ₹${(item.sellingPrice || item.price || 0).toLocaleString('en-IN')} = ₹${(item.subtotal || (item.price || 0) * (item.quantity || 1)).toLocaleString('en-IN')}</li>`)
     .join('');
 
   return `
@@ -201,10 +212,18 @@ const generateAdminEmailHTML = (order) => {
     <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 8px; padding: 24px; border: 1px solid #cbd5e1;">
       <h2 style="color: #b91c1c; margin-top: 0;">🚨 New Order Received: ${order.orderId}</h2>
       <p><strong>Customer:</strong> ${order.customerDetails.name} (${order.customerDetails.phone})</p>
-      <p><strong>Total Amount:</strong> ₹${order.totalAmount} (Door Delivery)</p>
       <p><strong>Address:</strong> ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}</p>
       <p><strong>Items:</strong></p>
       <ul>${itemsSummary}</ul>
+      <div style="background-color: #f1f5f9; padding: 12px; border-radius: 6px; margin: 16px 0; font-size: 13px;">
+        <p style="margin: 3px 0;"><strong>Total MRP Value:</strong> ₹${totals.totalMRP.toLocaleString('en-IN')}</p>
+        <p style="margin: 3px 0; color: #047857;"><strong>Product Discount Saved:</strong> -₹${totals.totalProductDiscount.toLocaleString('en-IN')}</p>
+        <p style="margin: 3px 0;"><strong>Amount to be Paid After Discount:</strong> ₹${totals.amountAfterProductDiscount.toLocaleString('en-IN')}</p>
+        <p style="margin: 3px 0;"><strong>Special Discount:</strong> ${totals.specialDiscount > 0 ? `-₹${totals.specialDiscount.toLocaleString('en-IN')}` : '₹0'}</p>
+        <p style="margin: 3px 0;"><strong>Delivery Charges:</strong> ${totals.deliveryCharges === 0 ? 'FREE' : `₹${totals.deliveryCharges.toLocaleString('en-IN')}`}</p>
+        <p style="margin: 6px 0 3px 0; font-size: 15px; font-weight: bold; color: #b91c1c;"><strong>FINAL PAYABLE AMOUNT:</strong> ₹${totals.finalPayableAmount.toLocaleString('en-IN')}</p>
+        <p style="margin: 3px 0; font-weight: bold; color: #166534;"><strong>TOTAL SAVINGS:</strong> ₹${totals.totalSavings.toLocaleString('en-IN')}</p>
+      </div>
       <p><a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin/dashboard" style="background:#b91c1c; color:white; padding:8px 16px; text-decoration:none; border-radius:4px; font-weight:bold;">View in Admin Panel</a></p>
     </div>
   </body>

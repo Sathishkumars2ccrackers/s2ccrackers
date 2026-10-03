@@ -1,5 +1,5 @@
 import { formatCurrency, formatDate, formatProductCode } from './formatters';
-import { calculateItemPricing } from './pricing';
+import { calculateItemPricing, calculateOrderTotalsFromOrder } from './pricing';
 import { getProductImage, FESTIVE_PLACEHOLDER_SVG } from './imageUrlUtils';
 
 /**
@@ -14,19 +14,17 @@ export const printInvoiceDocument = (order) => {
 
   const invoiceNumber = order.invoiceNumber || `INV-${new Date(order.createdAt || Date.now()).getFullYear()}-${(order.orderId || '0000').replace(/\D/g, '').slice(-5).padStart(5, '0')}`;
 
-  const computedMrpTotal = order.orderMrpTotal || (order.items || []).reduce((acc, item) => {
-    const unitMrp = item.mrpPrice !== undefined ? item.mrpPrice : (item.originalPrice !== undefined ? item.originalPrice : item.price);
-    return acc + unitMrp * (item.quantity || 1);
-  }, 0);
-
-  const itemsSubtotal = order.orderItemsSubtotal || order.subtotal || order.totalAmount || 0;
-  const finalPayable = order.orderFinalTotal || order.totalAmount || 0;
-  const totalSavings = order.orderSavingsTotal !== undefined
-    ? order.orderSavingsTotal
-    : Math.max(0, computedMrpTotal - itemsSubtotal + (order.discountAmount || 0));
-
-  const deliveryFee = order.deliveryFee !== undefined ? order.deliveryFee : 0;
-  const slabDiscount = order.discountAmount || 0;
+  const totals = calculateOrderTotalsFromOrder(order);
+  const {
+    totalMRP,
+    totalProductDiscount,
+    amountAfterProductDiscount,
+    specialDiscount,
+    specialDiscountPercent,
+    deliveryCharges,
+    finalPayableAmount,
+    totalSavings,
+  } = totals;
 
   // Build items rows
   const itemRowsHtml = (order.items || []).map((item, idx) => {
@@ -297,27 +295,33 @@ export const printInvoiceDocument = (order) => {
 
       <div class="summary-col-right">
         <div class="pricing-box">
-          <div class="pricing-row" style="color: #475569;">
-            <span>Total MRP Value:</span>
-            <span style="font-family: monospace; font-weight: 700; text-decoration: line-through;">${formatCurrency(computedMrpTotal)}</span>
+          <div class="pricing-row" style="color: #334155;">
+            <span style="font-weight: 600;">Total MRP Value:</span>
+            <span style="font-family: monospace; font-weight: 700; color: #0f172a;">${formatCurrency(totalMRP)}</span>
           </div>
-          <div class="pricing-row" style="color: #047857; background: #d1fae5; padding: 2px 4px; border-radius: 4px; font-weight: 700;">
-            <span>Total Discount Saved:</span>
-            <span style="font-family: monospace; font-weight: 800;">- ${formatCurrency(totalSavings)}</span>
+          <div class="pricing-row" style="color: #047857; font-weight: 600;">
+            <span>Product Discount Saved:</span>
+            <span style="font-family: monospace; font-weight: 700; color: #047857;">- ${formatCurrency(totalProductDiscount)}</span>
           </div>
-          ${slabDiscount > 0 ? `
-            <div class="pricing-row" style="color: #b45309; background: #fffbeb; padding: 2px 4px; border-radius: 4px;">
-              <span>Special Tier Discount (${order.discountPercentage || 0}%):</span>
-              <span style="font-family: monospace; font-weight: 700;">- ${formatCurrency(slabDiscount)}</span>
-            </div>
-          ` : ''}
-          <div class="pricing-row" style="color: #475569;">
-            <span>Delivery Charges:</span>
-            <span style="font-family: monospace; font-weight: 700;">${deliveryFee === 0 ? '<strong style="color: #047857;">FREE</strong>' : formatCurrency(deliveryFee)}</span>
+          <div class="pricing-row" style="background: #f1f5f9; padding: 4px 6px; border-radius: 4px; font-weight: 600; color: #0f172a;">
+            <span>Amount to be Paid After Discount:</span>
+            <span style="font-family: monospace; font-weight: 700;">${formatCurrency(amountAfterProductDiscount)}</span>
           </div>
-          <div class="pricing-row" style="border-top: 1.5px solid #cbd5e1; padding-top: 6px; margin-top: 4px; font-size: 13px; font-weight: 900; color: #0B0718;">
-            <span>Final Payable Amount:</span>
-            <span style="font-size: 16px; font-weight: 900; color: #d97706; font-family: monospace;">${formatCurrency(finalPayable)}</span>
+          <div class="pricing-row" style="color: #334155;">
+            <span style="font-weight: 600;">Special Discount${specialDiscountPercent > 0 ? ` (${specialDiscountPercent}%):` : ':'}</span>
+            <span style="font-family: monospace; font-weight: 700; color: ${specialDiscount > 0 ? '#047857' : '#475569'};">${specialDiscount > 0 ? `- ${formatCurrency(specialDiscount)}` : '₹0'}</span>
+          </div>
+          <div class="pricing-row" style="color: #334155;">
+            <span style="font-weight: 600;">Delivery Charges:</span>
+            <span style="font-family: monospace; font-weight: 700; color: #0f172a;">${deliveryCharges === 0 ? '<strong style="color: #047857;">FREE</strong>' : formatCurrency(deliveryCharges)}</span>
+          </div>
+          <div class="pricing-row" style="border-top: 1.5px solid #cbd5e1; padding-top: 6px; margin-top: 4px; font-size: 12px; font-weight: 900; color: #0B0718;">
+            <span style="text-transform: uppercase;">FINAL PAYABLE AMOUNT:</span>
+            <span style="font-size: 16px; font-weight: 900; color: #d97706; font-family: monospace;">${formatCurrency(finalPayableAmount)}</span>
+          </div>
+          <div class="pricing-row" style="border-top: 1px dashed #a7f3d0; background: #ecfdf5; padding: 4px 6px; border-radius: 4px; margin-top: 4px; color: #065f46; font-weight: 700;">
+            <span style="font-size: 10px; text-transform: uppercase;">TOTAL SAVINGS:</span>
+            <span style="font-family: monospace; font-weight: 800; font-size: 12px;">${formatCurrency(totalSavings)}</span>
           </div>
         </div>
       </div>

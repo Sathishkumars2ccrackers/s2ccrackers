@@ -7,6 +7,7 @@ import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency, formatProductCode } from '../../utils/formatters';
 import { calculateItemPricing } from '../../utils/pricing';
 import ProductImage from '../common/ProductImage';
+import PricingSummary from '../common/PricingSummary';
 
 const CartDrawer = () => {
   const navigate = useNavigate();
@@ -236,48 +237,20 @@ const CartDrawer = () => {
               {cartItems.length > 0 && (
                 <div className="p-4 sm:p-5 border-t border-festival-border bg-festival-dark/95 space-y-3">
                   {/* Summary Breakdown */}
-                  <div className="space-y-1.5 sm:space-y-2 text-xs">
-                    <div className="flex justify-between text-slate-300">
-                      <span className="font-medium">Total MRP Value:</span>
-                      <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
-                    </div>
-                    <div className="flex justify-between text-slate-300">
-                      <span>Factory Price Subtotal:</span>
-                      <span className="font-bold text-white font-mono">{formatCurrency(cartSubtotal)}</span>
-                    </div>
-                    {totalSavings > 0 && (
-                      <div className="flex justify-between text-emerald-400 font-bold">
-                        <span>Product Discount Savings:</span>
-                        <span className="font-mono">-{formatCurrency(totalSavings)}</span>
-                      </div>
-                    )}
-                    {discountAmount > 0 && (
-                      <div className="flex justify-between text-amber-300 font-bold bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">
-                        <span className="flex items-center gap-1">
-                          <Sparkles className="w-3 h-3 text-amber-400" />
-                          <span>Special Discount ({discountPercentage}%):</span>
-                        </span>
-                        <span className="font-mono">-{formatCurrency(discountAmount)}</span>
-                      </div>
-                    )}
-                    {totalCombinedSavings > 0 && (
-                      <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-center space-y-0.5">
-                        <div className="flex items-center justify-center gap-1 text-emerald-300 font-extrabold text-xs">
-                          <Sparkles className="w-3.5 h-3.5 text-emerald-400 fill-emerald-400" />
-                          <span>Total Savings: {formatCurrency(totalCombinedSavings)}</span>
-                        </div>
-                        <p className="text-[10px] text-emerald-200/70">Factory Direct Sivakasi Pricing</p>
-                      </div>
-                    )}
-                    <div className="flex justify-between text-slate-300">
-                      <span>Estimated Shipping:</span>
-                      <span className="font-semibold text-white">{isFreeDeliveryUnlocked ? <span className="text-emerald-400 font-black">FREE</span> : 'Calculated at checkout'}</span>
-                    </div>
-                    <div className="pt-2 border-t border-festival-border flex justify-between text-sm font-black text-white items-center">
-                      <span className="text-amber-400">Final Payable Amount:</span>
-                      <span className="text-amber-400 text-base sm:text-lg font-mono">{formatCurrency(finalCartTotal)}</span>
-                    </div>
-                  </div>
+                  <PricingSummary
+                    totals={{
+                      totalMRP: totalMrp,
+                      amountAfterProductDiscount: cartSubtotal,
+                      totalProductDiscount: totalSavings,
+                      specialDiscount: discountAmount,
+                      specialDiscountPercentage: discountPercentage,
+                      deliveryCharges: isFreeDeliveryUnlocked ? 0 : 150,
+                      finalPayableAmount: Math.max(0, cartSubtotal - discountAmount + (isFreeDeliveryUnlocked ? 0 : 150)),
+                      totalSavings: totalSavings + discountAmount,
+                    }}
+                    amountLabel="Amount to be Paid After Discount"
+                    showProminentSavings={true}
+                  />
 
                   {/* Min Order Warning */}
                   {!isMinOrderMet && (

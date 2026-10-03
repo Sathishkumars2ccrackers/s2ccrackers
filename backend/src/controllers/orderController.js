@@ -7,7 +7,7 @@ const { generateOrderId } = require('../utils/orderIdGenerator');
 const { sendCustomerOrderConfirmationEmail, sendAdminNewOrderAlertEmail } = require('../config/mailer');
 const { sendOrderNotification } = require('../services/notificationService');
 const { logActivity } = require('../utils/activityLogger');
-const { calculateItemPricing, calculateOrderPricing } = require('../utils/pricing');
+const { calculateItemPricing, calculateOrderPricing, calculateOrderTotalsFromOrder } = require('../utils/pricing');
 
 // Calculate highest matching discount slab from business settings
 const calculateDiscount = (subtotal, slabs = []) => {
@@ -35,20 +35,15 @@ const calculateDiscount = (subtotal, slabs = []) => {
 
 // Generate pre-filled WhatsApp confirmation message
 const buildWhatsAppMessage = (order, businessPhone = '919944476516') => {
-  const itemsText = order.items
+  const itemsText = (order.items || [])
     .map((item) => `- ${item.quantity}x ${item.name} (MRP: ₹${item.mrpPrice || item.price} | Our Price: ₹${item.sellingPrice || item.price}) = ₹${item.subtotal || item.price * item.quantity}`)
     .join('\n');
 
-  const mrpTotal = order.orderMrpTotal || order.subtotal;
-  const savingsTotal = order.orderSavingsTotal || order.discountAmount || 0;
+  const totals = calculateOrderTotalsFromOrder(order);
 
-  let discountText = `\n\nOrder Value (MRP): ₹${mrpTotal}\nTotal Discount Savings: ₹${savingsTotal}`;
-  if (order.discountAmount > 0) {
-    discountText += `\nSpecial Slab Discount (${order.discountPercentage}%): -₹${order.discountAmount}`;
-  }
-  discountText += `\nDelivery: ${order.deliveryFee > 0 ? '₹' + order.deliveryFee : 'FREE'}`;
+  const breakdownText = `\n\n━━━━━━━━━━━━━━━\nORDER PRICING BREAKDOWN\n━━━━━━━━━━━━━━━\nTotal MRP Value: ₹${totals.totalMRP.toLocaleString('en-IN')}\nProduct Discount Saved: - ₹${totals.totalProductDiscount.toLocaleString('en-IN')}\nAmount to be Paid After Discount: ₹${totals.amountAfterProductDiscount.toLocaleString('en-IN')}\nSpecial Discount: ${totals.specialDiscount > 0 ? `- ₹${totals.specialDiscount.toLocaleString('en-IN')}` : '₹0'}\nDelivery Charges: ${totals.deliveryCharges === 0 ? 'FREE' : `₹${totals.deliveryCharges.toLocaleString('en-IN')}`}\nFINAL PAYABLE AMOUNT: ₹${totals.finalPayableAmount.toLocaleString('en-IN')}\nTOTAL SAVINGS: ₹${totals.totalSavings.toLocaleString('en-IN')}`;
 
-  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}${discountText}\n\nAmount Payable: ₹${order.totalAmount}\nPayment Method: Door Delivery Available\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
+  const rawMessage = `Hello S2C Crackers,\n\nI have placed an order through the website.\n\nOrder ID: ${order.orderId}\nCustomer Name: ${order.customerDetails.name}\nPhone Number: ${order.customerDetails.phone}\n\nOrdered Items:\n${itemsText}${breakdownText}\n\nPayment Method: Door Delivery Available\nDelivery Address: ${order.customerDetails.address}, ${order.customerDetails.city} - ${order.customerDetails.pincode}\n\nPlease confirm my order.`;
 
   const encodedMessage = encodeURIComponent(rawMessage);
   const cleanNumber = businessPhone.replace(/[^0-9]/g, '');

@@ -4,6 +4,7 @@ const Customer = require('../models/Customer');
 const ActivityLog = require('../models/ActivityLog');
 const { exportToBuffer } = require('../utils/excelEngine');
 const { logActivity } = require('../utils/activityLogger');
+const { calculateOrderTotalsFromOrder } = require('../utils/pricing');
 
 const getCodeNumber = (code) => {
   if (code === undefined || code === null || code === '') return 999999;
@@ -229,29 +230,27 @@ const exportData = async (req, res, next) => {
         fileName = `s2c-orders-${Date.now()}`;
         const orders = await Order.find().sort({ createdAt: -1 }).lean();
         exportData = orders.map((o) => {
-          const mrpTotal = o.orderMrpTotal || (o.items || []).reduce((sum, i) => sum + ((i.mrpPrice || i.price || 0) * (i.quantity || 1)), 0);
-          const savingsTotal = o.orderSavingsTotal !== undefined
-            ? o.orderSavingsTotal
-            : Math.max(0, mrpTotal - (o.totalAmount - (o.deliveryFee || 0)));
+          const totals = calculateOrderTotalsFromOrder(o);
 
           return {
             'Order ID': o.orderId,
             'Order Date': new Date(o.createdAt).toLocaleString('en-IN'),
-            'Customer Name': o.customerDetails.name,
-            'Customer Phone': o.customerDetails.phone,
-            'Customer Email': o.customerDetails.email || '',
-            'Delivery Address': o.customerDetails.address,
-            'City': o.customerDetails.city,
-            'PIN Code': o.customerDetails.pincode,
-            'Items Ordered': o.items.map((i) => `${i.quantity}x ${i.name} (MRP: ₹${i.mrpPrice || i.price}, Rate: ₹${i.sellingPrice || i.price})`).join(' | '),
-            'Total Items Qty': o.items.reduce((sum, i) => sum + i.quantity, 0),
-            'Total MRP (INR)': mrpTotal,
-            'Total Discount Savings (INR)': savingsTotal,
-            'Subtotal / Selling Price (INR)': o.subtotal,
-            'Special Slab Discount (INR)': o.discountAmount || 0,
-            'Delivery Fee (INR)': o.deliveryFee,
-            'Grand Total / Collected (INR)': o.totalAmount,
-            'Payment Mode': o.paymentMethod,
+            'Customer Name': o.customerDetails?.name || '',
+            'Customer Phone': o.customerDetails?.phone || '',
+            'Customer Email': o.customerDetails?.email || '',
+            'Delivery Address': o.customerDetails?.address || '',
+            'City': o.customerDetails?.city || '',
+            'PIN Code': o.customerDetails?.pincode || '',
+            'Items Ordered': (o.items || []).map((i) => `${i.quantity}x ${i.name} (MRP: ₹${i.mrpPrice || i.price}, Rate: ₹${i.sellingPrice || i.price})`).join(' | '),
+            'Total Items Qty': (o.items || []).reduce((sum, i) => sum + (i.quantity || 1), 0),
+            'Total MRP Value (INR)': totals.totalMRP,
+            'Product Discount Saved (INR)': totals.totalProductDiscount,
+            'Amount to be Paid After Discount (INR)': totals.amountAfterProductDiscount,
+            'Special Discount (INR)': totals.specialDiscount,
+            'Delivery Charges (INR)': totals.deliveryCharges,
+            'FINAL PAYABLE AMOUNT (INR)': totals.finalPayableAmount,
+            'TOTAL SAVINGS (INR)': totals.totalSavings,
+            'Payment Mode': o.paymentMethod || 'Door Delivery',
             'Order Status': o.status,
           };
         });

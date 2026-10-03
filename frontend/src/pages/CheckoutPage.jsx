@@ -28,6 +28,7 @@ import { orderService } from '../services/api';
 import { formatCurrency, formatProductCode } from '../utils/formatters';
 import { calculateItemPricing, calculateOrderPricing } from '../utils/pricing';
 import ProductImage from '../components/common/ProductImage';
+import PricingSummary from '../components/common/PricingSummary';
 import SEO from '../components/common/SEO';
 
 const CheckoutPage = () => {
@@ -203,14 +204,22 @@ const CheckoutPage = () => {
           orderId: res.data.orderId,
           customerDetails: orderPayload.customerDetails,
           items: sanitizedItems,
-          orderMrpTotal: totalMrp,
-          orderSavingsTotal: totalCombinedSavings,
-          orderFinalTotal: grandTotal,
-          subtotal: safeSubtotal,
-          discountAmount,
-          discountPercentage,
-          deliveryFee,
-          totalAmount: grandTotal,
+          totalMRP: pricingTotals.totalMRP,
+          totalProductDiscount: pricingTotals.totalProductDiscount,
+          amountAfterProductDiscount: pricingTotals.amountAfterProductDiscount,
+          specialDiscount: pricingTotals.specialDiscount,
+          specialDiscountPercent: pricingTotals.specialDiscountPercentage,
+          deliveryCharges: pricingTotals.deliveryCharges,
+          finalPayableAmount: pricingTotals.finalPayableAmount,
+          totalSavings: pricingTotals.totalSavings,
+          orderMrpTotal: pricingTotals.totalMRP,
+          orderSavingsTotal: pricingTotals.totalSavings,
+          orderFinalTotal: pricingTotals.finalPayableAmount,
+          subtotal: pricingTotals.amountAfterProductDiscount,
+          discountAmount: pricingTotals.specialDiscount,
+          discountPercentage: pricingTotals.specialDiscountPercentage,
+          deliveryFee: pricingTotals.deliveryCharges,
+          totalAmount: pricingTotals.finalPayableAmount,
           createdAt: new Date().toISOString(),
           status: 'Pending',
         };
@@ -630,58 +639,21 @@ const CheckoutPage = () => {
                 })}
               </div>
 
-              {/* Premium Savings Banner */}
-              {totalCombinedSavings > 0 && (
-                <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-950 via-festival-card to-emerald-900/80 border-2 border-emerald-500/50 shadow-xl text-center space-y-1">
-                  <div className="flex items-center justify-center gap-2 text-emerald-300 font-black text-xs sm:text-base">
-                    <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 fill-emerald-400 animate-pulse flex-shrink-0" />
-                    <span>🎉 Congratulations!</span>
-                  </div>
-                  <p className="text-xs sm:text-sm font-bold text-white break-words">
-                    You saved <span className="text-emerald-400 font-black text-sm sm:text-base">{formatCurrency(totalCombinedSavings)}</span> through factory-direct Sivakasi pricing.
-                  </p>
-                </div>
-              )}
-
-              {/* Bill breakdown */}
-              <div className="space-y-2.5 text-xs pt-2 border-t border-festival-border">
-                <div className="flex justify-between items-center text-slate-300">
-                  <span className="font-medium">Total MRP Value:</span>
-                  <span className="font-semibold text-slate-400 line-through font-mono">{formatCurrency(totalMrp)}</span>
-                </div>
-                <div className="flex justify-between items-center text-slate-300">
-                  <span>Items Factory Price:</span>
-                  <span className="font-bold text-white font-mono">{formatCurrency(safeSubtotal)}</span>
-                </div>
-                {totalSavings > 0 && (
-                  <div className="flex justify-between items-center text-emerald-400 font-bold">
-                    <span>Product Discount Savings:</span>
-                    <span className="font-mono">-{formatCurrency(totalSavings)}</span>
-                  </div>
-                )}
-                {discountAmount > 0 && (
-                  <div className="flex justify-between items-center text-amber-300 font-bold bg-amber-500/10 p-2 rounded-xl border border-amber-500/20">
-                    <span>Special Tier Discount ({discountPercentage}%):</span>
-                    <span className="font-mono">-{formatCurrency(discountAmount)}</span>
-                  </div>
-                )}
-                {totalCombinedSavings > 0 && (
-                  <div className="flex justify-between items-center text-emerald-300 font-extrabold bg-emerald-950/60 p-2.5 rounded-xl border border-emerald-500/30">
-                    <span>Total Discount Saved:</span>
-                    <span className="font-mono">Save {formatCurrency(totalCombinedSavings)}</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center text-slate-300">
-                  <span>Shipping & Delivery:</span>
-                  <span className="font-bold text-white">
-                    {deliveryFee === 0 ? <span className="text-emerald-400 font-black">FREE</span> : formatCurrency(deliveryFee)}
-                  </span>
-                </div>
-                <div className="pt-3 border-t border-festival-border flex justify-between items-center flex-wrap gap-2 text-base font-black text-white">
-                  <span className="text-amber-400">Final Payable Amount:</span>
-                  <span className="text-amber-400 text-lg sm:text-xl font-mono">{formatCurrency(grandTotal)}</span>
-                </div>
-              </div>
+              {/* Pricing Breakdown */}
+              <PricingSummary
+                totals={{
+                  totalMRP: totalMrp,
+                  amountAfterProductDiscount: safeSubtotal,
+                  totalProductDiscount: totalSavings,
+                  specialDiscount: discountAmount,
+                  specialDiscountPercentage: discountPercentage,
+                  deliveryCharges: deliveryFee,
+                  finalPayableAmount: grandTotal,
+                  totalSavings: totalCombinedSavings,
+                }}
+                amountLabel="Amount to be Paid After Discount"
+                showProminentSavings={true}
+              />
 
               {/* Submit CTA */}
               <button

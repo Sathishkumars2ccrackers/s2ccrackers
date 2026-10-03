@@ -4,6 +4,7 @@ import { User, Phone, MapPin, ShoppingBag, Download, Search, X, ExternalLink, Ca
 import { customerService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { calculateOrderTotalsFromOrder } from '../../utils/pricing';
 import { downloadExport } from '../../utils/downloadAdminFile';
 import LoadingSpinner from '../common/LoadingSpinner';
 
@@ -215,8 +216,7 @@ const CustomerManager = () => {
                 ) : (
                     <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
                     {customerOrders.map((o) => {
-                      const computedMrp = o.orderMrpTotal || (o.items || []).reduce((acc, it) => acc + (it.mrpPrice || it.originalPrice || it.price) * (it.quantity || 1), 0);
-                      const computedSavings = o.orderSavingsTotal !== undefined ? o.orderSavingsTotal : Math.max(0, computedMrp - (o.totalAmount || 0));
+                      const totals = calculateOrderTotalsFromOrder(o);
                       return (
                         <div
                           key={o._id}
@@ -234,12 +234,12 @@ const CustomerManager = () => {
                             </p>
                           </div>
                           <div className="text-right">
-                            {computedSavings > 0 && (
+                            {totals.totalSavings > 0 && (
                               <div className="text-[10px] text-slate-400">
-                                MRP <span className="line-through">{formatCurrency(computedMrp)}</span> • <span className="text-emerald-400 font-bold">Saved {formatCurrency(computedSavings)}</span>
+                                MRP <span className="line-through">{formatCurrency(totals.totalMRP)}</span> • <span className="text-emerald-400 font-bold">Saved {formatCurrency(totals.totalSavings)}</span>
                               </div>
                             )}
-                            <span className="text-sm font-black text-amber-400">{formatCurrency(o.totalAmount)}</span>
+                            <span className="text-sm font-black text-amber-400">{formatCurrency(totals.finalPayableAmount)}</span>
                           </div>
                         </div>
                       );
