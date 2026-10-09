@@ -144,6 +144,8 @@ export const orderService = {
   getByOrderId: (orderId) => api.get(`/orders/admin/by-id/${orderId}`),
   getAllAdmin: (params) => api.get('/orders/admin/all', { params }),
   updateStatus: (id, status, note, adminNotes) => api.patch(`/orders/admin/${id}/status`, { status, note, adminNotes }),
+  updatePaymentStatus: (id, paymentStatus, paymentReference, adminNotes) =>
+    api.patch(`/orders/admin/${id}/payment-status`, { paymentStatus, paymentReference, adminNotes }),
   cancelOrder: (id, reason) => api.patch(`/orders/admin/${id}/cancel`, { reason }),
   recordWhatsAppConfirmation: (id, data) => api.patch(`/orders/admin/${id}/whatsapp-confirm`, data),
 };

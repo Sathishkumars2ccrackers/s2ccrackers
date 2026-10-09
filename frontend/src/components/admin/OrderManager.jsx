@@ -30,6 +30,7 @@ import {
   Sparkles,
   Info,
   CheckCheck,
+  CreditCard,
 } from 'lucide-react';
 import { orderService } from '../../services/api';
 import { useToast } from '../../context/ToastContext';
@@ -74,6 +75,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
   const [highlightedOrderId, setHighlightedOrderId] = useState(initialOrderId || null);
 
   // Modal states
@@ -90,9 +92,12 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
   const [copiedMessage, setCopiedMessage] = useState(false);
   const [isConfirmingWhatsApp, setIsConfirmingWhatsApp] = useState(false);
 
-  // Detail Modal Admin Notes
+  // Detail Modal Admin Notes & Payment Status States
   const [adminNotesInput, setAdminNotesInput] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  const [newPaymentStatus, setNewPaymentStatus] = useState('Unpaid');
+  const [paymentReferenceInput, setPaymentReferenceInput] = useState('');
+  const [updatingPaymentStatus, setUpdatingPaymentStatus] = useState(false);
 
   // Cancellation Modal States
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -112,6 +117,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
       const res = await orderService.getAllAdmin({
         search,
         status: statusFilter !== 'all' ? statusFilter : undefined,
+        paymentStatus: paymentStatusFilter !== 'all' ? paymentStatusFilter : undefined,
         limit: 100,
       });
       if (res.data?.success) {
@@ -126,7 +132,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
 
   useEffect(() => {
     fetchOrders();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, paymentStatusFilter]);
 
   // Handle deep linking to specific order from push notification
   useEffect(() => {
@@ -153,6 +159,8 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
     setSelectedOrder(order);
     setNewStatus(order.status);
     setStatusNote('');
+    setNewPaymentStatus(order.paymentStatus || 'Unpaid');
+    setPaymentReferenceInput(order.paymentReference || '');
     setAdminNotesInput(order.adminNotes || '');
     setIsDetailModalOpen(true);
   };
@@ -279,6 +287,59 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
     }
   };
 
+  const handleUpdatePaymentStatus = async (e) => {
+    e?.preventDefault();
+    if (!selectedOrder || !newPaymentStatus) return;
+
+    setUpdatingPaymentStatus(true);
+    try {
+      const res = await orderService.updatePaymentStatus(
+        selectedOrder._id,
+        newPaymentStatus,
+        paymentReferenceInput,
+        adminNotesInput
+      );
+      toastSuccess(res.data?.message || `Payment status updated to "${newPaymentStatus}"!`);
+      if (res.data?.order) {
+        setSelectedOrder(res.data.order);
+        setOrders((prev) =>
+          prev.map((o) => (o._id === res.data.order._id ? res.data.order : o))
+        );
+      } else {
+        fetchOrders();
+      }
+    } catch (err) {
+      toastError(err.response?.data?.message || 'Failed to update payment status');
+    } finally {
+      setUpdatingPaymentStatus(false);
+    }
+  };
+
+  const handleQuickTogglePayment = async (order, targetStatus) => {
+    try {
+      const res = await orderService.updatePaymentStatus(
+        order._id,
+        targetStatus,
+        order.paymentReference || '',
+        order.adminNotes || ''
+      );
+      toastSuccess(`Order ${order.orderId} marked as ${targetStatus}!`);
+      if (res.data?.order) {
+        setOrders((prev) =>
+          prev.map((o) => (o._id === res.data.order._id ? res.data.order : o))
+        );
+        if (selectedOrder && selectedOrder._id === order._id) {
+          setSelectedOrder(res.data.order);
+          setNewPaymentStatus(res.data.order.paymentStatus || 'Unpaid');
+        }
+      } else {
+        fetchOrders();
+      }
+    } catch (err) {
+      toastError(err.response?.data?.message || 'Failed to update payment status');
+    }
+  };
+
   const handleUpdateStatus = async (e) => {
     e?.preventDefault();
     if (!selectedOrder || !newStatus) return;
@@ -365,7 +426,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="relative">
           <input
             type="text"
@@ -392,6 +453,18 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
+
+        <div>
+          <select
+            value={paymentStatusFilter}
+            onChange={(e) => setPaymentStatusFilter(e.target.value)}
+            className="w-full bg-festival-card border border-festival-border rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-amber-500 cursor-pointer"
+          >
+            <option value="all">All Payment Statuses</option>
+            <option value="Paid">Paid Only (Verified)</option>
+            <option value="Unpaid">Unpaid Only (Pending)</option>
+          </select>
+        </div>
       </div>
 
       {/* Orders Table */}
@@ -415,6 +488,7 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                   <th className="p-4 text-right">MRP Value</th>
                   <th className="p-4 text-right">Discount</th>
                   <th className="p-4 text-right">Payable</th>
+                  <th className="p-4 text-center">Payment</th>
                   <th className="p-4 text-center">Status</th>
                   <th className="p-4 text-right">Actions</th>
                 </tr>
@@ -485,6 +559,37 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                       </td>
                       <td className="p-4 text-right font-black text-amber-400 text-sm font-mono">
                         {formatCurrency(totals.finalPayableAmount)}
+                      </td>
+                      <td className="p-4 text-center">
+                        {(o.paymentStatus || 'Unpaid') === 'Paid' ? (
+                          <button
+                            type="button"
+                            onClick={() => handleQuickTogglePayment(o, 'Unpaid')}
+                            title="Payment verified. Click to toggle to UNPAID"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-emerald-950/80 text-emerald-300 border border-emerald-500/40 hover:border-amber-400 hover:bg-emerald-900 transition-all cursor-pointer shadow-sm"
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                            <span>PAID</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleQuickTogglePayment(o, 'Paid')}
+                            title="Customer has not paid yet. Click to toggle to PAID"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-rose-950/80 text-rose-300 border border-rose-500/40 hover:border-emerald-400 hover:bg-rose-900 transition-all cursor-pointer shadow-sm"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                            <span>UNPAID</span>
+                          </button>
+                        )}
+                        {o.paymentReference && (
+                          <span
+                            className="block text-[9px] text-slate-400 font-mono truncate max-w-[90px] mx-auto mt-0.5"
+                            title={`Reference: ${o.paymentReference}`}
+                          >
+                            {o.paymentReference}
+                          </span>
+                        )}
                       </td>
                       <td className="p-4 text-center">
                         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full border ${statusClass}`}>
@@ -818,6 +923,96 @@ const OrderManager = ({ initialOrderId = null, onClearInitialOrderId = null }) =
                   <span>{selectedOrder.whatsappConfirmationSent ? 'Resend WhatsApp' : 'WhatsApp Confirm Order'}</span>
                 </button>
               </div>
+
+              {/* ================= PAYMENT STATUS SECTION ================= */}
+              <form onSubmit={handleUpdatePaymentStatus} className="p-4 rounded-2xl bg-festival-dark/90 border border-purple-500/40 space-y-3 shadow-inner">
+                <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-festival-border">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1 rounded-lg bg-purple-950/80 text-purple-300 border border-purple-500/40">
+                      <CreditCard className="w-3.5 h-3.5" />
+                    </span>
+                    <h4 className="text-xs font-black text-white uppercase tracking-wider">
+                      PAYMENT STATUS
+                    </h4>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-slate-400 uppercase font-bold">Current Status:</span>
+                    {(selectedOrder.paymentStatus || 'Unpaid') === 'Paid' ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-950/90 text-emerald-300 border border-emerald-500/50">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        PAID
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-950/90 text-rose-300 border border-rose-500/50">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+                        UNPAID
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {selectedOrder.paymentUpdatedAt && (
+                  <p className="text-[10px] text-slate-400">
+                    Payment verified on {formatDate(selectedOrder.paymentUpdatedAt, true)} by <strong className="text-slate-200">{selectedOrder.paymentUpdatedBy || 'Admin'}</strong>
+                  </p>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block text-slate-300 font-semibold mb-1">
+                      Payment Status <span className="text-amber-400">*</span>
+                    </label>
+                    <select
+                      value={newPaymentStatus}
+                      onChange={(e) => setNewPaymentStatus(e.target.value)}
+                      className="w-full bg-festival-card border border-festival-border rounded-xl p-2.5 text-white text-xs focus:outline-none focus:border-amber-500 cursor-pointer"
+                    >
+                      <option value="Unpaid">Unpaid (Customer has not paid yet)</option>
+                      <option value="Paid">Paid (Customer paid & admin verified)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-slate-300 font-semibold mb-1">
+                      Payment Reference / Note (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={paymentReferenceInput}
+                      onChange={(e) => setPaymentReferenceInput(e.target.value)}
+                      placeholder="e.g. UPI Ref / Cash received / Doorstep verification"
+                      className="w-full bg-festival-card border border-festival-border rounded-xl p-2.5 text-white text-xs placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[11px] text-slate-400">
+                    {newPaymentStatus === 'Paid' ? (
+                      <span className="text-emerald-400 font-medium">✓ Mark as verified & received</span>
+                    ) : (
+                      <span className="text-rose-300 font-medium">⚠️ Mark as unpaid / pending</span>
+                    )}
+                  </span>
+                  <button
+                    type="submit"
+                    disabled={updatingPaymentStatus}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {updatingPaymentStatus ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-3.5 h-3.5" />
+                        <span>Save Payment Status</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
 
               {/* Status Update Form */}
               <form onSubmit={handleUpdateStatus} className="p-4 rounded-2xl bg-festival-dark/80 border border-festival-border space-y-3">

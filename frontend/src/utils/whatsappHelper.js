@@ -241,7 +241,8 @@ ${secondaryPhone}${emailBlock}
 ORDER STATUS
 ━━━━━━━━━━━━━━━
 
-Confirmed
+Dispatch Status: Confirmed
+Payment Status: ${order.paymentStatus || 'Unpaid'}
 
 Our team will contact you shortly regarding:
 

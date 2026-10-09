@@ -251,6 +251,8 @@ const exportData = async (req, res, next) => {
             'FINAL PAYABLE AMOUNT (INR)': totals.finalPayableAmount,
             'TOTAL SAVINGS (INR)': totals.totalSavings,
             'Payment Mode': o.paymentMethod || 'Door Delivery',
+            'Payment Status': o.paymentStatus || 'Unpaid',
+            'Payment Reference': o.paymentReference || '',
             'Order Status': o.status,
           };
         });

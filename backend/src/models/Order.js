@@ -226,6 +226,26 @@ const orderSchema = new mongoose.Schema(
       default: 'Door Delivery Available',
       required: true,
     },
+    paymentStatus: {
+      type: String,
+      enum: ['Unpaid', 'Paid'],
+      default: 'Unpaid',
+      index: true,
+    },
+    paymentReference: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    paymentUpdatedAt: {
+      type: Date,
+      default: null,
+    },
+    paymentUpdatedBy: {
+      type: String,
+      default: '',
+      trim: true,
+    },
     status: {
       type: String,
       enum: ['Pending', 'Confirmed', 'Packed', 'Shipped', 'Delivered', 'Cancelled'],

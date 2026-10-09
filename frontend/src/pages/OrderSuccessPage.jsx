@@ -129,10 +129,29 @@ const OrderSuccessPage = () => {
             </p>
           </div>
 
-          {/* Unique Order ID Box */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-festival-dark/90 border border-amber-500/40 inline-block max-w-full shadow-inner">
-            <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Your Unique Order ID</span>
-            <span className="text-lg sm:text-2xl font-black text-amber-400 font-mono tracking-wide break-all">{order.orderId}</span>
+          {/* Unique Order ID & Payment Status Box */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-festival-dark/90 border border-amber-500/40 inline-block max-w-full shadow-inner">
+              <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Your Unique Order ID</span>
+              <span className="text-lg sm:text-2xl font-black text-amber-400 font-mono tracking-wide break-all">{order.orderId}</span>
+            </div>
+
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-festival-dark/90 border border-festival-border inline-block max-w-full shadow-inner text-center sm:text-left">
+              <span className="block text-[10px] uppercase font-bold text-slate-400 tracking-wider">Payment Status</span>
+              <div className="text-xs sm:text-sm font-bold mt-1">
+                {order.paymentStatus === 'Paid' ? (
+                  <span className="text-emerald-400 font-extrabold flex items-center justify-center sm:justify-start gap-1">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    Payment Received
+                  </span>
+                ) : (
+                  <span className="text-amber-300 font-extrabold flex items-center justify-center sm:justify-start gap-1">
+                    <Tag className="w-4 h-4 text-amber-400" />
+                    Awaiting Payment (Door Delivery)
+                  </span>
+                )}
+              </div>
+            </div>
           </div>
 
           {/* Savings Highlight Banner */}

@@ -235,6 +235,8 @@ const placeOrder = async (req, res, next) => {
       deliveryFee,
       totalAmount,
       paymentMethod: 'Door Delivery Available',
+      paymentStatus: 'Unpaid',
+      paymentReference: '',
       status: 'Pending',
       notes: notes ? notes.trim() : '',
     });
@@ -435,6 +437,8 @@ const trackOrder = async (req, res, next) => {
       deliveryFee: order.deliveryFee,
       totalAmount: order.totalAmount,
       paymentMethod: order.paymentMethod || 'Door Delivery Available',
+      paymentStatus: order.paymentStatus || 'Unpaid',
+      paymentReference: order.paymentReference || '',
       cancellationReason: order.status === 'Cancelled' ? (order.cancellationReason || 'No reason provided') : '',
       cancelledAt: order.status === 'Cancelled' ? order.cancelledAt : null,
       statusHistory: (order.statusHistory || []).map((h) => ({
@@ -483,11 +487,24 @@ const getOrderByOrderId = async (req, res, next) => {
 // @access  Private (Admin)
 const getAllOrdersAdmin = async (req, res, next) => {
   try {
-    const { status, search, startDate, endDate, page = 1, limit = 50 } = req.query;
+    const { status, paymentStatus, search, startDate, endDate, page = 1, limit = 50 } = req.query;
     const query = {};
 
     if (status && status !== 'all') {
       query.status = status;
+    }
+
+    if (paymentStatus && paymentStatus !== 'all') {
+      if (paymentStatus === 'Unpaid') {
+        query.$or = [
+          { paymentStatus: 'Unpaid' },
+          { paymentStatus: { $exists: false } },
+          { paymentStatus: null },
+          { paymentStatus: '' },
+        ];
+      } else if (paymentStatus === 'Paid') {
+        query.paymentStatus = 'Paid';
+      }
     }
 
     if (search && search.trim()) {
@@ -735,12 +752,66 @@ const recordWhatsAppConfirmation = async (req, res, next) => {
   }
 };
 
+// @desc    Update Order Payment Status (Admin Only)
+// @route   PATCH /api/orders/admin/:id/payment-status
+// @access  Private (Admin)
+const updatePaymentStatus = async (req, res, next) => {
+  try {
+    const { paymentStatus, paymentReference, adminNotes } = req.body;
+    const order = await Order.findById(req.params.id);
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    const validStatuses = ['Unpaid', 'Paid'];
+    if (!paymentStatus || !validStatuses.includes(paymentStatus)) {
+      return res.status(400).json({ success: false, message: 'Invalid payment status. Accepted values are "Unpaid" and "Paid".' });
+    }
+
+    const oldPaymentStatus = order.paymentStatus || 'Unpaid';
+    order.paymentStatus = paymentStatus;
+
+    if (paymentReference !== undefined) {
+      order.paymentReference = typeof paymentReference === 'string' ? paymentReference.trim() : '';
+    }
+
+    if (adminNotes !== undefined) {
+      order.adminNotes = adminNotes.trim();
+    }
+
+    const adminIdentifier = req.admin ? req.admin.name || req.admin.email || 'Admin' : 'Admin';
+    order.paymentUpdatedAt = new Date();
+    order.paymentUpdatedBy = adminIdentifier;
+
+    await order.save();
+
+    await logActivity({
+      admin: req.admin,
+      actionType: 'PAYMENT_STATUS_UPDATE',
+      entityType: 'Order',
+      entityId: order.orderId,
+      details: `Updated payment status for order ${order.orderId} from "${oldPaymentStatus}" to "${paymentStatus}"${order.paymentReference ? ` (Ref: ${order.paymentReference})` : ''}`,
+      req,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `Payment status updated to "${paymentStatus}" successfully.`,
+      order,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   placeOrder,
   trackOrder,
   getOrderByOrderId,
   getAllOrdersAdmin,
   updateOrderStatus,
+  updatePaymentStatus,
   cancelOrderAdmin,
   recordWhatsAppConfirmation,
 };

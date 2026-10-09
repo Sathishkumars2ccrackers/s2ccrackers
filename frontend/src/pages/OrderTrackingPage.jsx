@@ -308,7 +308,7 @@ const OrderTrackingPage = () => {
                       </p>
                     </div>
 
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 flex-shrink-0">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-2.5 flex-shrink-0">
                       <span
                         className={`px-3 py-1.5 rounded-full text-xs font-black uppercase text-center ${
                           order.status === 'Delivered'
@@ -320,6 +320,17 @@ const OrderTrackingPage = () => {
                       >
                         Status: {order.status || order.orderStatus}
                       </span>
+                      {order.paymentStatus === 'Paid' ? (
+                        <span className="px-3 py-1.5 rounded-full text-xs font-black uppercase text-center bg-emerald-950 text-emerald-300 border border-emerald-500/40 flex items-center justify-center gap-1.5">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span>Payment Received</span>
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1.5 rounded-full text-xs font-black uppercase text-center bg-amber-950 text-amber-300 border border-amber-500/40 flex items-center justify-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Awaiting Payment</span>
+                        </span>
+                      )}
                       <button
                         onClick={() => printInvoiceDocument(order)}
                         className="no-print px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-amber-500/20 active:scale-95 cursor-pointer"
@@ -380,8 +391,8 @@ const OrderTrackingPage = () => {
                     </div>
                   </div>
 
-              {/* Dispatch & Courier Status Badges Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 sm:p-4 rounded-2xl bg-festival-dark/80 border border-festival-border">
+              {/* Dispatch, Payment & Courier Status Badges Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 p-3.5 sm:p-4 rounded-2xl bg-festival-dark/80 border border-festival-border">
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Dispatch Status</span>
                   <span className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
@@ -390,7 +401,24 @@ const OrderTrackingPage = () => {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Courier / Transport Partner</span>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Payment Status</span>
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
+                    <CreditCard className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                    {order.paymentStatus === 'Paid' ? (
+                      <span className="text-emerald-400 font-extrabold flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                        Payment Received
+                      </span>
+                    ) : (
+                      <span className="text-amber-300 font-extrabold flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-amber-400" />
+                        Awaiting Payment
+                      </span>
+                    )}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Courier / Logistics</span>
                   <span className="text-xs font-bold text-white flex items-center gap-1.5 mt-0.5">
                     <Package className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
                     <span className="truncate">{order.courierName || 'Sivakasi Surface Transport'}</span>
@@ -648,9 +676,31 @@ const OrderTrackingPage = () => {
                     {order.customerDetails?.city}, {order.customerDetails?.state || 'Tamil Nadu'} - <strong>{order.customerDetails?.pincode}</strong>
                   </p>
 
-                  <div className="mt-4 pt-3 border-t border-festival-border/60 flex items-center gap-2 text-emerald-400">
-                    <CreditCard className="w-4 h-4 flex-shrink-0" />
-                    <span className="font-bold">Payment & Delivery: {order.paymentMethod || 'Door Delivery Available'}</span>
+                  <div className="mt-4 pt-3 border-t border-festival-border/60 space-y-1.5">
+                    <div className="flex items-center justify-between flex-wrap gap-2 text-xs">
+                      <div className="flex items-center gap-2 text-slate-300">
+                        <CreditCard className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                        <span>Payment Method: <strong>{order.paymentMethod || 'Door Delivery Available'}</strong></span>
+                      </div>
+                      <div>
+                        {order.paymentStatus === 'Paid' ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-950 text-emerald-300 border border-emerald-500/40">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                            Payment Status: Payment Received
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-500/40">
+                            <Clock className="w-3 h-3 text-amber-400" />
+                            Payment Status: Awaiting Payment
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {order.paymentStatus !== 'Paid' && (
+                      <p className="text-[11px] text-slate-400">
+                        Payment is collected and verified by the team upon door delivery or as arranged.
+                      </p>
+                    )}
                   </div>
                 </div>
 

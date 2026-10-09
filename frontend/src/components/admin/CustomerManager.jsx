@@ -223,11 +223,20 @@ const CustomerManager = () => {
                           className="p-3.5 rounded-xl bg-festival-dark border border-festival-border flex items-center justify-between text-xs gap-4"
                         >
                           <div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="font-mono font-bold text-amber-400">{o.orderId}</span>
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-950 text-amber-300">
                                 {o.status}
                               </span>
+                              {(o.paymentStatus === 'Paid') ? (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-950 text-emerald-300 border border-emerald-500/40">
+                                  PAID
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-rose-950 text-rose-300 border border-rose-500/40">
+                                  UNPAID
+                                </span>
+                              )}
                             </div>
                             <p className="text-slate-400 text-[11px] mt-0.5">
                               {formatDate(o.createdAt, true)} • {o.items?.length || 0} item(s)

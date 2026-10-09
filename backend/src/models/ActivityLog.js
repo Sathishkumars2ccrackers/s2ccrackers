@@ -21,6 +21,7 @@ const activityLogSchema = new mongoose.Schema(
         'PRICE_UPDATE',
         'STOCK_UPDATE',
         'ORDER_STATUS_UPDATE',
+        'PAYMENT_STATUS_UPDATE',
         'ORDER_CANCEL',
         'BANNER_CREATE',
         'BANNER_UPDATE',

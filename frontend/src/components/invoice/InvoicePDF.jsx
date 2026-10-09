@@ -137,6 +137,12 @@ const InvoicePDF = ({ order, onPrint, isStandalone = false }) => {
                 <span className="text-slate-400">Order Status:</span>
                 <span className="font-bold text-emerald-400 uppercase">{order.status || 'Confirmed'}</span>
               </div>
+              <div className="flex sm:justify-end justify-between gap-2">
+                <span className="text-slate-400">Payment Status:</span>
+                <span className={`font-bold uppercase ${(order.paymentStatus || 'Unpaid') === 'Paid' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {order.paymentStatus || 'Unpaid'}
+                </span>
+              </div>
             </div>
           </div>
         </div>
