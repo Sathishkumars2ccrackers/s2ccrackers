@@ -96,7 +96,7 @@ const PAGE_INCREMENT = 20;
 const ProductsPage = ({ initialCategory }) => {
   const [searchParams, setSearchParams] = useSearchParams();
   const routeParams = useParams();
-  const { totalItemsCount, cartSubtotal, openCart } = useCart();
+  const { totalItemsCount, cartSubtotal, finalPayableAmount, openCart } = useCart();
 
   const [masterProducts, setMasterProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -781,10 +781,10 @@ const ProductsPage = ({ initialCategory }) => {
 
               <div className="border-l border-festival-border pl-2 sm:pl-6 min-w-0">
                 <span className="text-[9px] sm:text-[10px] text-amber-300/80 uppercase font-bold block leading-tight truncate">
-                  Total Order
+                  Final Payable
                 </span>
                 <span className="text-sm sm:text-xl font-black text-amber-400 font-mono truncate block">
-                  {formatCurrency(cartSubtotal)}
+                  {formatCurrency(finalPayableAmount ?? cartSubtotal)}
                 </span>
               </div>
             </div>
@@ -802,7 +802,7 @@ const ProductsPage = ({ initialCategory }) => {
                 className="py-2 px-3 sm:py-2.5 sm:px-5 rounded-xl bg-gradient-to-r from-red-600 via-amber-500 to-orange-600 hover:from-red-500 hover:to-orange-500 text-slate-950 font-black text-xs sm:text-sm shadow-xl shadow-amber-950/60 transition-all flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95"
               >
                 <ShoppingCart className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">View Cart ({formatCurrency(cartSubtotal)})</span>
+                <span className="hidden sm:inline">View Cart ({formatCurrency(finalPayableAmount ?? cartSubtotal)})</span>
                 <span className="sm:hidden">Cart ({totalItemsCount})</span>
                 <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               </button>

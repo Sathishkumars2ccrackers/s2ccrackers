@@ -182,6 +182,63 @@ const orderSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    // Canonical unified pricing breakdown fields (Requirement 1)
+    totalMRP: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    totalProductDiscount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    productDiscountSaved: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    amountAfterProductDiscount: {
+      type: Number,
+      default: function () {
+        return this.subtotal || 0;
+      },
+      min: 0,
+    },
+    specialDiscount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    specialDiscountPercentage: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    specialDiscountPercent: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 100,
+    },
+    deliveryCharges: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    finalPayableAmount: {
+      type: Number,
+      default: function () {
+        return this.totalAmount || 0;
+      },
+      min: 0,
+    },
+    totalSavings: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     orderMrpTotal: {
       type: Number,
       default: 0,

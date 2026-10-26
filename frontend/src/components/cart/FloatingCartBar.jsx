@@ -7,7 +7,14 @@ import { useSettings } from '../../context/SettingsContext';
 import { formatCurrency } from '../../utils/formatters';
 
 const FloatingCartBar = () => {
-  const { totalItemsCount, cartSubtotal, totalSavings, openCart } = useCart();
+  const {
+    totalItemsCount,
+    cartSubtotal,
+    totalSavings,
+    orderPricing,
+    finalPayableAmount,
+    openCart,
+  } = useCart();
   const {
     minimumOrderAmount,
     freeDeliveryThreshold,
@@ -17,12 +24,14 @@ const FloatingCartBar = () => {
   } = useSettings();
   const location = useLocation();
 
-  // Hide floating cart on cart, checkout, order-success, and admin pages
+  // Hide floating cart on cart, checkout, order-success, admin, and catalog pages with their own sticky bar
   const isHiddenPage =
     location.pathname.startsWith('/checkout') ||
     location.pathname.startsWith('/cart') ||
     location.pathname.startsWith('/order-success') ||
-    location.pathname.startsWith('/admin');
+    location.pathname.startsWith('/admin') ||
+    location.pathname === '/products' ||
+    location.pathname.startsWith('/category');
 
   if (totalItemsCount === 0 || isHiddenPage) {
     return null;
@@ -33,8 +42,8 @@ const FloatingCartBar = () => {
     getFreeDeliveryProgress(cartSubtotal);
 
   const isMinOrderReached = cartSubtotal >= minimumOrderAmount;
-  const finalPayable = Math.max(0, cartSubtotal - discountAmount);
-  const combinedSavings = totalSavings + discountAmount;
+  const finalPayable = orderPricing?.finalPayableAmount !== undefined ? orderPricing.finalPayableAmount : finalPayableAmount;
+  const combinedSavings = orderPricing?.totalSavings !== undefined ? orderPricing.totalSavings : totalSavings;
 
   let progressPercent = 0;
   let progressMessage = '';
@@ -133,7 +142,7 @@ const FloatingCartBar = () => {
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
               <div className="text-right hidden xs:block">
                 <span className="text-[10px] text-amber-200/80 uppercase font-semibold block leading-tight">
-                  Cart Total
+                  Final Payable
                 </span>
                 <span className="text-sm sm:text-base font-black text-amber-400">
                   {formatCurrency(finalPayable)}

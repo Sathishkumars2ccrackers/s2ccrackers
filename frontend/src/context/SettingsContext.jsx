@@ -10,14 +10,13 @@ const DEFAULT_SETTINGS = {
   whatsappNumber: '919944476516',
   email: 's2ccrackers@gmail.com',
   address: 'Azhagar Crackers, 570 (East Part), Singapore Nagar, Chatitapatti, Madurai - 625014, Tamil Nadu, India',
-  minimumOrderAmount: 500,
-  minOrderAmount: 500,
-  freeDeliveryThreshold: 3000,
-  defaultDeliveryFee: 150,
+  minimumOrderAmount: 1000,
+  minOrderAmount: 1000,
+  freeDeliveryThreshold: 7000,
+  defaultDeliveryFee: 300,
   discountSlabs: [
-    { minAmount: 1000, discountPercentage: 5 },
-    { minAmount: 3000, discountPercentage: 10 },
-    { minAmount: 5000, discountPercentage: 15 },
+    { minAmount: 5000, discountPercentage: 2 },
+    { minAmount: 8000, discountPercentage: 3 },
   ],
   deliveryMessage: 'Door Delivery Available',
   cartProgressMessage: 'Add more items to unlock benefits',
@@ -107,7 +106,7 @@ export const SettingsProvider = ({ children }) => {
   // Free delivery progress calculation
   const getFreeDeliveryProgress = useCallback(
     (subtotal) => {
-      const threshold = Number(settings.freeDeliveryThreshold) || 3000;
+      const threshold = Number(settings.freeDeliveryThreshold) || 7000;
       const amount = Math.max(0, Number(subtotal) || 0);
       const isUnlocked = amount >= threshold;
       const amountNeeded = Math.max(0, threshold - amount);
@@ -126,10 +125,10 @@ export const SettingsProvider = ({ children }) => {
   const value = {
     settings,
     loading,
-    minimumOrderAmount: settings.minimumOrderAmount !== undefined ? settings.minimumOrderAmount : 500,
-    minOrderAmount: settings.minimumOrderAmount !== undefined ? settings.minimumOrderAmount : 500,
-    freeDeliveryThreshold: settings.freeDeliveryThreshold !== undefined ? settings.freeDeliveryThreshold : 3000,
-    defaultDeliveryFee: settings.defaultDeliveryFee !== undefined ? settings.defaultDeliveryFee : 150,
+    minimumOrderAmount: settings.minimumOrderAmount !== undefined ? settings.minimumOrderAmount : 1000,
+    minOrderAmount: settings.minimumOrderAmount !== undefined ? settings.minimumOrderAmount : 1000,
+    freeDeliveryThreshold: settings.freeDeliveryThreshold !== undefined ? settings.freeDeliveryThreshold : 7000,
+    defaultDeliveryFee: settings.defaultDeliveryFee !== undefined ? settings.defaultDeliveryFee : 300,
     discountSlabs: settings.discountSlabs || [],
     deliveryMessage: settings.deliveryMessage || 'Door Delivery Available',
     cartProgressMessage: settings.cartProgressMessage || 'Add more items to unlock benefits',

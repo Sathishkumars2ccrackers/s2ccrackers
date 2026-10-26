@@ -166,34 +166,39 @@ const placeOrder = async (req, res, next) => {
 
     // 2. Fetch Business Settings & Calculate Delivery Fee, Discount Slabs & Thresholds
     const setting = (await Setting.findOne()) || {
-      minimumOrderAmount: 500,
-      minOrderAmount: 500,
-      freeDeliveryThreshold: 3000,
-      defaultDeliveryFee: 150,
+      minimumOrderAmount: 1000,
+      minOrderAmount: 1000,
+      freeDeliveryThreshold: 7000,
+      defaultDeliveryFee: 300,
       discountSlabs: [
-        { minAmount: 1000, discountPercentage: 5 },
-        { minAmount: 3000, discountPercentage: 10 },
-        { minAmount: 5000, discountPercentage: 15 },
+        { minAmount: 5000, discountPercentage: 2 },
+        { minAmount: 8000, discountPercentage: 3 },
       ],
       whatsappNumber: '919944476516',
     };
 
-    const minRequired = setting.minimumOrderAmount !== undefined ? setting.minimumOrderAmount : (setting.minOrderAmount || 500);
+    const minRequired = setting.minimumOrderAmount !== undefined ? setting.minimumOrderAmount : (setting.minOrderAmount || 1000);
 
-    if (calculatedSubtotal < minRequired) {
+    const pricing = calculateOrderPricing(validatedItems, {
+      discountSlabs: setting.discountSlabs,
+      freeDeliveryThreshold: setting.freeDeliveryThreshold,
+      defaultDeliveryFee: setting.defaultDeliveryFee,
+    });
+
+    if (pricing.amountAfterProductDiscount < minRequired) {
       return res.status(400).json({
         success: false,
         message: `Minimum order amount is ₹${minRequired}. Please add more items to place your festival order.`,
       });
     }
 
-    const { discountPercentage, discountAmount } = calculateDiscount(calculatedSubtotal, setting.discountSlabs);
-
-    const freeThreshold = setting.freeDeliveryThreshold !== undefined ? setting.freeDeliveryThreshold : 3000;
-    const defaultFee = setting.defaultDeliveryFee !== undefined ? setting.defaultDeliveryFee : 150;
-    const deliveryFee = calculatedSubtotal >= freeThreshold ? 0 : defaultFee;
-    const totalAmount = Math.max(0, calculatedSubtotal - discountAmount + deliveryFee);
-    const orderSavingsTotal = Math.round((orderItemSavingsTotal + discountAmount) * 100) / 100;
+    const calculatedSubtotal = pricing.amountAfterProductDiscount;
+    const discountPercentage = pricing.specialDiscountPercentage;
+    const discountAmount = pricing.specialDiscount;
+    const deliveryFee = pricing.deliveryCharges;
+    const totalAmount = pricing.finalPayableAmount;
+    const orderSavingsTotal = pricing.totalSavings;
+    orderMrpTotal = pricing.totalMRP;
 
     // 3. Generate Order ID (S2C-YYYYMMDD-XXXXXX)
     let orderId = generateOrderId();
@@ -209,7 +214,7 @@ const placeOrder = async (req, res, next) => {
       }
     }
 
-    // 4. Create Order
+    // 4. Create Order with Unified Pricing Breakdown
     const cleanUid = (uid || customerDetails?.uid || '').toString().trim();
     const order = await Order.create({
       orderId,
@@ -226,14 +231,24 @@ const placeOrder = async (req, res, next) => {
         state: customerDetails.state ? customerDetails.state.trim() : 'Tamil Nadu',
       },
       items: validatedItems,
-      orderMrpTotal: Math.round(orderMrpTotal * 100) / 100,
-      orderSavingsTotal,
-      orderFinalTotal: totalAmount,
-      subtotal: calculatedSubtotal,
-      discountPercentage,
-      discountAmount,
-      deliveryFee,
-      totalAmount,
+      totalMRP: pricing.totalMRP,
+      totalProductDiscount: pricing.totalProductDiscount,
+      productDiscountSaved: pricing.totalProductDiscount,
+      amountAfterProductDiscount: pricing.amountAfterProductDiscount,
+      specialDiscount: pricing.specialDiscount,
+      specialDiscountPercentage: pricing.specialDiscountPercentage,
+      specialDiscountPercent: pricing.specialDiscountPercentage,
+      deliveryCharges: pricing.deliveryCharges,
+      finalPayableAmount: pricing.finalPayableAmount,
+      totalSavings: pricing.totalSavings,
+      orderMrpTotal: pricing.totalMRP,
+      orderSavingsTotal: pricing.totalSavings,
+      orderFinalTotal: pricing.finalPayableAmount,
+      subtotal: pricing.amountAfterProductDiscount,
+      discountPercentage: pricing.specialDiscountPercentage,
+      discountAmount: pricing.specialDiscount,
+      deliveryFee: pricing.deliveryCharges,
+      totalAmount: pricing.finalPayableAmount,
       paymentMethod: 'Door Delivery Available',
       paymentStatus: 'Unpaid',
       paymentReference: '',
@@ -403,10 +418,7 @@ const trackOrder = async (req, res, next) => {
       };
     });
 
-    const computedMrpTotal = order.orderMrpTotal || items.reduce((sum, i) => sum + (i.mrpPrice * i.quantity), 0);
-    const computedSavingsTotal = order.orderSavingsTotal !== undefined
-      ? order.orderSavingsTotal
-      : Math.max(0, computedMrpTotal - (order.totalAmount - (order.deliveryFee || 0)));
+    const orderTotals = calculateOrderTotalsFromOrder(order);
 
     const sanitizedOrder = {
       orderId: order.orderId,
@@ -428,14 +440,23 @@ const trackOrder = async (req, res, next) => {
       courierName: order.courierName || 'Sivakasi Surface Transport',
       estimatedDelivery: order.estimatedDelivery || (order.status === 'Delivered' ? 'Delivered' : '3-5 Business Days'),
       items,
-      orderMrpTotal: computedMrpTotal,
-      orderSavingsTotal: computedSavingsTotal,
-      orderFinalTotal: order.orderFinalTotal || order.totalAmount,
-      subtotal: order.subtotal,
-      discountPercentage: order.discountPercentage || 0,
-      discountAmount: order.discountAmount || 0,
-      deliveryFee: order.deliveryFee,
-      totalAmount: order.totalAmount,
+      totalMRP: orderTotals.totalMRP,
+      totalProductDiscount: orderTotals.totalProductDiscount,
+      amountAfterProductDiscount: orderTotals.amountAfterProductDiscount,
+      specialDiscount: orderTotals.specialDiscount,
+      specialDiscountPercentage: orderTotals.specialDiscountPercentage,
+      specialDiscountPercent: orderTotals.specialDiscountPercentage,
+      deliveryCharges: orderTotals.deliveryCharges,
+      finalPayableAmount: orderTotals.finalPayableAmount,
+      totalSavings: orderTotals.totalSavings,
+      orderMrpTotal: orderTotals.totalMRP,
+      orderSavingsTotal: orderTotals.totalSavings,
+      orderFinalTotal: orderTotals.finalPayableAmount,
+      subtotal: orderTotals.amountAfterProductDiscount,
+      discountPercentage: orderTotals.specialDiscountPercentage,
+      discountAmount: orderTotals.specialDiscount,
+      deliveryFee: orderTotals.deliveryCharges,
+      totalAmount: orderTotals.finalPayableAmount,
       paymentMethod: order.paymentMethod || 'Door Delivery Available',
       paymentStatus: order.paymentStatus || 'Unpaid',
       paymentReference: order.paymentReference || '',

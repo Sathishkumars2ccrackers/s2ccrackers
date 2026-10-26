@@ -33,13 +33,14 @@ import SEO from '../components/common/SEO';
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { cartItems = [], cartSubtotal = 0, totalMrp = 0, totalSavings = 0, totalItemsCount = 0, clearCart } = useCart() || {};
+  const { cartItems = [], cartSubtotal = 0, totalMrp = 0, totalSavings = 0, totalItemsCount = 0, orderPricing, clearCart } = useCart() || {};
   const {
-    minimumOrderAmount = 500,
-    freeDeliveryThreshold = 3000,
-    defaultDeliveryFee = 150,
+    minimumOrderAmount = 1000,
+    freeDeliveryThreshold = 7000,
+    defaultDeliveryFee = 300,
     deliveryMessage = 'Door Delivery Available',
     calculateDiscount,
+    settings,
   } = useSettings() || {};
 
   const [formData, setFormData] = useState({
@@ -64,20 +65,19 @@ const CheckoutPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Safe pricing calculation fallbacks
-  const safeSubtotal = Math.max(0, Number(cartSubtotal) || 0);
-  const discountResult = typeof calculateDiscount === 'function'
-    ? calculateDiscount(safeSubtotal)
-    : { discountPercentage: 0, discountAmount: 0 };
+  // Authoritative unified pricing calculation
+  const pricingTotals = orderPricing || calculateOrderPricing(cartItems, {
+    discountSlabs: settings?.discountSlabs,
+    freeDeliveryThreshold,
+    defaultDeliveryFee,
+  });
 
-  const discountPercentage = Number(discountResult?.discountPercentage) || 0;
-  const discountAmount = Number(discountResult?.discountAmount) || 0;
-
-  const threshold = Number(freeDeliveryThreshold) || 3000;
-  const standardFee = Number(defaultDeliveryFee) || 150;
-  const deliveryFee = safeSubtotal >= threshold ? 0 : standardFee;
-  const grandTotal = Math.max(0, safeSubtotal - discountAmount + deliveryFee);
-  const totalCombinedSavings = Math.max(0, (Number(totalSavings) || 0) + discountAmount);
+  const discountPercentage = pricingTotals.specialDiscountPercentage;
+  const discountAmount = pricingTotals.specialDiscount;
+  const deliveryFee = pricingTotals.deliveryCharges;
+  const grandTotal = pricingTotals.finalPayableAmount;
+  const totalCombinedSavings = pricingTotals.totalSavings;
+  const safeSubtotal = pricingTotals.amountAfterProductDiscount;
 
   const handleSubmitOrder = async (e) => {
     e.preventDefault();
@@ -168,7 +168,7 @@ const CheckoutPage = () => {
     }
 
     const calculatedCartSubtotal = sanitizedItems.reduce((acc, curr) => acc + (curr.subtotal || 0), 0);
-    const minOrder = Number(minimumOrderAmount) || 500;
+    const minOrder = Number(minimumOrderAmount) || 1000;
 
     if (calculatedCartSubtotal < minOrder) {
       setError(`Minimum order amount is ₹${minOrder}. Please add more items to place your order.`);
@@ -641,16 +641,7 @@ const CheckoutPage = () => {
 
               {/* Pricing Breakdown */}
               <PricingSummary
-                totals={{
-                  totalMRP: totalMrp,
-                  amountAfterProductDiscount: safeSubtotal,
-                  totalProductDiscount: totalSavings,
-                  specialDiscount: discountAmount,
-                  specialDiscountPercentage: discountPercentage,
-                  deliveryCharges: deliveryFee,
-                  finalPayableAmount: grandTotal,
-                  totalSavings: totalCombinedSavings,
-                }}
+                totals={pricingTotals}
                 amountLabel="Amount to be Paid After Discount"
                 showProminentSavings={true}
               />

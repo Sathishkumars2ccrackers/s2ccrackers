@@ -45,30 +45,29 @@ const settingSchema = new mongoose.Schema(
     },
     minimumOrderAmount: {
       type: Number,
-      default: 500,
+      default: 1000,
       min: 0,
     },
     minOrderAmount: {
       type: Number,
-      default: 500,
+      default: 1000,
       min: 0,
     },
     freeDeliveryThreshold: {
       type: Number,
-      default: 3000,
+      default: 7000,
       min: 0,
     },
     defaultDeliveryFee: {
       type: Number,
-      default: 150,
+      default: 300,
       min: 0,
     },
     discountSlabs: {
       type: [discountSlabSchema],
       default: [
-        { minAmount: 1000, discountPercentage: 5 },
-        { minAmount: 3000, discountPercentage: 10 },
-        { minAmount: 5000, discountPercentage: 15 },
+        { minAmount: 5000, discountPercentage: 2 },
+        { minAmount: 8000, discountPercentage: 3 },
       ],
     },
     deliveryMessage: {

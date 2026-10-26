@@ -219,7 +219,7 @@ const generateAdminEmailHTML = (order) => {
         <p style="margin: 3px 0;"><strong>Total MRP Value:</strong> ₹${totals.totalMRP.toLocaleString('en-IN')}</p>
         <p style="margin: 3px 0; color: #047857;"><strong>Product Discount Saved:</strong> -₹${totals.totalProductDiscount.toLocaleString('en-IN')}</p>
         <p style="margin: 3px 0;"><strong>Amount to be Paid After Discount:</strong> ₹${totals.amountAfterProductDiscount.toLocaleString('en-IN')}</p>
-        <p style="margin: 3px 0;"><strong>Special Discount:</strong> ${totals.specialDiscount > 0 ? `-₹${totals.specialDiscount.toLocaleString('en-IN')}` : '₹0'}</p>
+        <p style="margin: 3px 0;"><strong>Special Discount${totals.specialDiscountPercentage > 0 ? ` (${totals.specialDiscountPercentage}%)` : ''}:</strong> ${totals.specialDiscount > 0 ? `-₹${totals.specialDiscount.toLocaleString('en-IN')}` : '₹0'}</p>
         <p style="margin: 3px 0;"><strong>Delivery Charges:</strong> ${totals.deliveryCharges === 0 ? 'FREE' : `₹${totals.deliveryCharges.toLocaleString('en-IN')}`}</p>
         <p style="margin: 6px 0 3px 0; font-size: 15px; font-weight: bold; color: #b91c1c;"><strong>FINAL PAYABLE AMOUNT:</strong> ₹${totals.finalPayableAmount.toLocaleString('en-IN')}</p>
         <p style="margin: 3px 0; font-weight: bold; color: #166534;"><strong>TOTAL SAVINGS:</strong> ₹${totals.totalSavings.toLocaleString('en-IN')}</p>

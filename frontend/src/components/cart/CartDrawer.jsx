@@ -17,6 +17,7 @@ const CartDrawer = () => {
     totalMrp,
     totalSavings,
     totalItemsCount,
+    orderPricing,
     isCartOpen,
     closeCart,
     updateQuantity,
@@ -238,16 +239,7 @@ const CartDrawer = () => {
                 <div className="p-4 sm:p-5 border-t border-festival-border bg-festival-dark/95 space-y-3">
                   {/* Summary Breakdown */}
                   <PricingSummary
-                    totals={{
-                      totalMRP: totalMrp,
-                      amountAfterProductDiscount: cartSubtotal,
-                      totalProductDiscount: totalSavings,
-                      specialDiscount: discountAmount,
-                      specialDiscountPercentage: discountPercentage,
-                      deliveryCharges: isFreeDeliveryUnlocked ? 0 : 150,
-                      finalPayableAmount: Math.max(0, cartSubtotal - discountAmount + (isFreeDeliveryUnlocked ? 0 : 150)),
-                      totalSavings: totalSavings + discountAmount,
-                    }}
+                    totals={orderPricing}
                     amountLabel="Amount to be Paid After Discount"
                     showProminentSavings={true}
                   />

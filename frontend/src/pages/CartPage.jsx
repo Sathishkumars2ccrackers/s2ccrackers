@@ -18,6 +18,7 @@ const CartPage = () => {
     totalMrp,
     totalSavings,
     totalItemsCount,
+    orderPricing,
     updateQuantity,
     removeFromCart,
     clearCart,
@@ -249,16 +250,7 @@ const CartPage = () => {
               </h3>
 
               <PricingSummary
-                totals={{
-                  totalMRP: totalMrp,
-                  amountAfterProductDiscount: cartSubtotal,
-                  totalProductDiscount: totalSavings,
-                  specialDiscount: discountAmount,
-                  specialDiscountPercentage: discountPercentage,
-                  deliveryCharges: isFreeDeliveryUnlocked ? 0 : 150,
-                  finalPayableAmount: Math.max(0, cartSubtotal - discountAmount + (isFreeDeliveryUnlocked ? 0 : 150)),
-                  totalSavings: totalSavings + discountAmount,
-                }}
+                totals={orderPricing}
                 amountLabel="Amount to be Paid After Discount"
                 showProminentSavings={true}
               />

@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { useToast } from './ToastContext';
+import { useSettings } from './SettingsContext';
 import { getProductImage } from '../utils/imageUrlUtils';
 import { calculateItemPricing, calculateOrderPricing } from '../utils/pricing';
 
@@ -9,6 +10,7 @@ const CART_STORAGE_KEY = 's2c_shopping_cart';
 
 export const CartProvider = ({ children }) => {
   const { toastSuccess, toastWarning, toastInfo } = useToast();
+  const { settings } = useSettings();
 
   const [cartItems, setCartItems] = useState(() => {
     try {
@@ -149,13 +151,22 @@ export const CartProvider = ({ children }) => {
     localStorage.removeItem(CART_STORAGE_KEY);
   };
 
-  // Unified Pricing Model for Cart Totals
-  const orderPricing = calculateOrderPricing(cartItems);
+  // Unified Pricing Model for Cart Totals synced with live dynamic settings
+  const pricingOptions = useMemo(() => ({
+    discountSlabs: settings?.discountSlabs,
+    freeDeliveryThreshold: settings?.freeDeliveryThreshold,
+    defaultDeliveryFee: settings?.defaultDeliveryFee,
+  }), [settings?.discountSlabs, settings?.freeDeliveryThreshold, settings?.defaultDeliveryFee]);
 
-  const cartSubtotal = orderPricing.orderItemsSubtotal;
-  const totalOriginalPrice = orderPricing.orderMrpTotal;
-  const totalMrp = orderPricing.orderMrpTotal;
-  const totalSavings = orderPricing.orderItemSavingsTotal;
+  const orderPricing = useMemo(
+    () => calculateOrderPricing(cartItems, pricingOptions),
+    [cartItems, pricingOptions]
+  );
+
+  const cartSubtotal = orderPricing.amountAfterProductDiscount;
+  const totalOriginalPrice = orderPricing.totalMRP;
+  const totalMrp = orderPricing.totalMRP;
+  const totalSavings = orderPricing.totalSavings;
   const totalItemsCount = cartItems.reduce((sum, item) => {
     const qty = Math.max(0, parseInt(item?.quantity, 10) || 0);
     return sum + qty;
@@ -174,6 +185,8 @@ export const CartProvider = ({ children }) => {
         totalProductDiscount: orderPricing.totalProductDiscount,
         amountAfterProductDiscount: orderPricing.amountAfterProductDiscount,
         specialDiscount: orderPricing.specialDiscount,
+        specialDiscountPercentage: orderPricing.specialDiscountPercentage,
+        specialDiscountPercent: orderPricing.specialDiscountPercentage,
         deliveryCharges: orderPricing.deliveryCharges,
         finalPayableAmount: orderPricing.finalPayableAmount,
         totalSavings,
