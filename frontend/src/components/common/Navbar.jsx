@@ -201,7 +201,9 @@ const Navbar = () => {
             <motion.button
               onClick={openCart}
               whileTap={{ scale: 0.95 }}
-              className="relative flex items-center gap-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white px-3 sm:px-4 py-2 rounded-full font-bold text-sm shadow-lg shadow-red-950/50 border border-amber-400/30 transition-all"
+              title={`Cart Subtotal: ${formatCurrency(cartSubtotal)} (Delivery & discounts calculated in checkout)`}
+              aria-label={`Shopping cart with ${totalItemsCount} items, Subtotal: ${formatCurrency(cartSubtotal)}`}
+              className="relative flex items-center gap-2 bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white px-3 sm:px-4 py-2 rounded-full font-bold text-sm shadow-lg shadow-red-950/50 border border-amber-400/30 transition-all cursor-pointer"
             >
               <div className="relative">
                 <ShoppingBag className="w-5 h-5" />
@@ -212,7 +214,7 @@ const Navbar = () => {
                 )}
               </div>
               <div className="hidden md:flex flex-col text-left leading-tight">
-                <span className="text-[10px] text-amber-100 font-normal uppercase tracking-wider">Cart Total</span>
+                <span className="text-[10px] text-amber-100 font-normal uppercase tracking-wider">Subtotal</span>
                 <span className="text-xs font-bold text-white">{formatCurrency(cartSubtotal)}</span>
               </div>
             </motion.button>

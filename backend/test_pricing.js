@@ -293,6 +293,53 @@ runTest('Backward Compatibility with Legacy Orders', () => {
   assert.strictEqual(reconstructed.totalSavings, 6600); // 6500 + 100
 });
 
+// -----------------------------------------------------------------------------
+// Test 9: Exact Reproduction of ₹2,787 Subtotal vs ₹3,087 Final Payable
+// -----------------------------------------------------------------------------
+runTest('Navbar Subtotal (₹2,787) vs Floating Cart & Checkout Final Payable (₹3,087)', () => {
+  const customerCart = [
+    { productId: 'item_1', name: 'Deluxe Sparklers Pack', originalPrice: 5000, price: 1500, quantity: 1 },
+    { productId: 'item_2', name: 'Fancy Chakkars 25pcs', originalPrice: 3000, price: 1287, quantity: 1 },
+  ];
+
+  const productionOptions = {
+    freeDeliveryThreshold: 7000,
+    defaultDeliveryFee: 300,
+    discountSlabs: [
+      { minAmount: 5000, discountPercentage: 2 },
+      { minAmount: 8000, discountPercentage: 3 },
+    ],
+  };
+
+  const totals = calculateOrderPricing(customerCart, productionOptions);
+
+  // 1. Navbar Top-Right Cart displays item subtotal after product discount:
+  const navbarSubtotal = totals.amountAfterProductDiscount;
+  assert.strictEqual(navbarSubtotal, 2787, 'Navbar subtotal must be exactly ₹2,787');
+
+  // 2. Special discount: Below ₹5,000 threshold, so ₹0
+  assert.strictEqual(totals.specialDiscount, 0, 'Special discount should be 0 for subtotal < 5000');
+
+  // 3. Delivery charges: Below ₹7,000 free delivery threshold, so standard ₹300
+  assert.strictEqual(totals.deliveryCharges, 300, 'Delivery charges should be ₹300 for subtotal < 7000');
+
+  // 4. Floating Cart and Checkout display final payable amount:
+  const floatingCartPayable = totals.finalPayableAmount;
+  assert.strictEqual(floatingCartPayable, 3087, 'Floating cart and checkout payable must be ₹3,087');
+
+  // 5. Difference between floating cart and top-right cart is exactly the delivery charge:
+  assert.strictEqual(floatingCartPayable - navbarSubtotal, 300, 'Difference between payable and subtotal must equal delivery fee ₹300');
+
+  // 6. Complete transparent pricing breakdown:
+  assert.strictEqual(totals.totalMRP, 8000);
+  assert.strictEqual(totals.totalProductDiscount, 5213);
+  assert.strictEqual(totals.amountAfterProductDiscount, 2787);
+  assert.strictEqual(totals.specialDiscount, 0);
+  assert.strictEqual(totals.deliveryCharges, 300);
+  assert.strictEqual(totals.finalPayableAmount, 3087);
+  assert.strictEqual(totals.totalSavings, 5213);
+});
+
 console.log('\n====================================================');
 console.log(`📊 TEST RESULTS: ${testsPassed} / ${testsTotal} PASSED`);
 console.log('====================================================');

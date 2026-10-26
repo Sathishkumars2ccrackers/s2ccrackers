@@ -140,7 +140,10 @@ const FloatingCartBar = () => {
 
             {/* Right: Cart Value & View Cart Button */}
             <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
-              <div className="text-right hidden xs:block">
+              <div
+                className="text-right flex flex-col justify-center flex-shrink-0"
+                title={`Final Payable: ${formatCurrency(finalPayable)} (includes item subtotal, eligible special discounts, and delivery charges)`}
+              >
                 <span className="text-[10px] text-amber-200/80 uppercase font-semibold block leading-tight">
                   Final Payable
                 </span>
